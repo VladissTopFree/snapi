@@ -1,0 +1,4555 @@
+<!DOCTYPE html> 
+<html lang="ru"> 
+<head> 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+<title>Snapi</title>
+
+<script>
+  const APP_VERSION = "v2.2.6";
+  const APP_BUILD = "BETA"; 
+  document.title = "Snapi " + APP_VERSION + " BETA";
+
+  window.isNewUser = localStorage.getItem('Snapi_visited') === null;
+
+  if (window.isNewUser) {
+      localStorage.setItem('Snapi_visited', 'true');
+      console.log('New user');
+  } else {
+      console.log('Not a new user');
+  }
+
+
+  const MANUAL_FALLBACK_DATE = "6 Apr 2026";
+
+  const SUBSCRIPTIONS = [
+    { hash: "b649217db02e99c3c766b454c09787b95870daa99703e67aff87b6c4e6b92f23", period: "21 May 2026" }
+  ];
+
+  window.hasActiveSubscription = false;
+
+  async function getRealTime() {
+      try {
+          const res = await fetch('https://worldtimeapi.org/api/timezone/Etc/UTC');
+          const data = await res.json();
+          return new Date(data.datetime);
+      } catch (e) {
+          return new Date(MANUAL_FALLBACK_DATE);
+      }
+  }
+
+  async function checkAndApplySubscription(userId) {
+      const userHash = await hashTelegramId(userId);
+
+      const userSub = SUBSCRIPTIONS.find(s => s.hash === userHash);
+      if (!userSub) return;
+
+      const currentTime = await getRealTime();
+      const expireTime = new Date(userSub.period);
+
+      if (currentTime <= expireTime) {
+          window.hasActiveSubscription = true;
+
+          const subProfile = document.getElementById('sub-profile-status');
+          const subMenu = document.getElementById('sub-menu-status');
+          const subOverlay = document.getElementById('sub-overlay-status');
+          const subBtn = document.querySelector('.ios-sub-btn');
+
+          if (subProfile) subProfile.innerText = 'Подписка активна до ' + userSub.period;
+          if (subMenu) subMenu.innerText = 'активна';
+          if (subOverlay) subOverlay.innerText = 'активирована до ' + userSub.period;
+          if (subBtn) subBtn.innerText = 'Продлить подписку';
+      }
+  }
+
+  async function checkUsageLimit() {
+    if (window.hasActiveSubscription) return { allowed: true };
+
+    const usedThisMonth = await localDB.getDownloadsThisMonth();
+    if (usedThisMonth >= 3) {
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const options = { day: 'numeric', month: 'long' };
+        const dateStr = nextMonth.toLocaleDateString('ru-RU', options);
+        
+        alert(`В этом месяце Вы достигли лимита загрузки работ, приходите ${dateStr}.`);
+        return { allowed: false };
+    }
+    return { allowed: true };
+}
+
+async function hashTelegramId(id) {
+    const msgBuffer = new TextEncoder().encode(id.toString());
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  body.os-android,
+  body.os-android #layer-panel,
+  body.os-android input,
+  body.os-android button,
+  body.os-android #app-version-display {
+    font-family: 'Roboto', sans-serif !important;
+  }
+
+  body.os-non-apple:not(.os-android),
+  body.os-non-apple:not(.os-android) #layer-panel,
+  body.os-non-apple:not(.os-android) input,
+  body.os-non-apple:not(.os-android) button,
+  body.os-non-apple:not(.os-android) #app-version-display {
+    font-family: 'Segoe UI', sans-serif !important;
+  }
+
+  body.os-android #ios-btn-create {
+    margin-bottom: 41px !important; 
+  }
+
+  body.os-android .ios-btn-next {
+    bottom: 81px !important; 
+  }
+
+  body.os-android #subscription-overlay .ios-container {
+    padding-bottom: 71px !important;
+  }
+
+  body.os-android .bottom-fade-container {
+    padding-bottom: 46px !important;
+  }
+
+  body.os-android #download-overlay {
+    padding-bottom: 86px !important;
+  }
+
+  body.os-android .ios-icon-box,
+  body.os-android .canvas-display-wrapper canvas {
+    border-radius: 12px !important; 
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; 
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  @font-face { font-family: 'Font16103'; src: url('16103.otf') format('opentype'); }
+  @font-face { font-family: 'LilitaOneRus'; src: url('lilitaonerus.ttf') format('truetype'); }
+  @font-face { font-family: 'SupercellMagic'; src: url('Supercell-Magic.ttf') format('truetype'); }
+  @font-face { font-family: 'PusiaBold'; src: url('Pusia Bold.otf') format('opentype'); }
+  @font-face { font-family: 'BebasNeue'; src: url('bebasneuecyrillic.ttf') format('truetype'); }
+  @font-face { font-family: 'AmericanCaptain'; src: url('americancaptaincyrillic.ttf') format('truetype'); }
+  @font-face { font-family: 'ArialRoundedOld'; src: local('Arial Rounded MT Bold'), local('ArialRoundedMTBold'), url('Arial%20Rounded%20Old.ttf') format('truetype'); font-display: swap; }
+
+  :root {
+    --app-top-padding: 140px;
+    --app-top-padding-sm: 146px;
+    --app-result-padding: 96px;
+  }
+
+  body.os-desktop {
+    --app-top-padding: 20px;
+    --app-top-padding-sm: 26px;
+    --app-result-padding: 20px;
+  }
+
+  body:not(.os-desktop) #ios-dashboard,
+  body:not(.os-desktop) #saved-projects-overlay,
+  body:not(.os-desktop) #settings-overlay {
+    --app-top-padding: 108px;
+    --app-top-padding-sm: 114px;
+  }
+
+  html, body {
+    width: 100%; 
+    max-width: 100%;
+    height: var(--tg-viewport-stable-height, 100vh);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; 
+    overflow-y: hidden; 
+    touch-action: none; 
+  }
+
+  body {
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7);
+    color: var(--tg-theme-text-color, #000000);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; 
+    transition: background 0.3s, color 0.3s;
+    
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  input {
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+  
+  input[type="file"] { display: none; }
+
+  #result-box {
+    display: none;
+    width: 100%;
+    height: var(--tg-viewport-stable-height, 100vh);
+    overflow: hidden; 
+    z-index: 20;
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7); 
+    box-sizing: border-box;
+  }
+
+  #result-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%; 
+    max-width: 440px;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 0 auto;
+    padding-top: var(--app-result-padding); 
+    box-sizing: border-box;
+  }
+
+  #cards-container {
+    position: relative; 
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0; 
+    padding: 0 20px 5px 20px;
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7);
+    box-sizing: border-box;
+    z-index: 100;
+  }
+
+  #cards-container::after {
+    content: "";
+    position: absolute;
+    bottom: -40px; 
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7);
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .card-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: transparent;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    width: 100%;
+  }
+
+  .canvas-display-wrapper {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 24px;
+    background: transparent;
+  }
+  
+  .canvas-display-wrapper canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 24px;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+  
+  #layer-panel {
+    width: 100%;
+    flex-grow: 1; 
+    margin-top: -30px; 
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    background: transparent;
+    display: none; 
+    flex-direction: column;
+    z-index: 50;
+    box-shadow: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 40px 20px 120px 20px; 
+    box-sizing: border-box;
+  }
+
+  .bottom-fade-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 180px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding-top: 20px;
+    padding-bottom: 40px; 
+    box-sizing: border-box;
+  }
+
+  .bottom-fade-container::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7);
+    -webkit-mask-image: linear-gradient(to top, black 55%, transparent 100%);
+    mask-image: linear-gradient(to top, black 55%, transparent 100%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .skeleton-box {
+    background: linear-gradient(110deg, var(--tg-theme-section-bg-color, #ffffff) 30%, var(--tg-theme-secondary-bg-color, #F5F5F9) 50%, var(--tg-theme-section-bg-color, #ffffff) 70%);
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  }
+
+  @keyframes skeleton-shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .skeleton-canvas {
+    width: 100%;
+    height: 250px;
+    border-radius: 24px;
+    margin-top: 10px;
+    margin-bottom: 24px;
+  }
+
+  .skeleton-row {
+    width: 100%;
+    height: 64px;
+    border-radius: 32px;
+    margin-bottom: 16px;
+  }
+
+  .skeleton-panel-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @keyframes fadeInContent {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in-anim {
+    animation: fadeInContent 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+
+  .ios-section-title {
+    color: var(--tg-theme-subtitle-text-color, #8E8E93);
+    font-size: 13px;
+    text-transform: uppercase;
+    margin-top: 20px;
+    margin-bottom: 12px; 
+    margin-left: 14px;
+    letter-spacing: 0.5px;
+    width: 100%;
+  }
+
+  .ios-layer-group {
+    background: var(--tg-theme-section-bg-color, #ffffff);
+    border-radius: 24px;
+    padding: 0 20px;
+    margin-bottom: 24px; 
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .ios-layer-row {
+    display: flex;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 0.5px solid var(--tg-theme-section-separator-color, #E5E5EA);
+    border-bottom-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent);
+    gap: 12px;
+    min-height: 54px; 
+  }
+
+  .ios-layer-row:last-child {
+    border-bottom: none;
+  }
+
+  .ios-layer-name {
+    flex-grow: 1;
+    font-size: 17px;
+    color: var(--tg-theme-text-color, #000000);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ios-layer-action-text {
+    font-size: 13px;
+    color: var(--tg-theme-subtitle-text-color, #8E8E93);
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+
+  .ios-price-input {
+    background: #99D5F9;
+    color: #fff;
+    border-radius: 12px;
+    border: none;
+    padding: 0 10px;
+    height: 28px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    width: 55px;
+    outline: none;
+    font-family: -apple-system, sans-serif;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+
+  .ios-pill-btn {
+    background: var(--tg-theme-accent-text-color);
+    color: #fff;
+    border-radius: 12px;
+    padding: 0 12px;
+    height: 28px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .ios-pill-btn:active { transform: scale(0.95); opacity: 0.8; }
+
+  .ios-icon-btn {
+    color: var(--tg-theme-text-color, #000000);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  .ios-icon-btn:active { opacity: 0.4; }
+
+  .ios-icon-btn svg { width: 22px; height: 22px; transition: fill 0.2s; }
+  .ios-eye-icon.hidden svg { fill: var(--tg-theme-section-separator-color, #E5E5EA) !important; }
+
+  .ios-stroke-control {
+    display: flex;
+    align-items: center;
+    background: var(--tg-theme-accent-text-color);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 28px;
+    flex-shrink: 0;
+  }
+  .ios-stroke-btn {
+    background: transparent;
+    color: #fff;
+    border: none;
+    padding: 0 12px;
+    font-size: 16px;
+    cursor: pointer;
+    height: 100%;
+  }
+  .ios-stroke-val {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 0 12px;
+    font-size: 14px;
+    font-weight: bold;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  input[type=range].ios-slider {
+    -webkit-appearance: none;
+    width: 90px;
+    background: transparent;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  input[type=range].ios-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 18px;
+    width: 28px; 
+    border-radius: 10px; 
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+    margin-top: -7px;
+    cursor: pointer;
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  body.os-non-apple input[type=range].ios-slider::-webkit-slider-thumb {
+    box-shadow: none !important;
+    border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  }
+
+  input[type=range].ios-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    background: var(--tg-theme-accent-text-color);
+    border-radius: 2px;
+  }
+
+  .ios-font-label {
+    font-size: 13px;
+    color: var(--tg-theme-subtitle-text-color, #8E8E93);
+    margin-top: 14px;
+    margin-bottom: 8px;
+  }
+  .ios-font-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-bottom: 14px;
+    border-bottom: 0.5px solid var(--tg-theme-section-separator-color, #E5E5EA);
+    border-bottom-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent);
+  }
+  .ios-font-item {
+    font-size: 14px;
+    text-align: center;
+    padding: 6px 0;
+    color: var(--tg-theme-text-color, #000000);
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    border-radius: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: border-color 0.4s ease-in-out; 
+  }
+  .ios-font-item.active {
+    border-color: var(--tg-theme-accent-text-color);
+  }
+
+  .ios-style-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    padding-bottom: 14px;
+  }
+  .ios-style-item {
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: border-color 0.4s ease-in-out; 
+  }
+  .ios-style-item.active {
+    border-color: #00A0FF;
+  }
+
+  #ios-dashboard {
+    width: 100%;
+    height: var(--tg-viewport-stable-height, 100vh);
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7);
+    display: flex;
+    justify-content: center;
+    color: var(--tg-theme-text-color, #000000);
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  
+  .ios-container {
+    width: 100%;
+    max-width: 440px;
+    padding: var(--app-top-padding) 20px 40px 20px; 
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .ios-card {
+    background: var(--tg-theme-section-bg-color, #ffffff);
+    border-radius: 24px; 
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    min-height: 54px; 
+    width: 100%;
+    margin-bottom: 24px; 
+  }
+
+  .ios-card.ios-profile { padding: 16px 20px; min-height: auto; }
+  .ios-card-group { background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 24px; padding: 0 20px; display: flex; flex-direction: column; width: 100%; margin-bottom: 24px; overflow: hidden; flex-shrink: 0; }
+
+  .ios-avatar {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    margin-right: 16px;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--tg-theme-button-color, #4A90E2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  
+  .ios-avatar.loading {
+    background: linear-gradient(110deg, var(--tg-theme-section-bg-color, #ffffff) 30%, var(--tg-theme-secondary-bg-color, #F5F5F9) 50%, var(--tg-theme-section-bg-color, #ffffff) 70%);
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  }
+
+  .ios-profile-info { display: flex; flex-direction: column; gap: 4px; }
+  .ios-id { color: var(--tg-theme-subtitle-text-color, #8E8E93); font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+  .ios-sub { color: var(--tg-theme-text-color, #000000); font-size: 14px; font-weight: 400; }
+
+  .ios-menu-item { display: flex; align-items: center; padding: 10px 20px; margin: 0 -20px; cursor: pointer; transition: background-color 0.2s; min-height: 54px; border-radius: 0; }
+  .ios-menu-item:active { background-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent); }
+  .ios-card.ios-menu-item { padding: 10px 20px; margin: 0 0 24px 0; border-radius: 100px; }
+
+  .ios-icon-box {
+    width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    margin-right: 14px; flex-shrink: 0;
+    box-shadow: 
+      inset 0px 1.5px 1.5px rgba(255, 255, 255, 0.2), 
+      inset 0px -1.5px 1.5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .ios-menu-text { font-size: 17px; font-weight: 400; flex-grow: 1; color: var(--tg-theme-text-color, #000000); }
+  .ios-menu-value { color: var(--tg-theme-subtitle-text-color, #8E8E93); font-size: 17px; margin-right: 12px; }
+  .ios-chevron { display: flex; align-items: center; opacity: 0.5; }
+  .ios-divider { height: 0.5px; background: var(--tg-theme-section-separator-color, #E5E5EA); margin-left: 48px; margin-right: -20px; opacity: 0.5; }
+
+  .ios-section-title {
+    color: var(--tg-theme-section-header-text-color, #8E8E93);
+    font-size: 13px;
+    text-transform: uppercase;
+    margin-top: 10px;
+    margin-bottom: 12px; 
+    margin-left: 14px;
+    letter-spacing: 0.5px;
+    width: 100%;
+  }
+
+  @keyframes shimmerBg {
+    0% { background-position: 100% 50%; }
+    25% { background-position: 0% 50%; } 
+    100% { background-position: 0% 50%; } 
+  }
+
+  .ios-action-btn {
+    background: var(--tg-theme-button-color, #3390ec);
+    color: var(--tg-theme-button-text-color, #ffffff);
+    border: none;
+    border-radius: 40px;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 
+      inset 0px 1px 0px rgba(255, 255, 255, 0.2),   
+      inset 0px -1px 0px rgba(0, 0, 0, 0.15),        
+      0px 24px 48px rgba(0, 0, 0, 0.15);            
+    height: 54px; 
+    width: calc(100vw - 104px); 
+    max-width: 336px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #ios-btn-create { 
+    margin-top: auto; 
+    align-self: center; 
+    margin-bottom: 10px;
+    background: linear-gradient(110deg, var(--tg-theme-button-color, #3390ec) 38%, #8ad0ff 50%, var(--tg-theme-button-color, #3390ec) 62%);
+    background-size: 300% 100%;
+    animation: shimmerBg 4s infinite linear;
+  }
+
+  .ios-sub-btn {
+    background: linear-gradient(110deg, #9b8dff 38%, #d9a5ff 50%, #9b8dff 62%);
+    background-size: 300% 100%;
+    animation: shimmerBg 4s infinite linear;
+  }
+
+  .ios-btn-next {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    display: none; 
+  }
+
+  .ios-btn-next.show { display: flex; animation: slideUpFade 0.3s ease-out forwards; }
+  @keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+
+  #download-overlay {
+    width: 100%;
+    height: var(--tg-viewport-stable-height, 100vh);
+    overflow: hidden; 
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--app-top-padding) 20px 80px 20px; 
+    box-sizing: border-box;
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7);
+  }
+
+  .dl-buttons-container {
+    width: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    margin-top: 30px;
+  }
+
+  .save-btn-wrapper {
+    width: 100%;
+    height: 54px;
+    margin-bottom: 16px; 
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, margin-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, transform 0.2s ease-in, opacity 0.2s ease-in;
+    opacity: 1;
+    transform: scale(1);
+    transform-origin: center;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+  }
+  .save-btn-wrapper.hidden-animated {
+    height: 0;
+    margin-bottom: 0;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: transform 0.2s ease-out, opacity 0.2s ease-out, height 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.15s, margin-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
+  }
+
+  .btn-crossfade-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-text-layer {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .btn-text-default {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+  .btn-text-loading {
+    opacity: 0;
+    filter: blur(8px);
+    transform: scale(0.9);
+  }
+  .ios-action-btn.is-loading .btn-text-default,
+  .ios-btn-secondary.is-loading .btn-text-default {
+    opacity: 0;
+    filter: blur(8px);
+    transform: scale(1.1);
+  }
+  .ios-action-btn.is-loading .btn-text-loading,
+  .ios-btn-secondary.is-loading .btn-text-loading {
+    opacity: 1;
+    filter: blur(0px);
+    transform: scale(1);
+  }
+  
+  @keyframes textBlurIn {
+    0% { filter: blur(10px); opacity: 0; transform: scale(0.96); }
+    100% { filter: blur(0px); opacity: 1; transform: scale(1); }
+  }
+
+  .dl-animate .dl-title,
+  .dl-animate .dl-subtitle,
+  .dl-animate .dl-preview,
+  .dl-animate .dl-buttons-container {
+    opacity: 0;
+    animation: textBlurIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  .dl-animate .dl-title { animation-delay: 0.05s; }
+  .dl-animate .dl-subtitle { animation-delay: 0.15s; }
+  .dl-animate .dl-preview { animation-delay: 0.25s; }
+  .dl-animate .dl-buttons-container { animation-delay: 0.35s; }
+  
+  .dl-title {
+    font-size: 34px; font-weight: 600; color: var(--tg-theme-text-color, #000); margin-bottom: 12px; text-align: center;
+  }
+  .dl-subtitle {
+    font-size: 16px; color: var(--tg-theme-subtitle-text-color, #8E8E93); text-align: center; line-height: 1.3; margin-bottom: 30px; max-width: 330px;
+  }
+  .dl-preview {
+    width: 100%; max-width: 380px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: auto; display: block;
+  }
+
+  .ios-btn-secondary {
+    background: color-mix(in srgb, var(--tg-theme-button-color) 30%, transparent); 
+    color: #fff;
+    border: none;
+    border-radius: 40px;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    height: 54px;
+    width: calc(100vw - 104px);
+    max-width: 336px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #saved-projects-overlay {
+    position: relative;
+    width: 100%;
+    height: var(--tg-viewport-stable-height, 100vh);
+    overflow: hidden;
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7);
+    display: none;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+
+  #sp-content-state {
+    flex-grow: 1;
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+  
+  .sp-empty-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; 
+    flex-grow: 1;
+    width: 100%;
+    padding-top: var(--app-top-padding-sm);
+    padding-left: 20px;
+    padding-right: 20px;
+    cursor: default; 
+  }
+  
+  @keyframes emptyStateBlurIn {
+    0% { filter: blur(10px); opacity: 0; transform: scale(0.95); }
+    100% { filter: blur(0px); opacity: 1; transform: scale(1); }
+  }
+  .sp-empty-wrap.show {
+    animation: emptyStateBlurIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .sp-empty-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--tg-theme-text-color, #000);
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .sp-empty-subtitle {
+    font-size: 17px;
+    color: var(--tg-theme-subtitle-text-color, #8E8E93);
+    text-align: center;
+    line-height: 1.3;
+    font-weight: 400;
+  }
+
+.sp-row {
+    position: relative; 
+    display: flex; align-items: center; padding: 12px 20px; margin: 0 -20px; border-radius: 0;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 120px; 
+    opacity: 1;
+    overflow: hidden;
+  }
+
+  .sp-row::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 114px; 
+    right: 0;
+    height: 0.5px;
+    background-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent);
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+  }
+
+  .sp-row:last-child::after { 
+    display: none; 
+  }
+  
+  .sp-row:active { 
+    background-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent); 
+  }
+  
+  .sp-row.deleting {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  
+  .sp-row.deleting::after {
+    background-color: transparent;
+  }
+  
+  .sp-img {
+    width: 80px; height: 48px; border-radius: 6px; object-fit: cover; margin-right: 14px; background: #ddd;
+  }
+  .sp-title {
+    flex-grow: 1; font-size: 17px; color: var(--tg-theme-text-color, #000); font-weight: 400;
+  }
+  .sp-del-btn {
+    background: color-mix(in srgb, var(--tg-theme-destructive-text-color) 10%, transparent); color: var(--tg-theme-destructive-text-color); border: none; border-radius: 12px; padding: 6px 14px; font-size: 14px; font-weight: 500; cursor: pointer; margin-right: 12px;
+  }
+  .sp-del-btn:active { opacity: 0.6; }
+  
+  .sp-info-text {
+    font-size: 13px; color: var(--tg-theme-subtitle-text-color, #8E8E93); text-align: left; padding: 0 20px; line-height: 1.4; margin-top: -10px; padding-bottom: 40px;
+  }
+
+  #wizard-overlay {
+    width: 100%;
+    height: var(--tg-viewport-stable-height, 100vh);
+    overflow: hidden;
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7);
+    display: none; 
+    flex-direction: column !important; 
+    align-items: center; 
+    justify-content: flex-start; 
+    padding-top: var(--app-top-padding); 
+    padding-bottom: 40px;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .ios-progress { display: flex; align-items: center; justify-content: center; margin-bottom: 24px; width: 100%; }
+  .ios-progress .step { 
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+    font-family: 'ArialRoundedOld', sans-serif; font-weight: 500; font-size: 18px; border: 1.5px solid var(--tg-theme-subtitle-text-color, #8E8E93); color: var(--tg-theme-subtitle-text-color, #8E8E93); background: var(--tg-theme-secondary-bg-color, #F2F2F7); position: relative; z-index: 2; 
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .ios-progress .step.active { background: #00A0FF; color: #fff; border-color: #00A0FF; width: 32px; height: 32px; font-size: 18px; }
+  .ios-progress .step.small { width: 24px; height: 24px; font-size: 14px; }
+  .ios-progress .line { width: 24px; height: 1.5px; background: var(--tg-theme-subtitle-text-color, #8E8E93); margin: 0 -2px; z-index: 1; transition: background 0.4s ease; }
+  .ios-progress .line.active { background: #00A0FF; }
+
+  .wizard-step { 
+    display: none; flex-direction: column; align-items: center; 
+    text-align: center; gap: 12px; width: 100%; max-width: 700px; padding: 0 20px;
+  }
+  .wizard-step.active { display: flex; }
+
+  @keyframes textBlurOut {
+    0% { filter: blur(0px); opacity: 1; transform: scale(1); }
+    100% { filter: blur(10px); opacity: 0; transform: scale(0.98); }
+  }
+
+  @keyframes inputBlurInsert {
+    0% { color: var(--tg-theme-text-color, #000000); text-shadow: 0 0 0 transparent; }
+    40% { color: transparent; text-shadow: 0 0 6px var(--tg-theme-text-color, #000000); }
+    100% { color: var(--tg-theme-text-color, #000000); text-shadow: 0 0 0 transparent; }
+  }
+  .blur-insert-anim {
+    animation: inputBlurInsert 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .wizard-step.active .ios-wizard-subtitle { animation: textBlurIn 0.5s ease-out forwards; }
+  .wizard-step.fade-out .ios-wizard-subtitle { animation: textBlurOut 0.3s ease-in forwards; }
+
+  .ios-wizard-title { font-size: 32px; font-weight: 700; color: var(--tg-theme-text-color, #000000); margin-bottom: 10px; text-align: center; }
+  .ios-wizard-subtitle { font-size: 15px; color: var(--tg-theme-subtitle-text-color, #8E8E93); text-align: center; line-height: 1.35; margin-bottom: 12px; font-weight: 400; max-width: 300px;}
+
+  .ios-color-presets { display: flex; gap: 5px; justify-content: center; margin-bottom: 10px; }
+  .ios-color-btn-wrap { padding: 4px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; transition: border-color 0.4s ease-in-out; }
+  .ios-color-btn-wrap.selected[data-color="green"] { border-color: #5ee568; }
+  .ios-color-btn-wrap.selected[data-color="blue"] { border-color: #46b3ff; }
+  .ios-color-btn-wrap.selected[data-color="orange"] { border-color: #ffcc00; }
+  .ios-color-btn-wrap.selected[data-color="purple"] { border-color: #c861ff; }
+  .ios-color-btn-wrap.selected[data-color="black"] { border-color: #666666; }
+  
+  .ios-color-btn {
+    width: 48px; height: 48px; border-radius: 50%;
+  }
+
+  .ios-or-text { color: var(--tg-theme-subtitle-text-color, #8E8E93); font-size: 13px; margin-top: 4px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  .ios-upload-link { color: var(--tg-theme-accent-text-color); font-size: 20px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; -webkit-tap-highlight-color: transparent;}
+  .ios-upload-link:active { opacity: 0.6; }
+  .ios-upload-link svg { fill: none; stroke: currentColor; width: 9px; height: 15px; margin-top: 2px; stroke-width: 2.5px; stroke-linecap: round; stroke-linejoin: round;}
+
+  .ios-upload-subtitle { color: var(--tg-theme-subtitle-text-color, #8E8E93); font-size: 13px; margin-top: -8px; text-align: center; margin-bottom: 0px; }
+
+  .ios-uploaded-count { color: var(--tg-theme-subtitle-text-color, #8E8E93); font-size: 15px; margin-top: 8px; display: none; }
+
+  .ios-add-screens-link {
+    color: var(--tg-theme-accent-text-color);
+    font-size: 15px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ios-add-screens-link:active {
+    opacity: 0.6;
+  }
+  .ios-add-screens-link svg {
+    fill: none;
+    stroke: currentColor;
+    width: 7px;
+    height: 12px;
+    stroke-width: 2.5px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    margin-top: 2px;
+  }
+
+  body.os-non-android .bottom-fade-container {
+    padding-bottom: 10px !important; 
+    height: 150px !important;
+  }
+
+  .screens-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .screen-thumb-wrap {
+    position: relative;
+    width: 100px;
+    height: 64px;
+  }
+
+  .screen-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  .screen-del-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--tg-theme-destructive-text-color);
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .screen-del-btn:active {
+    transform: scale(0.85);
+  }
+
+  @keyframes blurOutAnim {
+    0% { filter: blur(0px); opacity: 1; transform: scale(1); }
+    100% { filter: blur(8px); opacity: 0; transform: scale(0.8); }
+  }
+
+  .blur-out-anim {
+    animation: blurOutAnim 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes numBlurUpdate {
+    0% { filter: blur(0px); opacity: 1; transform: scale(1); }
+    50% { filter: blur(4px); opacity: 0.6; transform: scale(1.3); }
+    100% { filter: blur(0px); opacity: 1; transform: scale(1); }
+  }
+  
+  .num-blur-anim {
+    display: inline-block;
+    animation: numBlurUpdate 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .wizard-input-wrapper {
+    position: relative;
+    width: calc(100% - 64px);
+    max-width: 350px;
+    display: flex;
+    align-items: center;
+  }
+
+  #wizard-nick-input {
+    background: var(--tg-theme-section-bg-color, #ffffff);
+    border: none;
+    border-radius: 20px;
+    padding: 18px 56px 18px 22px; 
+    font-size: 17px;
+    color: var(--tg-theme-text-color, #000000);
+    width: 100%;
+    outline: none;
+    text-align: left;
+  }
+  #wizard-nick-input::placeholder { color: var(--tg-theme-subtitle-text-color, #8E8E93); }
+
+  .wizard-caps-btn {
+    position: absolute;
+    right: 8px;
+    background: var(--tg-theme-secondary-bg-color, rgba(175, 175, 180, 0.4)); 
+    border-radius: 12px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'ArialRoundedOld', sans-serif;
+    font-size: 22px;
+    color: var(--tg-theme-text-color, #000000);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    
+    opacity: 0;
+    transform: scale(0);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .wizard-caps-btn.visible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+  
+  .wizard-caps-btn:active { 
+    opacity: 0.6; 
+    transform: scale(0.85); 
+    transition: transform 0.1s ease; 
+  }
+
+  .ios-insert-link {
+    color: #00A0FF;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ios-insert-link:active { opacity: 0.6; }
+  .ios-insert-link svg {
+    fill: none;
+    stroke: currentColor;
+    width: 7px;
+    height: 12px;
+    stroke-width: 2.5px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    margin-top: 2px;
+  }
+
+  .sub-art-container {
+    position: relative;
+    width: 100%;
+    height: 100px; 
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin-top: -51px; 
+    margin-bottom: 10px;
+    z-index: 1;
+  }
+  
+  body.os-desktop .sub-art-container {
+    margin-top: 0px;
+  }
+  
+  @keyframes mainFloat {
+    0% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-8px) scale(1.02); }
+    100% { transform: translateY(0px) scale(1); }
+  }
+  
+  @keyframes fly {
+    0% {
+      transform: translate(0, 0) scale(0.5);
+      opacity: 0;
+    }
+    30% {
+      opacity: 0.85;
+      transform: translate(calc(var(--dx) * 0.3), calc(var(--dy) * 0.3)) scale(1);
+    }
+    70% {
+      opacity: 0.85;
+      transform: translate(calc(var(--dx) * 0.7), calc(var(--dy) * 0.7)) scale(1);
+    }
+    100% {
+      transform: translate(var(--dx), var(--dy)) scale(0.5);
+      opacity: 0;
+    }
+  }
+
+  .dollar-main {
+    font-size: 130px; 
+    font-weight: normal;
+    font-family: 'ArialRoundedOld', Arial, sans-serif;
+    line-height: 1;
+    margin-top: -5px; 
+    
+    background: linear-gradient(110deg, #15c02b 38%, rgb(156, 255, 169) 50%, #15c02b 62%);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    animation: mainFloat 4s infinite ease-in-out, shimmerBg 3s infinite linear;
+  }
+  .dollar-small {
+    position: absolute;
+    font-weight: normal;
+    color: #15c02b;
+    font-family: 'ArialRoundedOld', Arial, sans-serif;
+    opacity: 0;
+  }
+
+  #ios-btn-create:active,
+  .ios-sub-btn:active,
+  .ios-btn-next:active,
+  #dl-btn-actual-download:active,
+  #dl-btn-save-project:active,
+  #ios-btn-download-all:active {
+    scale: 0.95 !important;
+    opacity: 0.8 !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: scale 0.1s ease, opacity 0.1s ease, color 0.1s ease !important;
+  }
+
+  #dl-btn-actual-download:active svg,
+  #dl-btn-save-project:active svg,
+  #ios-btn-download-all:active svg {
+    opacity: 0.8 !important;
+    transition: opacity 0.1s ease !important;
+  }
+
+  body.os-non-apple .ios-card,
+  body.os-non-apple .ios-card-group,
+  body.os-non-apple .ios-layer-group,
+  body.os-non-apple .skeleton-canvas, 
+  body.os-non-apple .skeleton-row {
+    border-radius: 16px !important;
+  }
+
+  body.os-non-apple .ios-menu-item,
+  body.os-non-apple .sp-row {
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  body.os-non-apple .ios-menu-item:active,
+  body.os-non-apple .sp-row:active {
+    background-color: transparent !important;
+  }
+
+  body.os-non-apple .ios-menu-item > *,
+  body.os-non-apple .sp-row > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .android-ripple {
+      position: absolute !important; 
+      border-radius: 50%;
+      background-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent);
+      pointer-events: none;
+      z-index: 0 !important; 
+      width: var(--ripple-size);
+      height: var(--ripple-size);
+      transform: translate(-50%, -50%) scale(0);
+      animation: ripple-anim 0.5s ease-out forwards;
+  }
+
+  @keyframes ripple-anim {
+      0% {
+          transform: translate(-50%, -50%) scale(0);
+          opacity: 0.4;
+      }
+      100% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 0;
+      }
+  }
+
+  body.os-non-apple .canvas-display-wrapper,
+  body.os-non-apple .canvas-display-wrapper canvas {
+    border-radius: 16px !important; 
+  }
+
+  .android-browser-warning {
+    display: none;
+    font-size: 8px;
+    color: var(--tg-theme-subtitle-text-color, #8E8E93);
+    text-align: center;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    padding: 0 10px;
+    max-width: 320px;
+  }
+
+  body.os-non-apple .android-browser-warning {
+    display: block;
+  }
+
+  body.os-non-apple .fade-in-anim {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+  }
+
+</style>
+</head>
+<body oncontextmenu="return false;">
+
+<div id="ios-dashboard">
+  <div class="ios-container">
+    <div class="ios-card ios-profile">
+      <div class="ios-avatar loading" id="user-tg-avatar"></div>
+      <div class="ios-profile-info">
+        <div class="ios-id" id="user-tg-id">ID: загрузка...</div>
+        <div class="ios-sub" id="sub-profile-status">Нет активной подписки</div>
+      </div>
+    </div>
+
+    <div class="ios-section-title">ПУНКТ УПРАВЛЕНИЯ</div>
+
+    <div class="ios-card ios-menu-item" onclick="openSavedProjects()" style="border-radius: 100px;">
+      <div class="ios-icon-box" style="background: linear-gradient(180deg, #619af7 0%, #467af9 100%);">
+         <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet" style="margin-left: 1px;">
+           <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="white" stroke="none">
+             <path d="M521 4944 c-169 -45 -301 -180 -346 -351 -23 -86 -23 -3980 0 -4066 45 -173 178 -307 350 -352 43 -11 111 -15 247 -15 l188 0 0 748 c0 639 2 756 15 807 45 172 179 305 352 350 87 23 2380 22 2468 0 172 -45 305 -179 350 -352 13 -48 15 -174 15 -805 l0 -748 188 0 c136 0 204 4 247 15 172 45 305 179 350 352 22 83 23 3326 1 3376 -18 41 -1012 1033 -1049 1047 -16 5 -106 10 -202 10 l-174 0 -3 -682 -3 -683 -27 -51 c-40 -76 -70 -107 -140 -145 l-63 -34 -725 0 -725 0 -63 34 c-69 37 -109 79 -144 151 l-23 45 -3 683 -3 682 -512 -1 c-414 0 -522 -3 -566 -15z"/>
+             <path d="M1920 4320 l0 -640 640 0 640 0 0 640 0 640 -640 0 -640 0 0 -640z"/>
+             <path d="M1375 1746 c-37 -16 -70 -52 -84 -89 -8 -19 -11 -267 -11 -763 l0 -734 1280 0 1280 0 -2 749 c-3 739 -3 750 -24 777 -11 15 -33 37 -48 48 -27 21 -33 21 -1194 23 -957 2 -1172 0 -1197 -11z"/>
+           </g>
+         </svg>
+      </div>
+      <div class="ios-menu-text">Сохранённые работы</div>
+      <div class="ios-menu-value" id="saved-count-val">0</div>
+      <div class="ios-chevron">
+        <svg viewBox="0 0 8 14" width="8" height="14"><path d="M1 1l6 6-6 6" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+
+    <div class="ios-card-group">
+      <div class="ios-menu-item" onclick="openSettings()">
+        <div class="ios-icon-box" style="background: linear-gradient(180deg, #e06861 0%, #de4c3e 100%);">
+          <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
+             <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="white" stroke="none">
+               <path d="M1644 5106 c-240 -55 -425 -231 -490 -467 -14 -49 -18 -96 -16 -199 2 -183 -21 -261 -104 -344 -84 -83 -160 -106 -349 -103 -158 2 -211 -9 -325 -69 -295 -154 -424 -497 -303 -804 43 -108 95 -177 217 -289 91 -84 133 -184 123 -298 -8 -99 -51 -177 -144 -260 -130 -117 -198 -230 -229 -384 -42 -209 21 -415 176 -570 81 -82 148 -124 250 -160 55 -19 93 -24 245 -28 168 -6 184 -8 237 -33 73 -34 142 -103 176 -176 26 -54 27 -65 28 -222 0 -176 8 -224 54 -325 130 -289 492 -445 790 -341 109 38 173 81 289 197 126 126 176 151 301 151 119 0 178 -27 275 -126 111 -113 160 -151 246 -190 100 -45 167 -60 274 -60 297 1 544 194 621 487 12 43 17 109 18 217 1 145 3 159 27 211 37 79 90 133 167 171 66 33 68 33 247 38 161 5 188 9 253 32 136 49 243 134 324 257 71 108 98 204 98 344 0 208 -54 332 -216 492 -55 55 -108 112 -117 126 -31 51 -50 139 -45 210 8 103 40 158 167 285 162 163 211 274 211 479 0 192 -52 319 -184 450 -143 143 -266 190 -486 187 -158 -1 -219 12 -297 64 -60 41 -118 120 -138 188 -10 32 -14 93 -14 189 1 162 -10 218 -68 336 -53 109 -169 224 -283 280 -277 135 -575 72 -788 -167 -47 -53 -79 -79 -130 -104 -61 -30 -74 -33 -162 -33 -132 0 -185 25 -301 145 -104 107 -186 162 -293 196 -100 32 -242 40 -332 20z m1136 -1572 c298 -62 581 -292 699 -571 65 -151 76 -211 76 -403 0 -153 -3 -185 -23 -255 -50 -173 -138 -322 -261 -446 -89 -89 -172 -147 -287 -201 -146 -68 -214 -82 -414 -82 -153 -1 -185 2 -255 22 -105 30 -264 108 -345 170 -424 322 -522 920 -221 1355 97 140 235 259 386 332 202 98 420 125 645 79z"/>
+             </g>
+           </svg>
+        </div>
+        <div class="ios-menu-text">Настройки</div>
+        <div class="ios-chevron">
+          <svg viewBox="0 0 8 14" width="8" height="14"><path d="M1 1l6 6-6 6" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      
+      <div class="ios-divider"></div>
+      
+      <div class="ios-menu-item" onclick="openSubscription()">
+        <div class="ios-icon-box" style="background: linear-gradient(180deg, #97e385 0%, #79c665 100%);">
+          <svg width="24" height="24" viewBox="-4.5 -0.5 19 19" fill="#ffffff" xmlns="http://www.w3.org/2000/svg" style="margin-top: -2px;">
+            <path d="M8.699 11.907a3.005 3.005 0 0 1-1.503 2.578 4.903 4.903 0 0 1-1.651.663V16.3a1.03 1.03 0 1 1-2.059 0v-1.141l-.063-.011a5.199 5.199 0 0 1-1.064-.325 3.414 3.414 0 0 1-1.311-.962 1.029 1.029 0 1 1 1.556-1.347 1.39 1.39 0 0 0 .52.397l.002.001a3.367 3.367 0 0 0 .648.208h.002a4.964 4.964 0 0 0 .695.084 3.132 3.132 0 0 0 1.605-.445c.5-.325.564-.625.564-.851a1.005 1.005 0 0 0-.245-.65 2.06 2.06 0 0 0-.55-.44 2.705 2.705 0 0 0-.664-.24 3.107 3.107 0 0 0-.65-.066 6.046 6.046 0 0 1-1.008-.08 4.578 4.578 0 0 1-1.287-.415A3.708 3.708 0 0 1 1.02 9.04a3.115 3.115 0 0 1-.718-1.954 2.965 2.965 0 0 1 .321-1.333 3.407 3.407 0 0 1 1.253-1.335 4.872 4.872 0 0 1 1.611-.631V2.674a1.03 1.03 0 1 1 2.059 0v1.144l.063.014h.002a5.464 5.464 0 0 1 1.075.368 3.963 3.963 0 0 1 1.157.795A1.03 1.03 0 0 1 6.39 6.453a1.901 1.901 0 0 0-.549-.376 3.516 3.516 0 0 0-.669-.234l-.066-.014a3.183 3.183 0 0 0-.558-.093 3.062 3.062 0 0 0-1.572.422 1.102 1.102 0 0 0-.615.928 1.086 1.086 0 0 0 .256.654l.002.003a1.679 1.679 0 0 0 .537.43l.002.002a2.57 2.57 0 0 0 .703.225h.002a4.012 4.012 0 0 0 .668.053 5.165 5.165 0 0 1 1.087.112l.003.001a4.804 4.804 0 0 1 1.182.428l.004.002a4.115 4.115 0 0 1 1.138.906l.002.002a3.05 3.05 0 0 1 .753 2.003z"/>
+          </svg>
+        </div>
+        <div class="ios-menu-text">Подписка</div>
+        <div class="ios-menu-value" id="sub-menu-status">неактивна</div>
+        <div class="ios-chevron">
+          <svg viewBox="0 0 8 14" width="8" height="14"><path d="M1 1l6 6-6 6" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <button id="ios-btn-create" class="ios-action-btn">Создать</button>
+  </div>
+</div>
+
+<div style="position: absolute; width: 0; height: 0; overflow: hidden; visibility: hidden;">
+    <span style="font-family: 'Font16103'">preload</span>
+    <span style="font-family: 'LilitaOneRus'">preload</span>
+    <span style="font-family: 'SupercellMagic'">preload</span>
+    <span style="font-family: 'PusiaBold'">preload</span>
+    <span style="font-family: 'BebasNeue'">preload</span>
+    <span style="font-family: 'AmericanCaptain'">preload</span>
+    <span style="font-family: 'ArialRoundedOld'">preload</span>
+</div>
+
+<div id="wizard-overlay">
+
+  <div class="ios-progress" id="shared-progress">
+    <div class="step active" id="prog-step1">1</div>
+    <div class="line" id="prog-line1"></div>
+    <div class="step small" id="prog-step2">2</div>
+    <div class="line" id="prog-line2"></div>
+    <div class="step small" id="prog-step3">3</div>
+  </div>
+
+  <div id="wizard-step1" class="wizard-step active">
+    <div class="ios-wizard-title">Создание акции</div>
+    <div class="ios-wizard-subtitle">Фон. Выберите один из готовых цветов<br>или загрузите свой готовый фон.</div>
+    
+    <div class="ios-color-presets" id="wizard-color-presets">
+       <div class="ios-color-btn-wrap" data-color="green"><div class="ios-color-btn" style="background: linear-gradient(135deg, #5ee568 49.5%, #168625 50.5%)"></div></div>
+       <div class="ios-color-btn-wrap" data-color="blue"><div class="ios-color-btn" style="background: linear-gradient(135deg, #46b3ff 49.5%, #004d9c 50.5%)"></div></div>
+       <div class="ios-color-btn-wrap" data-color="orange"><div class="ios-color-btn" style="background: linear-gradient(135deg, #ffcc00 49.5%, #b35900 50.5%)"></div></div>
+       <div class="ios-color-btn-wrap" data-color="purple"><div class="ios-color-btn" style="background: linear-gradient(135deg, #c861ff 49.5%, #510087 50.5%)"></div></div>
+       <div class="ios-color-btn-wrap" data-color="black"><div class="ios-color-btn" style="background: linear-gradient(135deg, #666 49.5%, #050505 50.5%)"></div></div>
+    </div>
+    
+    <div class="ios-or-text">ИЛИ</div>
+    <div class="ios-upload-link" id="wizard-upload-bg-btn">
+       <span id="wizard-upload-text">Загрузить фон</span>
+       <svg viewBox="0 0 8 14"><path d="M1 1l6 6-6 6"/></svg>
+    </div>
+    <div class="ios-upload-subtitle">Пустой фон, без ников и эффектов.</div>
+
+    <div class="ios-or-text">ИЛИ</div>
+    <div class="ios-upload-link" id="wizard-upload-ready-bg-btn">
+       <span id="wizard-upload-ready-text">Загрузить готовый фон</span>
+       <svg viewBox="0 0 8 14"><path d="M1 1l6 6-6 6"/></svg>
+    </div>
+    <div class="ios-upload-subtitle">Готовый фон, не требующих дополнительных эффектов.</div>
+
+    <input type="file" id="wizard-bg-input" accept="image/*" style="display:none;">
+    <input type="file" id="wizard-ready-bg-input" accept="image/*" style="display:none;">
+    <button id="wizard-next-btn1" class="ios-action-btn ios-btn-next">Далее</button>
+  </div>
+  
+  <div id="wizard-step2" class="wizard-step">
+    <div class="ios-wizard-title">Создание акции</div>
+    <div class="ios-wizard-subtitle">Ник. Напишите свой ник, который<br>будет располагаться на Вашей работе.</div>
+    
+    <div class="wizard-input-wrapper">
+        <input type="text" id="wizard-nick-input" placeholder="Введите свой ник..." maxlength="16">
+        <div class="wizard-caps-btn" id="wizard-caps-btn">A</div>
+    </div>
+    
+    <div class="ios-insert-link" id="wizard-insert-btn" style="display: none;">
+        Вставить:&nbsp;<span id="wizard-insert-text"></span>&nbsp;<svg viewBox="0 0 8 14"><path d="M1 1l6 6-6 6"/></svg>
+    </div>
+
+    <button id="wizard-next-btn2" class="ios-action-btn ios-btn-next">Далее</button>
+  </div>
+
+  <div id="wizard-step3" class="wizard-step">
+    <div class="ios-wizard-title">Создание акции</div>
+    <div class="ios-wizard-subtitle">Скриншот. Загрузите скриншоты из игры<br>что бы система смогла их вырезать<br>и вставить на Ваш фон.</div>
+    <div class="ios-upload-link" id="wizard-upload-screens-btn" style="margin-top: 15px;">
+        <span>Загрузить скриншот</span>
+        <svg viewBox="0 0 8 14"><path d="M1 1l6 6-6 6"/></svg>
+    </div>
+    <div id="wizard-uploaded-count" class="ios-uploaded-count"></div>
+    
+    <div id="wizard-screens-preview" class="screens-preview-container"></div>
+    
+    <input type="file" id="file" accept="image/*" multiple style="display:none;">
+    <input type="file" id="file-add-screens" accept="image/*" multiple style="display:none;">
+    <button id="wizard-next-btn3" class="ios-action-btn ios-btn-next">Далее</button>
+  </div>
+</div>
+
+<div id="result-box">
+  <div id="result-layout">
+    <div id="cards-container"></div>
+    <div id="layer-panel"></div>
+  </div>
+</div>
+
+<div id="download-overlay">
+  <div class="dl-title">Сохраните работу</div>
+  <div class="dl-subtitle">Вы можете скачать работу<br>на своё устройство и так же сохранить<br>проект работы для<br>дальнейших преобразований.</div>
+  
+  <img id="dl-preview-img" class="dl-preview" src="">
+  
+  <div class="dl-buttons-container">
+     <div class="save-btn-wrapper" id="save-btn-wrapper">
+       <button class="ios-btn-secondary" id="dl-btn-save-project">
+          <div class="btn-crossfade-wrap">
+            <span class="btn-text-layer btn-text-default">
+              Сохранить проект 
+              <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet" style="margin-left: 8px;">
+                <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="white" stroke="none">
+                  <path d="M521 4944 c-169 -45 -301 -180 -346 -351 -23 -86 -23 -3980 0 -4066 45 -173 178 -307 350 -352 43 -11 111 -15 247 -15 l188 0 0 748 c0 639 2 756 15 807 45 172 179 305 352 350 87 23 2380 22 2468 0 172 -45 305 -179 350 -352 13 -48 15 -174 15 -805 l0 -748 188 0 c136 0 204 4 247 15 172 45 305 179 350 352 22 83 23 3326 1 3376 -18 41 -1012 1033 -1049 1047 -16 5 -106 10 -202 10 l-174 0 -3 -682 -3 -683 -27 -51 c-40 -76 -70 -107 -140 -145 l-63 -34 -725 0 -725 0 -63 34 c-69 37 -109 79 -144 151 l-23 45 -3 683 -3 682 -512 -1 c-414 0 -522 -3 -566 -15z"/>
+                  <path d="M1920 4320 l0 -640 640 0 640 0 0 640 0 640 -640 0 -640 0 0 -640z"/>
+                  <path d="M1375 1746 c-37 -16 -70 -52 -84 -89 -8 -19 -11 -267 -11 -763 l0 -734 1280 0 1280 0 -2 749 c-3 739 -3 750 -24 777 -11 15 -33 37 -48 48 -27 21 -33 21 -1194 23 -957 2 -1172 0 -1197 -11z"/>
+                </g>
+              </svg>
+            </span>
+            <span class="btn-text-layer btn-text-loading">
+              Проект сохранён
+              <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet" style="margin-left: 8px;">
+                <g transform="translate(0,512) scale(0.1,-0.1)" fill="white" stroke="none">
+                  <path d="M4605 4386 c-105 -33 -109 -36 -1445 -1372 l-1315 -1314 -595 595 c-553 551 -600 596 -662 625 -159 74 -328 51 -454 -63 -100 -90 -149 -234 -125 -364 25 -134 9 -117 839 -944 726 -724 771 -767 832 -794 78 -34 185 -44 257 -25 122 33 70 -16 1629 1543 1614 1616 1522 1517 1547 1660 34 199 -91 392 -292 453 -56 17 -162 17 -216 0z"/>
+                </g>
+              </svg>
+            </span>
+          </div>
+       </button>
+     </div>
+     <div class="android-browser-warning">
+         Не работает кнопка скачать, в Telegram:<br>Настройки → Настройки чатов → Встроенный браузер (включить). Нужно подождать!
+     </div>
+     <button class="ios-action-btn" id="dl-btn-actual-download">
+        <div class="btn-crossfade-wrap">
+          <span class="btn-text-layer btn-text-default">
+            Скачать 
+            <svg style="margin-left:8px; width:20px; height:20px" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </span>
+          <span class="btn-text-layer btn-text-loading">⏳ Подготовка...</span>
+        </div>
+     </button>
+  </div>
+</div>
+
+<div id="saved-projects-overlay">
+  
+  <div id="sp-empty-state" class="sp-empty-wrap" style="display: none;">
+     <div class="sp-empty-title">Сохранённые работы</div>
+     <div class="sp-empty-subtitle">У Вас ещё нет сохранённых работ<br>для изменений.</div>
+  </div>
+
+  <div id="sp-content-state" class="ios-container" style="margin: 0 auto; padding-top: var(--app-top-padding); display: none;">
+     <div class="ios-section-title" style="margin-top: 0;">СОХРАНЁННЫЕ РАБОТЫ</div>
+     <div class="ios-layer-group" id="sp-list" style="padding: 0 20px; overflow: hidden;">
+     </div>
+     <div class="sp-info-text">
+        Это все Ваши сохранённые проекты.<br>
+        Вы можете нажать на любой из них, чтобы вернуться к редактированию, внести изменения или дополнения. При этом Вы можете сохранить текущий шаблон или удалить проект, нажав на соответствующую кнопку.
+     </div>
+  </div>
+</div>
+
+<div id="settings-overlay" style="display: none; width: 100%; min-height: 100vh; background: var(--tg-theme-secondary-bg-color, #F2F2F7); flex-direction: column; box-sizing: border-box; position: absolute; top: 0; left: 0; z-index: 200;">
+  <div class="ios-container" style="margin: 0 auto; padding-top: var(--app-top-padding); min-height: 100vh; display: flex; flex-direction: column;">
+    <div class="ios-section-title" style="margin-top: 0; margin-left: 14px;">НАСТРОЙКИ</div>
+    
+    <div class="ios-layer-group" style="padding: 0 20px; overflow: hidden;">
+        <div class="ios-menu-item" onclick="window.Telegram?.WebApp?.openLink ? window.Telegram.WebApp.openLink('https://telegra.ph/Snapi-FAQ-04-06') : window.open('https://telegra.ph/Snapi-FAQ-04-06', '_blank')">        
+          <div class="ios-icon-box" style="background: linear-gradient(180deg, #88cdfb 0%, #69a6f0 100%);">
+           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 30 30">
+              <path d="M15 5C20.5228 5 25 9.47715 25 15C25 20.5228 20.5228 25 15 25C9.47715 25 5 20.5228 5 15C5 9.47715 9.47715 5 15 5ZM15 19.3301C14.5388 19.3301 14.165 19.7039 14.165 20.165C14.1651 20.6262 14.5388 21 15 21C15.4612 21 15.8349 20.6262 15.835 20.165C15.835 19.7039 15.4612 19.3301 15 19.3301ZM15 9.32715C14.0954 9.32715 13.1634 9.62008 12.4463 10.2412C11.7143 10.8754 11.2501 11.8156 11.25 13C11.2502 13.414 11.5859 13.75 12 13.75C12.4141 13.75 12.7498 13.414 12.75 13C12.7501 12.2363 13.0362 11.7151 13.4287 11.375C13.8366 11.0217 14.4047 10.8271 15 10.8271C15.5953 10.8271 16.1634 11.0217 16.5713 11.375C16.9638 11.7151 17.2499 12.2363 17.25 13C17.2499 13.6151 17.1006 13.8977 16.9619 14.0596C16.7951 14.254 16.5617 14.3818 16.165 14.5801C15.8121 14.7566 15.295 15.0044 14.8994 15.4658C14.476 15.9601 14.2501 16.6158 14.25 17.5C14.2502 17.914 14.5859 18.25 15 18.25C15.4141 18.25 15.7498 17.914 15.75 17.5C15.7501 16.8852 15.8994 16.6033 16.0381 16.4414C16.2049 16.2468 16.4382 16.1193 16.835 15.9209C17.1879 15.7444 17.705 15.4965 18.1006 15.0352C18.5242 14.5409 18.7499 13.8843 18.75 13C18.7499 11.8156 18.2857 10.8754 17.5537 10.2412C16.8366 9.62008 15.9046 9.32715 15 9.32715Z" fill="white"/>
+           </svg>
+        </div>
+        <div class="ios-menu-text">FAQ</div>
+        <div class="ios-chevron"><svg viewBox="0 0 8 14" width="8" height="14"><path d="M1 1l6 6-6 6" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      
+      <div class="ios-divider"></div>
+      
+      <div class="ios-menu-item" onclick="window.Telegram?.WebApp?.openTelegramLink ? window.Telegram.WebApp.openTelegramLink('https://t.me/SnapiSupport_bot') : window.open('https://t.me/SnapiSupport_bot', '_blank')">
+        <div class="ios-icon-box" style="background: linear-gradient(180deg, #f0c44c 0%, #e6a02b 100%);">
+           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 30 30">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M15 5.37988C20.5228 5.37988 25 9.45002 25 14.4708C25 19.4916 20.5228 23.5617 15 23.5617C14.1533 23.5617 13.3311 23.466 12.5459 23.2859C12.3974 23.2519 12.2287 23.4076 11.9472 23.6677C11.6067 23.9822 11.1011 24.4492 10.2663 24.9174C9.19977 25.5155 7.72206 25.4636 7.47197 25.3587C7.2322 25.2581 7.41675 25.0582 7.74176 24.7062C7.96661 24.4626 8.25868 24.1462 8.52398 23.7395C9.17277 22.745 8.90469 21.5609 8.61362 21.3478C6.33757 19.6815 5 17.3343 5 14.4708C5 9.45002 9.47715 5.37988 15 5.37988ZM10 15.9999C10.8284 15.9999 11.5 15.3283 11.5 14.4999C11.5 13.6715 10.8284 12.9999 10 12.9999C9.17157 12.9999 8.5 13.6715 8.5 14.4999C8.5 15.3283 9.17157 15.9999 10 15.9999ZM15 15.9999C15.8284 15.9999 16.5 15.3283 16.5 14.4999C16.5 13.6715 15.8284 12.9999 15 12.9999C14.1716 12.9999 13.5 13.6715 13.5 14.4999C13.5 15.3283 14.1716 15.9999 15 15.9999ZM21.5 14.4999C21.5 15.3283 20.8284 15.9999 20 15.9999C19.1716 15.9999 18.5 15.3283 18.5 14.4999C18.5 13.6715 19.1716 12.9999 20 12.9999C20.8284 12.9999 21.5 13.6715 21.5 14.4999Z" fill="white"/>
+           </svg>
+        </div>
+        <div class="ios-menu-text">Поддержка</div>
+        <div class="ios-chevron"><svg viewBox="0 0 8 14" width="8" height="14"><path d="M1 1l6 6-6 6" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+    </div>
+
+    <div class="sp-info-text" style="padding: 0 14px; font-size: 13px; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-top: -10px;">
+      Вы можете обратиться в поддержку по любому интересующему Вас вопросу.
+      Время ответа составляет не более 72 часов.    
+    </div>
+
+    <div style="margin-top: auto; display: flex; align-items: center; justify-content: flex-start; padding: 20px 20px 40px 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; width: 100%; box-sizing: border-box;">
+        <span id="app-version-display" style="font-size: 18px; font-weight: 600; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-right: 6px;"></span>
+        <span id="app-build-display" style="font-family: 'ArialRoundedOld', Arial, sans-serif; background: var(--tg-theme-section-separator-color, #E5E5EA); color: var(--tg-theme-text-color, #000); font-size: 14px; font-weight: normal; padding: 2px 6px; border-radius: 6px; letter-spacing: 0.5px; display: none;"></span>
+    </div>
+  </div>
+</div>
+
+<div id="subscription-overlay" style="display: none; width: 100%; height: 100dvh; background: var(--tg-theme-secondary-bg-color, #F2F2F7); flex-direction: column; box-sizing: border-box; position: fixed; top: 0; left: 0; z-index: 200; overflow: hidden;">
+  <!-- Вернули стандартный padding-top -->
+  <div class="ios-container" style="margin: 0 auto; padding-top: var(--app-top-padding); padding-bottom: 30px; height: 100%; min-height: auto; display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
+    
+    <!-- Доллары (дизайн) с анимацией -->
+    <div class="sub-art-container">
+      <div class="dollar-small" style="top: 30%; left: 15%; font-size: 26px; --dx: -20px; --dy: -40px; animation: fly 3.5s infinite ease-in-out 0s;">$</div>
+      <div class="dollar-small" style="top: 50%; left: 22%; font-size: 14px; --dx: -15px; --dy: -50px; animation: fly 2.8s infinite ease-in-out 1.2s;">$</div>
+      <div class="dollar-small" style="top: 25%; left: 28%; font-size: 20px; --dx: -10px; --dy: -30px; animation: fly 4s infinite ease-in-out 0.5s;">$</div>
+      <div class="dollar-small" style="top: 55%; left: 35%; font-size: 24px; --dx: 5px; --dy: -60px; animation: fly 3.2s infinite ease-in-out 2s;">$</div>
+      
+      <div class="dollar-main">$</div>
+      
+      <div class="dollar-small" style="top: 25%; right: 35%; font-size: 22px; --dx: 15px; --dy: -45px; animation: fly 3.8s infinite ease-in-out 0.8s;">$</div>
+      <div class="dollar-small" style="top: 50%; right: 26%; font-size: 14px; --dx: 20px; --dy: -35px; animation: fly 2.5s infinite ease-in-out 1.5s;">$</div>
+      <div class="dollar-small" style="top: 30%; right: 18%; font-size: 20px; --dx: 30px; --dy: -50px; animation: fly 4.2s infinite ease-in-out 0.2s;">$</div>
+      <div class="dollar-small" style="top: 60%; right: 22%; font-size: 18px; --dx: 10px; --dy: -55px; animation: fly 3.1s infinite ease-in-out 2.5s;">$</div>
+    </div>
+
+    <div style="position: relative; z-index: 2; width: 100%; display: flex; flex-direction: column; margin-top: 30px;">
+      <div class="ios-section-title" style="margin-top: 0; width: 100%; text-align: left; margin-left: 14px; margin-bottom: 8px;">ПРЕИМУЩЕСТВА ПОДПИСКИ</div>
+
+      <div class="ios-card-group" style="margin-bottom: 16px;">
+        <div class="ios-menu-item" style="cursor: default; min-height: 54px;">
+            <div class="ios-icon-box" style="background: linear-gradient(180deg, #97e385 0%, #79c665 100%); color: white; font-family: 'ArialRoundedOld', Arial, sans-serif; font-weight: normal; font-size: 16px;">1</div>
+            <div class="ios-menu-text" style="font-size: 16px; line-height: 1.2;">Неограниченное создание работ</div>
+        </div>
+        <div class="ios-divider"></div>
+        <div class="ios-menu-item" style="cursor: default; min-height: 54px;">
+            <div class="ios-icon-box" style="background: linear-gradient(180deg, #97e385 0%, #79c665 100%); color: white; font-family: 'ArialRoundedOld', Arial, sans-serif; font-weight: normal; font-size: 16px;">2</div>
+            <div class="ios-menu-text" style="font-size: 16px; line-height: 1.2;">Сохранение проектов работ 3 → 12</div>
+        </div>
+        <div class="ios-divider"></div>
+        <div class="ios-menu-item" style="cursor: default; min-height: 54px;">
+            <div class="ios-icon-box" style="background: linear-gradient(180deg, #97e385 0%, #79c665 100%); color: white; font-family: 'ArialRoundedOld', Arial, sans-serif; font-weight: normal; font-size: 16px;">3</div>
+            <div class="ios-menu-text" style="font-size: 16px; line-height: 1.2;">Загрузка скриншотов 3 → 6</div>
+        </div>
+      </div>
+
+      <div class="sp-info-text" style="width: 100%; padding: 0 14px; font-size: 12px; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-top: 0px; line-height: 1.2;">
+          Подписка улучшает работу с сервисом. Без неё доступно не более 3 работ в месяц. Список преимуществ расширяется, актуальность сохраняется.
+      </div>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; align-items: center; width: 100%; flex-shrink: 0; position: relative; z-index: 2;">
+    <div style="color: var(--tg-theme-subtitle-text-color, #8E8E93); font-size: 13px; margin-bottom: 10px;" id="sub-overlay-status">не активировано</div>      
+      <button class="ios-action-btn ios-sub-btn" onclick="window.Telegram?.WebApp?.openLink ? window.Telegram.WebApp.openTelegramLink('https://t.me/SnapiSubscription_bot') : window.open('https://t.me/SnapiSubscription_bot', '_blank')">99 ₽ в месяц</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.triggerHaptic = function() {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+    }
+};
+
+document.getElementById('app-version-display').innerText = APP_VERSION;
+if (APP_BUILD.trim() !== "") {
+    let buildEl = document.getElementById('app-build-display');
+    buildEl.innerText = APP_BUILD;
+    buildEl.style.display = 'inline-block';
+}
+
+if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+    
+    let tgPlatform = window.Telegram.WebApp.platform || 'unknown';
+    let isAndroid = tgPlatform === 'android' || tgPlatform === 'android_x';
+    let isIOS = tgPlatform === 'ios'; 
+    
+    let isDesktop = ['macos', 'tdesktop', 'weba', 'webw', 'web', 'unigram'].includes(tgPlatform);
+    
+    if (tgPlatform === 'unknown') {
+        if (/android/i.test(navigator.userAgent)) isAndroid = true;
+        if (/ipad|iphone|ipod/i.test(navigator.userAgent)) isIOS = true; 
+        if (!/android|ipad|iphone|ipod/i.test(navigator.userAgent)) isDesktop = true;
+    }
+    
+    if (!isAndroid) {
+        document.body.classList.add('os-non-android');
+    }
+
+    if (isAndroid) {
+        document.body.classList.add('os-android');
+        
+        document.querySelectorAll('.ios-icon-box').forEach(box => {
+            let styleAttr = box.getAttribute('style');
+            if (styleAttr && styleAttr.includes('linear-gradient')) {
+                let colors = styleAttr.match(/#[0-9a-fA-F]{6}/g);
+                if (colors && colors.length > 0) {
+                    box.style.background = colors[colors.length - 1];
+                }
+            }
+        });
+    }
+    
+    if (isDesktop) {
+        document.body.classList.add('os-desktop');
+    }
+
+    let isApple = isIOS || tgPlatform === 'macos' || /mac|ipad|iphone|ipod/i.test(navigator.userAgent);
+    if (!isApple) {
+        document.body.classList.add('os-non-apple');
+        
+        document.querySelectorAll('.ios-icon-box').forEach(box => {
+            let styleAttr = box.getAttribute('style');
+            if (styleAttr && styleAttr.includes('linear-gradient')) {
+                let colors = styleAttr.match(/#[0-9a-fA-F]{6}/g);
+                if (colors && colors.length > 0) {
+                    box.style.background = colors[colors.length - 1];
+                }
+            }
+        });
+        
+        document.body.addEventListener('pointerdown', function(e) {
+            let target = e.target.closest('.ios-menu-item, .sp-row');
+            if (!target) return;
+            
+            let rect = target.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+            
+            let circle = document.createElement('span');
+            circle.classList.add('android-ripple');
+            circle.style.left = x + 'px';
+            circle.style.top = y + 'px';
+            
+            let size = Math.max(rect.width, rect.height) * 2;
+            circle.style.setProperty('--ripple-size', size + 'px');
+            
+            target.appendChild(circle);
+            
+            setTimeout(() => {
+                if (circle.parentNode) circle.remove();
+            }, 600);
+        });
+    }
+
+    if (isAndroid || isIOS) {
+        try {
+            if (window.Telegram.WebApp.isVersionAtLeast && window.Telegram.WebApp.isVersionAtLeast('8.0')) {
+                if (typeof window.Telegram.WebApp.requestFullscreen === 'function') {
+                    window.Telegram.WebApp.requestFullscreen();
+                }
+            }
+        } catch (e) {}
+    }
+    
+    try {
+        if (window.Telegram.WebApp.isVersionAtLeast && window.Telegram.WebApp.isVersionAtLeast('7.7')) {
+            if (typeof window.Telegram.WebApp.disableVerticalSwipes === 'function') {
+                window.Telegram.WebApp.disableVerticalSwipes();
+            }
+        }
+    } catch (e) {}
+    
+    try {
+        window.Telegram.WebApp.setHeaderColor('secondary_bg_color');
+        window.Telegram.WebApp.setBackgroundColor('secondary_bg_color');
+    } catch (e) {}
+    
+    let tgData = window.Telegram.WebApp.initDataUnsafe || {};
+    let tgUser = tgData.user;
+    let userIdElement = document.getElementById('user-tg-id');
+    let userAvatarElement = document.getElementById('user-tg-avatar');
+    
+    if (tgUser) {
+        if (userIdElement && tgUser.id) {
+            userIdElement.innerText = 'ID: ' + tgUser.id;
+        } else if (userIdElement) {
+            userIdElement.innerText = 'ID: скрыт';
+        }
+        
+        checkAndApplySubscription(tgUser.id);
+        
+        if (userAvatarElement) {
+            if (tgUser.photo_url) {
+                let img = new Image();
+                img.onload = () => {
+                    userAvatarElement.style.backgroundImage = `url('${tgUser.photo_url}')`;
+                    userAvatarElement.classList.remove('loading');
+                };
+                img.onerror = () => {
+                    setFallbackAvatar(userAvatarElement, tgUser.first_name);
+                };
+                img.src = tgUser.photo_url;
+            } else {
+                setFallbackAvatar(userAvatarElement, tgUser.first_name);
+            }
+        }
+    } else {
+        if (userIdElement) userIdElement.innerText = 'ID: скрыт';
+        if (userAvatarElement) {
+            userAvatarElement.classList.remove('loading');
+            userAvatarElement.style.background = '#4A90E2';
+        }
+    }
+
+    function setFallbackAvatar(el, name) {
+        el.classList.remove('loading');
+        el.style.background = 'linear-gradient(180deg, #619af7 0%, #467af9 100%)';
+        let initial = name ? name.charAt(0).toUpperCase() : '?';
+        el.innerHTML = `<span style="color:white; font-size: 22px; font-family: -apple-system, sans-serif; font-weight: 600;">${initial}</span>`;
+    }
+}
+
+const fileInput = document.getElementById("file");
+const resultBox = document.getElementById("result-box");
+const cardsContainer = document.getElementById("cards-container");
+const layerPanel = document.getElementById("layer-panel");
+
+layerPanel.addEventListener('click', (e) => {
+    if (e.target.closest('button, .ios-icon-btn, .ios-font-item, .ios-style-item')) {
+        isCurrentProjectSaved = false;
+    }
+});
+layerPanel.addEventListener('input', () => {
+    isCurrentProjectSaved = false;
+});
+
+let rawBgImage = null; 
+let globalAssets = { luchImg: null, starImg: null, pointsImg: null };
+let isCurrentProjectSaved = false; 
+
+if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) {
+    window.Telegram.WebApp.BackButton.onClick(() => {
+        document.getElementById('wizard-overlay').style.display = 'none';
+        document.getElementById('result-box').style.display = 'none';
+        document.getElementById('download-overlay').style.display = 'none';
+        document.getElementById('saved-projects-overlay').style.display = 'none';
+        document.getElementById('settings-overlay').style.display = 'none';
+        document.getElementById('subscription-overlay').style.display = 'none';
+        
+        let btnWrap = document.getElementById('download-btn-wrap');
+        if (btnWrap) btnWrap.style.display = 'none';
+        
+        document.getElementById('ios-dashboard').style.display = 'flex';
+        document.body.style.background = "var(--tg-theme-secondary-bg-color, #F2F2F7)";
+        document.body.style.color = "var(--tg-theme-text-color, #000000)";
+        document.body.style.overflow = ''; 
+        window.scrollTo(0,0);
+        
+        window.Telegram.WebApp.BackButton.hide();
+    });
+}
+
+document.addEventListener('pointerdown', (e) => {
+    const wizardNickInput = document.getElementById('wizard-nick-input');
+    
+    if (document.activeElement === wizardNickInput && 
+        e.target !== wizardNickInput && 
+        !e.target.closest('.wizard-caps-btn')) {
+      wizardNickInput.blur();
+    }
+
+    if (document.activeElement && document.activeElement.classList.contains('ios-price-input')) {
+        if (!e.target.classList.contains('ios-price-input')) {
+            document.activeElement.blur();
+        }
+    }
+});
+
+
+const localDB = {
+    db: null,
+    async init() {
+        if (this.db) return;
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open('SnapiDB', 1); 
+            req.onupgradeneeded = e => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath: 'id' });
+                if (!db.objectStoreNames.contains('downloads')) db.createObjectStore('downloads', { autoIncrement: true });
+            };
+            req.onsuccess = e => { this.db = e.target.result; resolve(); };
+            req.onerror = () => reject('IDB error');
+        });
+    },
+    async recordDownload() {
+        await this.init();
+        const tx = this.db.transaction('downloads', 'readwrite');
+        tx.objectStore('downloads').add({ timestamp: Date.now() });
+    },
+    async getDownloadsThisMonth() {
+        await this.init();
+        const all = await new Promise(resolve => {
+            const tx = this.db.transaction('downloads', 'readonly');
+            const req = tx.objectStore('downloads').getAll();
+            req.onsuccess = () => resolve(req.result || []);
+        });
+        
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        
+        return all.filter(item => item.timestamp >= startOfMonth).length;
+    },
+    async getAll() {
+        await this.init();
+        return new Promise(resolve => {
+            const tx = this.db.transaction('projects', 'readonly');
+            const req = tx.objectStore('projects').getAll();
+            req.onsuccess = () => resolve(req.result || []);
+        });
+    },
+    async save(project) {
+        await this.init();
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction('projects', 'readwrite');
+            const req = tx.objectStore('projects').put(project);
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject();
+        });
+    },
+    async delete(id) {
+        await this.init();
+        return new Promise(resolve => {
+            const tx = this.db.transaction('projects', 'readwrite');
+            const req = tx.objectStore('projects').delete(id);
+            req.onsuccess = () => resolve();
+        });
+    }
+};
+
+window.updateSavedCount = async () => {
+    let saved = await localDB.getAll();
+    let countEl = document.getElementById('saved-count-val');
+    if (countEl) countEl.innerText = saved.length;
+};
+
+window.openSavedProjects = () => {
+    document.getElementById('ios-dashboard').style.display = 'none';
+    window.renderSavedProjects();
+    document.getElementById('saved-projects-overlay').style.display = 'flex';
+    window.scrollTo(0,0);
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
+};
+
+window.openSettings = () => {
+    document.getElementById('ios-dashboard').style.display = 'none';
+    document.getElementById('settings-overlay').style.display = 'flex';
+    window.scrollTo(0,0);
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
+};
+
+window.closeSettings = () => {
+    document.getElementById('settings-overlay').style.display = 'none';
+    document.getElementById('ios-dashboard').style.display = 'flex';
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.hide();
+};
+
+window.openSubscription = () => {
+    document.getElementById('ios-dashboard').style.display = 'none';
+    document.getElementById('subscription-overlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; 
+    window.scrollTo(0,0);
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
+};
+
+window.closeSubscription = () => {
+    document.getElementById('subscription-overlay').style.display = 'none';
+    document.getElementById('ios-dashboard').style.display = 'flex';
+    document.body.style.overflow = ''; 
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.hide();
+};
+
+window.closeSavedProjects = () => {
+    document.getElementById('saved-projects-overlay').style.display = 'none';
+    document.getElementById('ios-dashboard').style.display = 'flex';
+    window.scrollTo(0,0);
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.hide();
+};
+
+window.closeWizard = () => {
+    document.getElementById('wizard-overlay').style.display = 'none';
+    document.getElementById('ios-dashboard').style.display = 'flex';
+    window.scrollTo(0,0);
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.hide();
+};
+
+window.openDownloadOverlay = () => {
+    let dlOverlay = document.getElementById('download-overlay');
+    let saveWrapper = document.getElementById('save-btn-wrapper');
+    
+    saveWrapper.classList.remove('hidden-animated');
+    saveWrapper.style.display = isCurrentProjectSaved ? 'none' : 'flex'; 
+    
+    let saveBtn = document.getElementById('dl-btn-save-project');
+    saveBtn.classList.remove('is-loading');
+    saveBtn.style.pointerEvents = 'auto';
+
+    try {
+        let thumbC = document.createElement('canvas');
+        let tW = 600; 
+        let tH = (persistentCanvas && persistentCanvas.width > 0) 
+                 ? Math.round((persistentCanvas.height / persistentCanvas.width) * tW) 
+                 : 400;
+                 
+        thumbC.width = tW; 
+        thumbC.height = tH;
+        
+        let tCtx = thumbC.getContext('2d');
+        tCtx.imageSmoothingEnabled = true;
+        tCtx.imageSmoothingQuality = 'high';
+        
+        if (persistentCanvas && persistentCanvas.width > 0) {
+            tCtx.drawImage(persistentCanvas, 0, 0, tW, tH);
+        }
+        
+        document.getElementById('dl-preview-img').src = thumbC.toDataURL('image/jpeg', 0.8);
+    } catch(e) {
+        console.warn("Превью заблокировано:", e);
+        document.getElementById('dl-preview-img').src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="; 
+    }
+
+    document.getElementById('result-box').style.display = 'none';
+    let btnWrap = document.getElementById('download-btn-wrap');
+    if (btnWrap) btnWrap.style.display = 'none';
+    
+    dlOverlay.style.display = 'flex';
+    
+    dlOverlay.classList.remove('dl-animate');
+    document.querySelectorAll('.dl-title, .dl-subtitle, .dl-preview, .dl-buttons-container').forEach(el => {
+        el.style.opacity = '1';
+        el.style.animation = 'none'; 
+    });
+
+    window.scrollTo(0,0);
+};
+
+window.closeDownloadOverlay = () => {
+    document.getElementById('download-overlay').style.display = 'none';
+    document.getElementById('result-box').style.display = 'block';
+    let btnWrap = document.getElementById('download-btn-wrap');
+    if (btnWrap) btnWrap.style.display = 'flex';
+    window.scrollTo(0,0);
+};
+
+window.deleteProject = async (id, btnEl) => {
+    if (btnEl) {
+        let row = btnEl.closest('.sp-row');
+        if (row) {
+            row.classList.add('deleting');
+            await new Promise(r => setTimeout(r, 400));
+        }
+    }
+    
+    await localDB.delete(id);
+    await window.renderSavedProjects();
+    await window.updateSavedCount();
+};
+
+window.renderSavedProjects = async () => {
+    let saved = await localDB.getAll();
+    saved.reverse(); 
+    
+    let emptyState = document.getElementById('sp-empty-state');
+    let contentState = document.getElementById('sp-content-state');
+    let container = document.getElementById('sp-list');
+    
+    if (saved.length === 0) {
+        emptyState.style.display = 'flex';
+        emptyState.classList.add('show');
+        contentState.style.display = 'none';
+        return;
+    }
+    
+    emptyState.style.display = 'none';
+    emptyState.classList.remove('show');
+    contentState.style.display = 'block';
+    
+    let html = '';
+    saved.forEach((proj, index) => {
+        try {
+            let thumb = proj.thumb || proj.bg || ''; 
+            html += `
+                <div class="sp-row" onclick="loadProject(${proj.id})">
+                    <img src="${thumb}" class="sp-img" onerror="this.src=''">
+                    <div class="sp-title">Работа #${index + 1}</div>
+                    <button class="sp-del-btn" onclick="event.stopPropagation(); deleteProject(${proj.id}, this)">удалить</button>
+                    <div class="ios-chevron">
+                        <svg viewBox="0 0 8 14" width="8" height="14">
+                            <path d="M1 1l6 6-6 6" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+            `;
+        } catch(e) { console.error(e); }
+    });
+    container.innerHTML = html;
+};
+
+const loadImage = (src) => new Promise((resolve) => {
+  const img = new Image(); 
+  if (src && !src.startsWith('data:') && !src.startsWith('blob:')) {
+      img.crossOrigin = "anonymous"; 
+  }
+  img.onload = () => resolve(img); 
+  img.onerror = () => resolve(null); 
+  img.src = src;
+});
+
+window.loadProject = async (id) => {
+    let saved = await localDB.getAll();
+    let projData = saved.find(p => p.id === id);
+    if (!projData) return;
+
+    isCurrentProjectSaved = true; 
+
+    document.getElementById('saved-projects-overlay').style.display = 'none';
+    document.getElementById('ios-dashboard').style.display = 'none';
+    
+    document.body.style.background = "#F2F2F7";
+    document.body.style.color = "#000";
+    resultBox.style.display = 'block';
+    window.scrollTo(0,0);
+    if (window.Telegram && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
+    
+    cardsContainer.innerHTML = '<div class="skeleton-box skeleton-canvas fade-in-anim"></div>';
+    layerPanel.style.display = 'flex';
+    layerPanel.innerHTML = `
+        <div class="skeleton-panel-wrapper fade-in-anim">
+            <div class="skeleton-box skeleton-row"></div>
+            <div class="skeleton-box skeleton-row"></div>
+            <div class="skeleton-box skeleton-row"></div>
+        </div>
+    `;
+
+    await new Promise(r => setTimeout(r, 50));
+
+    allGeneratedCards = [];
+
+    if (!globalAssets.luchImg) {
+        globalAssets.luchImg = await loadImage('Luch.png');
+        globalAssets.starImg = await loadImage('Star.png');
+        globalAssets.pointsImg = await loadImage('points.png');
+    }
+
+    let s = projData.state;
+    if (s.isGeneratedBg && s.bgColorType) {
+        rawBgImage = await createGradientBg(s.bgColorType);
+    } else if (projData.bg) {
+        rawBgImage = await loadImage(projData.bg);
+    }
+
+    window.layerState = {
+        textVisible: s.textVisible,
+        textValue: s.textValue,
+        textPosition: s.textPosition,
+        textFont: s.textFont,
+        textStyleIndex: s.textStyleIndex,
+        globalStrokeWidth: s.globalStrokeWidth,
+        bgVisible: s.bgVisible,
+        isGeneratedBg: s.isGeneratedBg,
+        isReadyBg: s.isReadyBg || false,
+        bgColorType: s.bgColorType,
+        luchVisible: s.luchVisible,
+        luchOpacity: s.luchOpacity,
+        starsVisible: s.starsVisible,
+        starsOpacity: s.starsOpacity,
+        watermarksVisible: s.watermarksVisible,
+        watermarksOpacity: s.watermarksOpacity,
+        watermarksFont: s.watermarksFont,
+        pointsVisible: s.pointsVisible,
+        offers: []
+    };
+
+    for (let i = 0; i < s.offers.length; i++) {
+        let oData = s.offers[i];
+        let img = await loadImage(oData.imgData); 
+        
+        let c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        let cx = c.getContext('2d', {willReadFrequently: true});
+        cx.drawImage(img, 0, 0);
+        
+        let blankedImgData = cx.getImageData(0, 0, img.width, img.height);
+
+        let drawInfo = {
+            blankedImgData: blankedImgData,
+            textX: oData.infoTextX,
+            textY: oData.infoTextY,
+            boxHeight: oData.infoBoxHeight
+        };
+
+        drawPriceText(cx, img.width, img.height, oData.price, drawInfo);
+
+        let offerObj = { canvas: c, x: 0, y: 0, info: drawInfo }; 
+
+        let stateOffer = {
+            id: oData.id,
+            visible: oData.visible,
+            hasStroke: oData.hasStroke,
+            price: oData.price,
+            ref: offerObj,
+            anim: { x: null, y: null, w: null, h: null, scale: 0, alpha: 0 },
+            target: { x: null, y: null, w: null, h: null, scale: 1, alpha: 1 },
+            cache: null
+        };
+        window.layerState.offers.push(stateOffer);
+    }
+
+    await document.fonts.load(`16px '${window.layerState.textFont}'`);
+    await document.fonts.load(`16px '${window.layerState.watermarksFont}'`);
+
+    setupPersistentCanvas();
+    renderLayerPanel(true);
+    calculateLayoutTarget();
+};
+
+document.getElementById('ios-btn-create').addEventListener('click', async function() {
+    window.triggerHaptic();
+    const limit = await checkUsageLimit();
+    if (!limit.allowed) return; 
+
+    isCurrentProjectSaved = false; 
+    document.getElementById('ios-dashboard').style.display = 'none';
+
+  document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active', 'fade-out'));
+  document.getElementById('wizard-step1').classList.add('active');
+
+  document.getElementById('prog-step1').className = 'step active';
+  document.getElementById('prog-line1').className = 'line';
+  document.getElementById('prog-step2').className = 'step small';
+  document.getElementById('prog-line2').className = 'line';
+  document.getElementById('prog-step3').className = 'step small';
+
+  stagedFiles = [];
+  updateDropzoneUI();
+
+  document.getElementById('wizard-overlay').style.display = 'flex';
+  window.scrollTo(0,0);
+  if (window.Telegram && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
+});
+
+function createGradientBg(colorType) {
+    const c = document.createElement('canvas');
+    c.width = 1920;
+    c.height = 1080;
+    const ctx = c.getContext('2d');
+    
+    const colorStops = {
+        'green': ['#00ff66', '#003311'],
+        'blue': ['#00c3ff', '#0011aa'],
+        'orange': ['#ffb300', '#662200'],
+        'purple': ['#d400ff', '#3b0099'],
+        'black': ['#666666', '#050505']
+    };
+    
+    let stops = colorStops[colorType];
+    let cx = 1920 / 2;
+    let cy = 1080 / 2;
+    let rOuter = 1100; 
+    
+    let grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, rOuter);
+    grd.addColorStop(0, stops[0]);
+    grd.addColorStop(1, stops[1]);
+    
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 1920, 1080);
+    
+    return new Promise((resolve) => {
+        let img = new Image();
+        img.onload = () => resolve(img);
+        img.src = c.toDataURL('image/png');
+    });
+}
+
+function getHDScale() {
+    if (!rawBgImage) return 1;
+    let isAndroid = document.body.classList.contains('os-android');
+    let maxW = isAndroid ? 2048 : 3840;
+    let scale = Math.max(1, Math.ceil(maxW / rawBgImage.width));
+    if (rawBgImage.width * scale > maxW) scale = maxW / rawBgImage.width;
+    return scale > 0 ? scale : 1;
+}
+
+window.layerState = {
+    textVisible: true,
+    textValue: "SNAPI",
+    textPosition: "top", 
+    textFont: 'Font16103',
+    textStyleIndex: 0, 
+    globalStrokeWidth: 2, 
+    offers: [],
+    bgVisible: true,
+    luchVisible: true,
+    luchOpacity: 1.0,
+    starsVisible: true,
+    starsOpacity: 1.0,
+    watermarksVisible: true,
+    watermarksOpacity: 0.8,
+    watermarksFont: 'Font16103',
+    pointsVisible: true,
+    isGeneratedBg: false,
+    isReadyBg: false
+};
+
+const FONT_OPTIONS = [
+    { family: 'Font16103' },
+    { family: 'LilitaOneRus' },
+    { family: 'SupercellMagic' },
+    { family: 'PusiaBold' },
+    { family: 'BebasNeue' },
+    { family: 'AmericanCaptain' }
+];
+
+const TEXT_STYLES = [
+    { isClassic: true, grad: ['#ffba00', '#fcff00', '#ffba00'] },
+    { grad: ['#ff9600', '#ffde00', '#ff9600'], inner: '#ffde00', shadow: '#000000', outer: '#000000' },
+    { grad: ['#d90646', '#ff2a6b', '#d90646'], inner: '#ff2a6b', shadow: '#000000', outer: '#000000' },
+    { grad: ['#ff9600', '#ffde00', '#ff9600'], inner: '#ffde00', shadow: '#3e1900', outer: null },
+    { grad: ['#c7c7c7', '#ffffff', '#c7c7c7'], inner: '#ffffff', shadow: '#3e3e3e', outer: '#232323' },
+    { grad: ['#c7c7c7', '#ffffff', '#c7c7c7'], inner: '#ffffff', shadow: '#3e3e3e', outer: '#232323', outer2: '#ffffff' },
+    { grad: ['#ffba00', '#fcff00', '#ffba00'], inner: '#fcff00', shadow: '#5b2900', outer: '#3a1a00' },
+    { grad: ['#c7c7c7', '#ffffff', '#c7c7c7'], inner: '#ffffff', shadow: '#000000', outer: '#000000' },
+    { grad: ['#c7c7c7', '#ffffff', '#c7c7c7'], inner: '#ffffff', shadow: '#393939', outer: null },
+    { grad: ['#ffba00', '#fcff00', '#ffba00'], inner: '#fcff00', shadow: '#61005a', outer: '#42003d' }
+];
+
+function createStylePreviewURL(style, font) {
+    let c = document.createElement('canvas');
+    c.width = 100; c.height = 45;
+    let ctx = c.getContext('2d');
+    let text = "TEXT";
+    let fontSize = 22;
+    let x = c.width / 2;
+    let y = c.height / 2 + 2;
+    let shadowDepth = 2;
+
+    let textCanvas = document.createElement('canvas'); textCanvas.width = c.width; textCanvas.height = c.height; let txCtx = textCanvas.getContext('2d');
+    txCtx.textAlign = "center"; txCtx.textBaseline = "middle"; txCtx.font = `${fontSize}px '${font}', sans-serif`;
+    txCtx.lineJoin = "round"; txCtx.lineCap = "round";
+
+    txCtx.save(); txCtx.translate(x, y); txCtx.transform(1, 0, -0.10, 1, 0, 0); 
+    
+    if (style.isClassic) {
+        txCtx.lineWidth = fontSize * 0.18; txCtx.strokeStyle = "#ffffff"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = "#42003d"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = "#61005a"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+    } else {
+        if (style.outer2) {
+            txCtx.lineWidth = fontSize * 0.18; txCtx.strokeStyle = style.outer2; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        } else if (style.outer) {
+            txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        } else {
+            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        }
+    }
+    txCtx.restore();
+
+    let tempCanvas = document.createElement('canvas'); tempCanvas.width = c.width; tempCanvas.height = c.height; let tCtx = tempCanvas.getContext('2d');
+    tCtx.textAlign = "center"; tCtx.textBaseline = "middle"; tCtx.font = `${fontSize}px '${font}', sans-serif`;
+    tCtx.save(); tCtx.translate(x, y); tCtx.transform(1, 0, -0.10, 1, 0, 0); 
+
+    let grad = tCtx.createLinearGradient(0, -fontSize * 0.4, 0, fontSize * 0.4);
+    grad.addColorStop(0, style.grad[0]); 
+    grad.addColorStop(style.isClassic ? 0.48 : 0.52, style.grad[1]); 
+    grad.addColorStop(1, style.grad[2]);
+    tCtx.fillStyle = grad; tCtx.fillText(text, 0, 0);
+    
+    tCtx.globalCompositeOperation = "source-atop"; 
+    tCtx.lineWidth = fontSize * 0.06; 
+    tCtx.strokeStyle = style.isClassic ? "#fcff00" : style.inner; 
+    tCtx.lineJoin = "round"; 
+    tCtx.strokeText(text, 0, 0);
+    tCtx.restore();
+
+    txCtx.drawImage(tempCanvas, 0, 0);
+    ctx.drawImage(textCanvas, 0, 0);
+
+    return c.toDataURL('image/png');
+}
+
+let allGeneratedCards = [];
+let filesProcessed = 0;
+let filesToProcess = 0;
+let stagedFiles = [];
+
+let persistentCanvas = null;
+let persistentCtx = null;
+let cachedTextCanvas = null;
+let animReq = null;
+let animText = { scale: 1, alpha: 1, targetScale: 1, targetAlpha: 1 };
+
+const eyeVisibleSVG = `<svg viewBox="0 0 512 512" fill="currentColor"><g transform="translate(0,512) scale(0.1,-0.1)"><path d="M2405 4300 c-863 -44 -1660 -505 -2148 -1245 -90 -138 -250 -453 -250 -495 0 -42 160 -357 250 -495 409 -620 1033 -1046 1748 -1194 342 -70 762 -71 1107 -1 713 145 1343 575 1750 1195 92 140 251 453 251 495 0 42 -159 357 -250 495 -216 327 -483 594 -808 808 -135 88 -391 218 -539 272 -231 85 -534 150 -748 160 -62 3 -138 7 -168 8 -30 2 -118 0 -195 -3z m356 -595 c416 -73 764 -372 901 -775 78 -232 78 -508 0 -740 -117 -345 -387 -615 -732 -732 -171 -58 -391 -75 -570 -43 -480 84 -861 465 -945 944 -32 178 -15 400 43 571 136 400 481 699 894 774 100 19 307 19 409 1z"/><path d="M2430 3246 c-154 -34 -250 -85 -360 -196 -142 -141 -204 -290 -204 -485 0 -131 17 -204 76 -325 81 -166 259 -307 448 -357 87 -23 253 -23 340 0 244 64 444 264 507 507 23 88 23 254 0 340 -50 190 -191 367 -357 448 -47 23 -112 49 -145 57 -85 23 -227 27 -305 11z"/></g></svg>`;
+
+const eyeHiddenSVG = `<svg viewBox="0 0 512 512" fill="currentColor"><g transform="translate(0,512) scale(0.1,-0.1)"><path d="M4575 4466 c-16 -8 -906 -891 -1977 -1963 -1742 -1743 -1947 -1952 -1953 -1985 -22 -120 69 -212 189 -193 38 7 71 37 442 407 l402 400 103 -37 c269 -95 469 -129 774 -129 247 -1 358 13 579 68 651 165 1267 635 1717 1309 99 149 117 191 105 249 -14 73 -210 391 -342 558 -71 89 -350 374 -419 428 l-40 31 317 318 c274 276 317 323 323 356 25 132 -101 237 -220 183z m-1096 -1633 c84 -282 33 -570 -147 -823 -205 -288 -579 -452 -912 -400 -78 12 -200 48 -200 58 0 4 56 63 125 132 l125 125 72 -3 c358 -15 671 298 656 656 l-3 72 125 125 c69 69 128 125 132 125 4 0 16 -30 27 -67z"/><path d="M2375 4154 c-456 -48 -846 -194 -1220 -457 -344 -243 -637 -547 -886 -920 -100 -150 -116 -190 -105 -251 8 -42 175 -294 292 -441 111 -139 407 -436 543 -544 l104 -83 309 309 c169 169 308 313 308 319 0 6 -14 39 -31 75 -58 118 -82 236 -83 394 0 174 23 275 94 421 100 207 253 356 465 455 131 62 235 83 400 83 158 -1 276 -25 394 -83 36 -17 69 -31 75 -31 6 0 135 124 286 275 l274 274 -50 21 c-155 67 -407 135 -616 166 -99 14 -469 27 -553 18z"/><path d="M2420 3185 c-299 -67 -514 -351 -497 -655 4 -82 31 -200 45 -200 9 0 822 813 822 822 0 4 -26 14 -57 24 -79 23 -231 27 -313 9z"/></g></svg>`;
+
+const downloadIconSVG = `<svg viewBox="0 0 512 512" fill="currentColor"><g transform="translate(0,512) scale(0.1,-0.1)"><path d="M2510 4389 c-32 -13 -87 -66 -108 -104 -15 -27 -17 -122 -22 -1038 l-5 -1007 -345 346 c-226 227 -359 353 -385 365 -72 33 -163 17 -224 -41 -33 -32 -61 -98 -61 -145 0 -87 13 -102 563 -653 287 -288 540 -534 562 -547 56 -32 102 -38 160 -20 46 13 89 54 601 567 536 537 552 554 563 604 30 128 -68 254 -198 254 -80 0 -92 -9 -463 -379 l-358 -355 0 1002 c0 1086 2 1041 -53 1100 -51 55 -157 79 -227 51z"/><path d="M870 1724 c-46 -20 -77 -50 -103 -99 -19 -36 -22 -60 -25 -242 -7 -333 17 -459 110 -599 78 -117 202 -208 343 -251 57 -17 131 -18 1390 -18 l1330 0 75 23 c105 33 196 89 271 169 77 82 122 164 149 269 17 67 20 111 20 344 0 260 -1 268 -23 311 -66 125 -235 145 -331 39 -19 -21 -39 -56 -45 -77 -6 -22 -11 -139 -11 -273 0 -206 -3 -240 -19 -275 -23 -51 -79 -101 -128 -114 -56 -16 -2528 -15 -2574 0 -51 18 -97 55 -122 102 -21 40 -22 57 -27 307 -5 284 -8 296 -62 347 -54 51 -149 67 -218 37z"/></g></svg>`;
+
+function getEyeSVG(isVisible) {
+  return isVisible ? eyeVisibleSVG : eyeHiddenSVG;
+}
+
+const trashBinSVG = `<svg viewBox="0 0 512 512" fill="#ffffff" width="14" height="14"><g transform="translate(0,512) scale(0.1,-0.1)" stroke="none"><path d="M2055 4674 c-97 -34 -159 -118 -181 -244 -15 -88 -28 -113 -71 -141 -26 -17 -55 -19 -386 -19 -230 0 -374 -4 -402 -11 -27 -7 -63 -28 -90 -51 -112 -98 -88 -275 46 -342 l53 -26 1536 0 1536 0 53 26 c127 64 155 219 59 328 -64 73 -81 76 -502 76 -334 0 -363 1 -389 19 -43 28 -56 53 -71 141 -23 129 -84 211 -185 245 -64 22 -945 21 -1006 -1z"/><path d="M1195 3396 c-40 -17 -95 -72 -111 -113 -8 -18 -14 -56 -14 -85 0 -111 170 -2066 185 -2128 22 -92 104 -254 167 -330 125 -150 299 -255 488 -295 105 -22 1195 -22 1300 0 199 42 386 160 506 318 57 74 126 218 148 307 20 79 188 2043 184 2142 -3 56 -9 74 -35 110 -17 24 -50 53 -74 65 l-42 23 -1336 0 c-1085 -1 -1342 -3 -1366 -14z"/></g></svg>`;
+
+function updateDropzoneUI() {
+  const countDiv = document.getElementById('wizard-uploaded-count');
+  const previewContainer = document.getElementById('wizard-screens-preview');
+  
+  previewContainer.innerHTML = '';
+
+  if (stagedFiles.length > 0) {
+    countDiv.style.display = 'block';
+    let maxLimit = window.hasActiveSubscription ? 6 : 3;
+    
+    countDiv.innerHTML = `Загружено: <span id="wizard-upload-num">${stagedFiles.length}</span> из ${maxLimit}`;
+    
+    const numSpan = document.getElementById('wizard-upload-num');
+    if (numSpan) {
+        numSpan.classList.remove('num-blur-anim');
+        void numSpan.offsetWidth; 
+        numSpan.classList.add('num-blur-anim');
+    }
+
+    document.getElementById('wizard-next-btn3').classList.add('show');
+    
+    stagedFiles.forEach((file) => {
+        let wrap = document.createElement('div');
+        wrap.className = 'screen-thumb-wrap';
+        
+        let img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        
+        let delBtn = document.createElement('div');
+        delBtn.className = 'screen-del-btn';
+        delBtn.innerHTML = trashBinSVG;
+        delBtn.onclick = () => {
+            wrap.classList.add('blur-out-anim');
+            setTimeout(() => {
+                let currentIndex = stagedFiles.indexOf(file);
+                if (currentIndex !== -1) {
+                    stagedFiles.splice(currentIndex, 1);
+                    updateDropzoneUI();
+                }
+            }, 300); 
+        };
+        
+        wrap.appendChild(img);
+        wrap.appendChild(delBtn);
+        previewContainer.appendChild(wrap);
+    });
+
+  } else {
+    countDiv.style.display = 'none';
+    countDiv.innerHTML = ''; 
+    document.getElementById('wizard-next-btn3').classList.remove('show');
+  }
+}
+
+function handleFilesAdded(files) {
+  let maxLimit = window.hasActiveSubscription ? 6 : 3; 
+  let addedCount = 0;
+  
+  for(let i = 0; i < files.length; i++) {
+    if (stagedFiles.length < maxLimit) {
+        stagedFiles.push(files[i]);
+        addedCount++;
+    }
+  }
+  
+  if (addedCount < files.length) {
+      if (window.hasActiveSubscription) {
+          alert("Вы достигли лимита загрузки скриншотов, удалите и добавьте новый.");
+      } else {
+          alert("Вы достигли лимита загрузки скриншотов, удалите и добавьте новый или оформите/продлите подписку.");
+      }
+  }
+  
+  updateDropzoneUI();
+}
+
+fileInput.onchange = (e) => { 
+    if (e.target.files.length > 0) handleFilesAdded(e.target.files); 
+    e.target.value = ''; 
+};
+
+document.getElementById('file-add-screens').onchange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+        isCurrentProjectSaved = false;
+        let newFiles = Array.from(e.target.files);
+        processImages(newFiles);
+        e.target.value = '';
+    }
+};
+
+function processImages(filesParam) {
+  let maxLimit = window.hasActiveSubscription ? 6 : 3;
+  let files = Array.from(filesParam);
+
+  if (files.length > maxLimit) {
+      if (window.hasActiveSubscription) {
+          alert("Вы достигли лимита загрузки скриншотов, удалите и добавьте новый.");
+      } else {
+          alert("Вы достигли лимита загрузки скриншотов, удалите и добавьте новый или оформите/продлите подписку.");
+      }
+      files = files.slice(0, maxLimit); 
+  }
+
+  document.body.style.background = "#F2F2F7";
+  document.body.style.color = "#000";
+  
+  document.getElementById('wizard-overlay').style.display = 'none';
+  resultBox.style.display = 'block';
+  window.scrollTo(0,0);
+  
+  cardsContainer.innerHTML = '<div class="skeleton-box skeleton-canvas fade-in-anim"></div>';
+  layerPanel.style.display = 'flex';
+  layerPanel.innerHTML = `
+      <div class="skeleton-panel-wrapper fade-in-anim">
+          <div class="skeleton-box skeleton-row"></div>
+          <div class="skeleton-box skeleton-row"></div>
+          <div class="skeleton-box skeleton-row"></div>
+      </div>
+  `;
+
+  allGeneratedCards = [];
+  window.layerState.offers = [];
+  filesProcessed = 0;
+  
+  filesToProcess = files.length;
+
+  setTimeout(() => {
+      for(let i = 0; i < files.length; i++) {
+        const img = new Image();
+        img.onload = () => runMagicLogic(img);
+        img.onerror = () => checkBatchCompletion(); 
+        img.src = URL.createObjectURL(files[i]);
+      }
+  }, 50);
+}
+
+window.setFont = async (fontFamily) => {
+    window.layerState.textFont = fontFamily;
+    
+    document.querySelectorAll('.main-font-item').forEach(el => {
+        if (el.getAttribute('data-font') === fontFamily) el.classList.add('active');
+        else el.classList.remove('active');
+    });
+
+    await document.fonts.load(`16px '${fontFamily}'`);
+    
+    document.querySelectorAll('.main-style-item').forEach((el) => {
+        let sIdx = parseInt(el.getAttribute('data-style'));
+        let previewDataUrl = createStylePreviewURL(TEXT_STYLES[sIdx], fontFamily);
+        el.style.backgroundImage = `url(${previewDataUrl})`;
+    });
+
+    window.updateCachedTextCanvas();
+    startAnimation();
+};
+
+window.setStyle = (index) => {
+    window.layerState.textStyleIndex = index;
+    
+    document.querySelectorAll('.main-style-item').forEach(el => {
+        if (parseInt(el.getAttribute('data-style')) === index) el.classList.add('active');
+        else el.classList.remove('active');
+    });
+
+    window.updateCachedTextCanvas();
+    startAnimation();
+};
+
+window.setWmFont = async (fontFamily) => {
+    window.layerState.watermarksFont = fontFamily;
+    
+    document.querySelectorAll('.wm-font-item').forEach(el => {
+        if (el.getAttribute('data-font') === fontFamily) el.classList.add('active');
+        else el.classList.remove('active');
+    });
+
+    await document.fonts.load(`16px '${fontFamily}'`);
+    startAnimation();
+};
+
+function renderLayerPanel(isInitialLoad = false) {
+    layerPanel.innerHTML = '';
+    let html = '';
+    
+    let animCls = isInitialLoad ? 'fade-in-anim' : '';
+
+    html += `<div class="ios-section-title ${animCls}">СЛОИ ДЛЯ РЕДАКТИРОВАНИЯ</div>`;
+
+    if (!window.layerState.isReadyBg) {
+        let isTop = window.layerState.textPosition !== 'bottom';
+        let textEyeClass = window.layerState.textVisible ? '' : 'hidden';
+
+        html += `<div class="ios-layer-group ${animCls}">`;
+        html += `
+            <div class="ios-layer-row" style="border-bottom:none; padding-bottom: 0;">
+                <div class="ios-icon-btn ios-eye-icon ${textEyeClass}" onclick="toggleTextLayer()">
+                    ${getEyeSVG(window.layerState.textVisible)}
+                </div>
+                <div class="ios-layer-name" style="max-width: 120px;">${window.layerState.textValue.substring(0, 10)}${window.layerState.textValue.length > 10 ? '...' : ''}</div>
+                <div class="ios-layer-action-text">расположение</div>
+                <button class="ios-pill-btn" onclick="toggleTextPosition()">
+                    ${isTop ? 'ВВЕРХ' : 'ВНИЗ'}
+                </button>
+                <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadTextLayer()">
+                    ${downloadIconSVG}
+                </div>
+            </div>
+        `;
+
+        html += `<div class="ios-font-label">Изменить шрифт</div>`;
+        html += `<div class="ios-font-grid">`;
+        FONT_OPTIONS.forEach((f, idx) => {
+            let activeCls = window.layerState.textFont === f.family ? 'active' : '';
+            html += `<div class="ios-font-item main-font-item ${activeCls}" data-font="${f.family}" style="font-family: '${f.family}', sans-serif;" onclick="setFont('${f.family}')">${window.layerState.textValue || 'TEXT'}</div>`;
+        });
+        html += `</div>`;
+
+        html += `<div class="ios-font-label">Изменить стиль</div>`;
+        html += `<div class="ios-style-grid">`;
+        TEXT_STYLES.forEach((st, sIdx) => {
+            let activeCls = window.layerState.textStyleIndex === sIdx ? 'active' : '';
+            let previewDataUrl = createStylePreviewURL(st, window.layerState.textFont);
+            html += `<div class="ios-style-item main-style-item ${activeCls}" data-style="${sIdx}" style="background-image: url(${previewDataUrl});" onclick="setStyle(${sIdx})"></div>`;
+        });
+        html += `</div>`;
+        html += `</div>`;
+    }
+
+    if (window.layerState.offers.length > 0) {
+        html += `<div class="ios-layer-group ${animCls}">`;
+        html += `
+            <div class="ios-layer-row">
+                <div style="width: 24px; flex-shrink: 0;"></div> <!-- Заглушка для глазика -->
+                <div class="ios-layer-name">Обводка у акций</div>
+                <div class="ios-layer-action-text">размер</div>
+                <div class="ios-stroke-control">
+                    <button class="ios-stroke-btn" onclick="changeGlobalStroke(-1)">-</button>
+                    <div class="ios-stroke-val" id="global-stroke-val">${window.layerState.globalStrokeWidth}</div>
+                    <button class="ios-stroke-btn" onclick="changeGlobalStroke(1)">+</button>
+                </div>
+                <div style="width: 24px; margin-left: 10px; flex-shrink: 0;"></div> <!-- Заглушка для кнопки скачивания -->
+            </div>
+        `;
+
+        window.layerState.offers.forEach((offer, idx) => {
+            let isFree = offer.price.trim().toUpperCase() === 'FREE';
+            let priceBg = isFree ? '#34C759' : '#99D5F9';
+            let offerEyeClass = offer.visible ? '' : 'hidden';
+
+            html += `
+                <div class="ios-layer-row">
+                    <div class="ios-icon-btn ios-eye-icon ${offerEyeClass}" onclick="toggleOffer(${idx})">
+                        ${getEyeSVG(offer.visible)}
+                    </div>
+                    <div class="ios-layer-name">Акция ${idx + 1}</div>
+                    <div class="ios-layer-action-text">цена</div>
+                    <input type="text" class="ios-price-input" id="layer-price-${idx}" value="${offer.price}" maxlength="5"
+                           style="background: ${priceBg};" oninput="updateOfferPriceFromLayer(${idx}, this.value)">
+                    <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadOfferLayer(${idx})">
+                        ${downloadIconSVG}
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    }
+
+    html += `<div class="ios-layer-group ${animCls}">`;
+
+    if (!window.layerState.isReadyBg) {
+        let luchEyeClass = window.layerState.luchVisible ? '' : 'hidden';
+        html += `
+            <div class="ios-layer-row">
+                <div class="ios-icon-btn ios-eye-icon ${luchEyeClass}" onclick="toggleCosmeticLayer('luch')">
+                     ${getEyeSVG(window.layerState.luchVisible)}
+                </div>
+                <div class="ios-layer-name">Лучи</div>
+                <div class="ios-layer-action-text">прозрачность</div>
+                <input type="range" class="ios-slider" min="0" max="1" step="0.05" value="${window.layerState.luchOpacity}" oninput="changeOpacity('luch', this.value)">
+                <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadCosmeticLayer('luch')">
+                     ${downloadIconSVG}
+                </div>
+            </div>
+        `;
+
+        let wmEyeClass = window.layerState.watermarksVisible ? '' : 'hidden';
+        html += `
+            <div class="ios-layer-row" style="border-bottom:none; padding-bottom:0;">
+                <div class="ios-icon-btn ios-eye-icon ${wmEyeClass}" onclick="toggleCosmeticLayer('watermarks')">
+                     ${getEyeSVG(window.layerState.watermarksVisible)}
+                </div>
+                <div class="ios-layer-name">Текст min</div>
+                <div class="ios-layer-action-text">прозрачность</div>
+                <input type="range" class="ios-slider" min="0" max="1" step="0.05" value="${window.layerState.watermarksOpacity}" oninput="changeOpacity('watermarks', this.value)">
+                <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadCosmeticLayer('watermarks')">
+                     ${downloadIconSVG}
+                </div>
+            </div>
+        `;
+        html += `<div class="ios-font-label">Изменить шрифт</div>`;
+        html += `<div class="ios-font-grid">`;
+        FONT_OPTIONS.forEach((f, idx) => {
+            let activeCls = window.layerState.watermarksFont === f.family ? 'active' : '';
+            html += `<div class="ios-font-item wm-font-item ${activeCls}" data-font="${f.family}" style="font-family: '${f.family}', sans-serif;" onclick="setWmFont('${f.family}')">${window.layerState.textValue || 'TEXT'}</div>`;
+        });
+        html += `</div>`;
+
+        let starsEyeClass = window.layerState.starsVisible ? '' : 'hidden';
+        html += `
+            <div class="ios-layer-row">
+                <div class="ios-icon-btn ios-eye-icon ${starsEyeClass}" onclick="toggleCosmeticLayer('stars')">
+                     ${getEyeSVG(window.layerState.starsVisible)}
+                </div>
+                <div class="ios-layer-name">Звёзды</div>
+                <div class="ios-layer-action-text">прозрачность</div>
+                <input type="range" class="ios-slider" min="0" max="1" step="0.05" value="${window.layerState.starsOpacity}" oninput="changeOpacity('stars', this.value)">
+                <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadCosmeticLayer('stars')">
+                     ${downloadIconSVG}
+                </div>
+            </div>
+        `;
+
+        if (window.layerState.isGeneratedBg) {
+            let pointsEyeClass = window.layerState.pointsVisible ? '' : 'hidden';
+            html += `
+                <div class="ios-layer-row">
+                    <div class="ios-icon-btn ios-eye-icon ${pointsEyeClass}" onclick="toggleCosmeticLayer('points')">
+                         ${getEyeSVG(window.layerState.pointsVisible)}
+                    </div>
+                    <div class="ios-layer-name">Точки</div>
+                    <div style="flex-grow:1;"></div>
+                    <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadCosmeticLayer('points')">
+                         ${downloadIconSVG}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    let bgEyeClass = window.layerState.bgVisible ? '' : 'hidden';
+    html += `
+        <div class="ios-layer-row">
+            <div class="ios-icon-btn ios-eye-icon ${bgEyeClass}" onclick="toggleCosmeticLayer('bg')">
+                 ${getEyeSVG(window.layerState.bgVisible)}
+            </div>
+            <div class="ios-layer-name">Фон</div>
+            <div style="flex-grow:1;"></div>
+            <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadCosmeticLayer('bg')">
+                 ${downloadIconSVG}
+            </div>
+        </div>
+    `;
+
+    html += `</div>`;
+
+    layerPanel.innerHTML = html;
+    layerPanel.style.display = 'flex';
+}
+
+window.changeGlobalStroke = (delta) => {
+    window.layerState.globalStrokeWidth = Math.max(0, window.layerState.globalStrokeWidth + delta);
+    let valDiv = document.getElementById('global-stroke-val');
+    if (valDiv) valDiv.innerText = window.layerState.globalStrokeWidth;
+    window.layerState.offers.forEach(offer => {
+        if (offer.hasStroke && offer.target.w) {
+            generateOfferCache(offer, offer.target.w, offer.target.h);
+        }
+    });
+    startAnimation();
+};
+
+window.toggleTextLayer = () => {
+    window.layerState.textVisible = !window.layerState.textVisible;
+    renderLayerPanel();
+    calculateLayoutTarget(); 
+};
+
+window.toggleTextPosition = () => {
+    window.layerState.textPosition = window.layerState.textPosition === 'bottom' ? 'top' : 'bottom';
+    window.updateCachedTextCanvas();
+    renderLayerPanel();
+    calculateLayoutTarget(); 
+};
+
+window.toggleOffer = (idx) => {
+    let offer = window.layerState.offers[idx];
+    offer.visible = !offer.visible;
+    renderLayerPanel();
+    calculateLayoutTarget(); 
+};
+
+window.updateOfferPriceFromLayer = (idx, val) => {
+    if (/^\d+$/.test(val) && parseInt(val) > 99999) {
+        val = "99999";
+        let layerInput = document.getElementById(`layer-price-${idx}`);
+        if(layerInput) layerInput.value = val;
+    }
+
+    let offer = window.layerState.offers[idx];
+    offer.price = val;
+    
+    let layerInput = document.getElementById(`layer-price-${idx}`);
+    if(layerInput) layerInput.style.background = (val.trim().toUpperCase() === 'FREE') ? '#34C759' : '#99D5F9';
+    
+    let cx = offer.ref.canvas.getContext('2d');
+    cx.putImageData(offer.ref.info.blankedImgData, 0, 0);
+    drawPriceText(cx, offer.ref.canvas.width, offer.ref.canvas.height, val, offer.ref.info);
+    
+    generateOfferCache(offer, offer.target.w, offer.target.h);
+    startAnimation();
+};
+
+window.toggleCosmeticLayer = (layerName) => {
+    window.layerState[layerName + 'Visible'] = !window.layerState[layerName + 'Visible'];
+    renderLayerPanel();
+    startAnimation(); 
+};
+
+let opacityThrottle = false;
+
+window.changeOpacity = (layerName, value) => {
+    window.layerState[layerName + 'Opacity'] = parseFloat(value);
+    
+    let isNonApple = document.body.classList.contains('os-non-apple');
+    
+    if (!isNonApple) {
+        startAnimation();
+        return;
+    }
+
+    if (!opacityThrottle) {
+        startAnimation();
+        opacityThrottle = true;
+        setTimeout(() => { opacityThrottle = false; }, 80); 
+    }
+};
+
+window.downloadCosmeticLayer = (layerName) => {
+    let scale = getHDScale();
+    let w = rawBgImage ? rawBgImage.width * scale : 3840;
+    let h = rawBgImage ? rawBgImage.height * scale : 2160;
+    let tempC = document.createElement('canvas');
+    tempC.width = w; tempC.height = h;
+    let ctx = tempC.getContext('2d');
+    
+    if (layerName === 'bg' && rawBgImage) {
+        ctx.drawImage(rawBgImage, 0, 0, w, h);
+    } else if (layerName === 'points') {
+        if (globalAssets.pointsImg) {
+            ctx.globalCompositeOperation = "source-over";
+            ctx.drawImage(globalAssets.pointsImg, 0, 0, w, h);
+        }
+    } else if (layerName === 'luch') {
+        if (globalAssets.luchImg) {
+            ctx.globalCompositeOperation = "source-over"; 
+            ctx.globalAlpha = window.layerState.luchOpacity;
+            let luchW = w * 2; let luchH = h * 2;
+            ctx.drawImage(globalAssets.luchImg, -(luchW-w)/2, -(luchH-h)/2, luchW, luchH);
+        } else {
+            ctx.globalCompositeOperation = "source-over";
+            drawFallbackRays(ctx, w, h, window.layerState.luchOpacity);
+        }
+    } else if (layerName === 'watermarks' && window.layerState.textValue) {
+        drawWatermarks(ctx, window.layerState.textValue, w, h, window.layerState.watermarksOpacity, true);
+    } else if (layerName === 'stars' && globalAssets.starImg) {
+        drawStars(ctx, globalAssets.starImg, w, h, window.layerState.starsOpacity, true);
+    }
+    
+    downloadCanvas(tempC, `${layerName}_layer.png`);
+};
+
+window.downloadTextLayer = () => {
+    let scale = getHDScale();
+    let tempC = document.createElement('canvas');
+    tempC.width = rawBgImage ? rawBgImage.width * scale : 3840;
+    tempC.height = rawBgImage ? rawBgImage.height * scale : 2160;
+    let ctx = tempC.getContext('2d');
+    if (window.layerState.textValue && window.layerState.textVisible) {
+        drawBeautifulNick(ctx, window.layerState.textValue, tempC.width, tempC.height);
+    }
+    downloadCanvas(tempC, 'text_layer.png');
+};
+
+window.downloadOfferLayer = (idx) => {
+    let offer = window.layerState.offers[idx];
+    let tempOffer = { ...offer, cache: null };
+    generateOfferCache(tempOffer, offer.target.w, offer.target.h); 
+    downloadCanvas(tempOffer.cache.canvas, `offer_${idx+1}.png`);
+};
+
+async function downloadCanvas(canvas, filename) {
+    if (!canvas || canvas.width === 0) return;
+    
+    let isNonApple = document.body.classList.contains('os-non-apple');
+
+    if (isNonApple) {
+        try {
+            let smallC = document.createElement('canvas');
+            let ratio = canvas.height / canvas.width;
+            smallC.width = Math.min(canvas.width, 2048);
+            smallC.height = Math.round(smallC.width * ratio);
+            let sCtx = smallC.getContext('2d');
+            sCtx.imageSmoothingEnabled = true;
+            sCtx.imageSmoothingQuality = 'high';
+            sCtx.drawImage(canvas, 0, 0, smallC.width, smallC.height);
+
+            let dataUrl = smallC.toDataURL('image/png', 0.90);
+            let base64Image = dataUrl.split(',')[1];
+
+            const formData = new FormData();
+            formData.append('image', base64Image);
+
+            const response = await fetch(`https://snapi.vl5955074.workers.dev/`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                const viewerHtml = `
+                <!DOCTYPE html>
+                <html lang="ru">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                    <title>Сохранение слоя</title>
+                    <style>
+                        body { background-color: #131415; color: #ffffff; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0; padding: 20px; min-height: 100vh; box-sizing: border-box; }
+                        img { max-width: 100%; max-height: 65vh; border-radius: 12px; margin-bottom: 24px; object-fit: contain; -webkit-touch-callout: default !important; user-select: auto !important; }
+                        .instruction { background: #131415; padding: 20px; text-align: center; max-width: 320px; }
+                        .instruction p { color: #b0c2d5; font-size: 14px; line-height: 1.4; margin: 0 0 8px 0; font-weight: 600; }
+                        .instruction span { color: #b0c2d5; font-size: 14px; line-height: 1.3; display: block; }
+                    </style>
+                </head>
+                <body>
+                    <img src="${data.data.url}" alt="Result">
+                    <div class="instruction">
+                        <p>👆 Зажмите картинку пальцем</p>
+                        <span>В появившемся меню выберите пункт «Загрузить». После успешной загрузки закройте окно, нажав на крестик сверху.</span>
+                    </div>
+                </body>
+                </html>
+                `;
+
+                let w = null;
+                try { w = window.open('', '_blank'); } catch(e) {}
+
+                if (w) {
+                    w.document.write(viewerHtml);
+                    w.document.close();
+                } else {
+                    try {
+                        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                            window.Telegram.WebApp.openLink(data.data.url);
+                        } else {
+                            window.location.href = data.data.url;
+                        }
+                    } catch(e) {}
+
+                    setTimeout(() => {
+                        alert("Если картинка не открылась, пожалуйста, включите встроенный браузер в настройках Telegram.");
+                    }, 1500);
+                }
+            } else {
+                alert("Ошибка ImgBB: " + data.error.message);
+            }
+        } catch (err) {
+            alert("Ошибка при отправке слоя: " + err.message);
+        }
+    } 
+    else {
+        canvas.toBlob((blob) => {
+            if (!blob) {
+                alert("Ошибка скачивания: устройству не хватает памяти для рендера слоя.");
+                return;
+            }
+            const file = new File([blob], filename, { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({ files: [file] })
+                .catch(err => {
+                    console.error("Share failed", err);
+                    if (err.name !== 'AbortError' && err.message.indexOf('canceled') === -1) {
+                        fallbackDownload(blob, filename);
+                    }
+                });
+            } else {
+                fallbackDownload(blob, filename);
+            }
+        }, "image/png");
+    }
+}
+
+function fallbackDownload(blob, filename) {
+    if (!blob) return;
+    
+    try {
+        const file = new File([blob], filename, { type: blob.type });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ files: [file] }).catch(() => {});
+            return;
+        }
+    } catch(e) {}
+
+    try {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.download = filename;
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 3000);
+    } catch(e) {
+        alert("Не удалось скачать. Сделайте скриншот работы.");
+    }
+}
+
+function generateOfferCache(offer, targetW, targetH) {
+    let item = offer.ref;
+    let tW = targetW || item.canvas.width;
+    let tH = targetH || item.canvas.height;
+    let scale = getHDScale();
+
+    let srcCanvas = item.canvas;
+    let srcW = srcCanvas.width;
+    let srcH = srcCanvas.height;
+
+    let hdCard = document.createElement('canvas');
+    hdCard.width = tW;
+    hdCard.height = tH;
+    let hdCtx = hdCard.getContext('2d');
+    hdCtx.imageSmoothingEnabled = true;
+    hdCtx.imageSmoothingQuality = 'high';
+
+    if (item.info && item.info.blankedImgData) {
+        let blankCanvas = document.createElement('canvas');
+        blankCanvas.width = srcW; blankCanvas.height = srcH;
+        blankCanvas.getContext('2d').putImageData(item.info.blankedImgData, 0, 0);
+
+        let btmp = blankCanvas;
+        let bcW = srcW, bcH = srcH;
+        if (bcW > tW || bcH > tH) {
+            while (bcW > tW * 1.5 || bcH > tH * 1.5) {
+                let bW2 = Math.max(tW, Math.round(bcW / 2));
+                let bH2 = Math.max(tH, Math.round(bcH / 2));
+                let bs = document.createElement('canvas');
+                bs.width = bW2; bs.height = bH2;
+                let bsc = bs.getContext('2d');
+                bsc.imageSmoothingEnabled = true;
+                bsc.imageSmoothingQuality = 'high';
+                bsc.drawImage(btmp, 0, 0, bW2, bH2);
+                btmp = bs; bcW = bW2; bcH = bH2;
+            }
+        }
+        hdCtx.drawImage(btmp, 0, 0, tW, tH);
+
+        let priceScaleX = tW / srcW;
+        let priceScaleY = tH / srcH;
+        let hdInfo = {
+            textX: item.info.textX * priceScaleX,
+            textY: item.info.textY * priceScaleY,
+            boxHeight: item.info.boxHeight * priceScaleY
+        };
+        drawPriceText(hdCtx, tW, tH, offer.price, hdInfo);
+    } else {
+        let tmp = srcCanvas;
+        let curW = srcW, curH = srcH;
+        if (curW > tW || curH > tH) {
+            while (curW > tW * 1.5 || curH > tH * 1.5) {
+                let nextW = Math.max(tW, Math.round(curW / 2));
+                let nextH = Math.max(tH, Math.round(curH / 2));
+                let step = document.createElement('canvas');
+                step.width = nextW; step.height = nextH;
+                let sc = step.getContext('2d');
+                sc.imageSmoothingEnabled = true;
+                sc.imageSmoothingQuality = 'high';
+                sc.drawImage(tmp, 0, 0, nextW, nextH);
+                tmp = step; curW = nextW; curH = nextH;
+            }
+        }
+        hdCtx.drawImage(tmp, 0, 0, tW, tH);
+    }
+
+    let sw = offer.hasStroke ? Math.round(window.layerState.globalStrokeWidth * scale) : 0;
+    let pad = sw + 2;
+
+    let strokedCard = document.createElement('canvas');
+    strokedCard.width = tW + pad * 2;
+    strokedCard.height = tH + pad * 2;
+    let stCtx = strokedCard.getContext('2d');
+    stCtx.imageSmoothingEnabled = true;
+    stCtx.imageSmoothingQuality = 'high';
+
+    if (sw > 0) {
+        let silCanvas = document.createElement('canvas');
+        silCanvas.width = tW; silCanvas.height = tH;
+        let silCtx = silCanvas.getContext('2d');
+        silCtx.drawImage(hdCard, 0, 0);
+        silCtx.globalCompositeOperation = 'source-in';
+        silCtx.fillStyle = '#ffffff';
+        silCtx.fillRect(0, 0, tW, tH);
+
+        const steps = 36;
+        for (let i = 0; i < steps; i++) {
+            let angle = (i / steps) * Math.PI * 2;
+            stCtx.drawImage(silCanvas, pad + Math.cos(angle) * sw, pad + Math.sin(angle) * sw, tW, tH);
+        }
+    }
+
+    stCtx.drawImage(hdCard, pad, pad, tW, tH);
+    offer.cache = { canvas: strokedCard, pad: pad, tW: tW, tH: tH, scaleMult: 1 };
+}
+
+function autoReplacePrice(ctx, w, h) {
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+
+  let isWide = (w / h) > 0.85; 
+  let seedX = isWide ? Math.floor(w * 0.8) : Math.floor(w * 0.5);
+  let seedY = h - 1;
+  
+  while (seedY > 0) {
+    let i = (seedY * w + seedX) * 4;
+    if (d[i+3] > 200 && (d[i] > 60 || d[i+1] > 60 || d[i+2] > 60)) { seedY = Math.max(0, seedY - 15); break; }
+    seedY--;
+  }
+
+  let colors = {};
+  for(let y = seedY - 20; y <= seedY + 20; y++) {
+    for(let x = seedX - 20; x <= seedX + 20; x++) {
+      if (x>=0 && x<w && y>=0 && y<h) {
+        let i = (y*w + x)*4;
+        if (d[i+3] > 100) {
+          let cr=d[i], cg=d[i+1], cb=d[i+2];
+          if (cr > 60 || cg > 60 || cb > 60) {
+            let key = Math.round(cr/10)*10 + ',' + Math.round(cg/10)*10 + ',' + Math.round(cb/10)*10;
+            colors[key] = (colors[key] || 0) + 1;
+          }
+        }
+      }
+    }
+  }
+  
+  let maxCount = 0; let bgKey = "";
+  for (let k in colors) { if (colors[k] > maxCount) { maxCount = colors[k]; bgKey = k; } }
+  if (!bgKey) return; 
+
+  let [qR, qG, qB] = bgKey.split(',').map(Number);
+  let sumR=0, sumG=0, sumB=0, sumC=0;
+  for(let y = seedY - 20; y <= seedY + 20; y++) {
+    for(let x = seedX - 20; x <= seedX + 20; x++) {
+      if (x>=0 && x<w && y>=0 && y<h) {
+        let i = (y*w + x)*4;
+        if (d[i+3] > 100) {
+          let cr=d[i], cg=d[i+1], cb=d[i+2];
+          if (Math.abs(cr-qR)<15 && Math.abs(cg-qG)<15 && Math.abs(cb-qB)<15) { sumR += cr; sumG += cg; sumB += cb; sumC++; }
+        }
+      }
+    }
+  }
+  let bgR = Math.round(sumR/sumC), bgG = Math.round(sumG/sumC), bgB = Math.round(sumB/sumC);
+
+  function isBg(x, y) {
+    if (x<0 || x>=w || y<0 || y>=h) return false;
+    let i = (y*w + x)*4;
+    if (d[i+3] < 128) return false;
+    return Math.abs(d[i]-bgR) < 30 && Math.abs(d[i+1]-bgG) < 30 && Math.abs(d[i+2]-bgB) < 30;
+  }
+
+  let isBgMask = new Uint8Array(w * h);
+  let stackX = [seedX], stackY = [seedY];
+  
+  if (!isBg(seedX, seedY)) {
+    let found = false;
+    for(let r=1; r<=25 && !found; r++) {
+      for(let dy=-r; dy<=r && !found; dy++) {
+        for(let dx=-r; dx<=r && !found; dx++) {
+          if(isBg(seedX+dx, seedY+dy)) { stackX=[seedX+dx]; stackY=[seedY+dy]; found = true; }
+        }
+      }
+    }
+  }
+
+  let head = 0;
+  while (head < stackX.length) {
+    let x = stackX[head]; let y = stackY[head]; head++;
+    let idx = y*w + x;
+    if (isBgMask[idx]) continue;
+    isBgMask[idx] = 1;
+    if (x+1 < w && !isBgMask[idx+1] && isBg(x+1, y)) { stackX.push(x+1); stackY.push(y); }
+    if (x-1 >= 0 && !isBgMask[idx-1] && isBg(x-1, y)) { stackX.push(x-1); stackY.push(y); }
+    if (y+1 < h && !isBgMask[idx+w] && isBg(x, y+1)) { stackX.push(x); stackY.push(y+1); }
+    if (y-1 >= 0 && !isBgMask[idx-w] && isBg(x, y-1)) { stackX.push(x); stackY.push(y-1); }
+  }
+
+  let minBoxX = w, maxBoxX = 0, minBoxY = h, maxBoxY = 0;
+  for(let y=0; y<h; y++) {
+    for(let x=0; x<w; x++) {
+      if (isBgMask[y*w + x]) {
+        if (x < minBoxX) minBoxX = x; if (x > maxBoxX) maxBoxX = x;
+        if (y < minBoxY) minBoxY = y; if (y > maxBoxY) maxBoxY = y;
+      }
+    }
+  }
+  if (minBoxX === w) return; 
+
+  let outsideMask = new Uint8Array(w * h);
+  let outStackX = []; let outStackY = [];
+
+  for(let x = minBoxX; x <= maxBoxX; x++) {
+    if (!isBgMask[minBoxY*w + x]) { outStackX.push(x); outStackY.push(minBoxY); outsideMask[minBoxY*w + x] = 1; }
+    if (!isBgMask[maxBoxY*w + x]) { outStackX.push(x); outStackY.push(maxBoxY); outsideMask[maxBoxY*w + x] = 1; }
+  }
+  for(let y = minBoxY; y <= maxBoxY; y++) {
+    if (!isBgMask[y*w + minBoxX]) { outStackX.push(minBoxX); outStackY.push(y); outsideMask[y*w + minBoxX] = 1; }
+    if (!isBgMask[y*w + maxBoxX]) { outStackX.push(maxBoxX); outStackY.push(y); outsideMask[y*w + maxBoxX] = 1; }
+  }
+
+  let outHead = 0;
+  while (outHead < outStackX.length) {
+    let cx = outStackX[outHead]; let cy = outStackY[outHead]; outHead++;
+    if (cx+1 <= maxBoxX && !outsideMask[cy*w + cx+1] && !isBgMask[cy*w + cx+1]) { outsideMask[cy*w + cx+1] = 1; outStackX.push(cx+1); outStackY.push(cy); }
+    if (cx-1 >= minBoxX && !outsideMask[cy*w + cx-1] && !isBgMask[cy*w + cx-1]) { outsideMask[cy*w + cx-1] = 1; outStackX.push(cx-1); outStackY.push(cy); }
+    if (cy+1 <= maxBoxY && !outsideMask[(cy+1)*w + cx] && !isBgMask[(cy+1)*w + cx]) { outsideMask[(cy+1)*w + cx] = 1; outStackX.push(cx); outStackY.push(cy+1); }
+    if (cy-1 >= minBoxY && !outsideMask[(cy-1)*w + cx] && !isBgMask[(cy-1)*w + cx]) { outsideMask[(cy-1)*w + cx] = 1; outStackX.push(cx); outStackY.push(cy-1); }
+  }
+
+  for(let y = minBoxY; y <= maxBoxY; y++) {
+    for(let x = minBoxX; x <= maxBoxX; x++) {
+      let idx = y*w + x;
+      if (!outsideMask[idx]) {
+        let i = idx * 4;
+        d[i] = bgR; d[i+1] = bgG; d[i+2] = bgB; d[i+3] = 255;
+      }
+    }
+  }
+
+  ctx.putImageData(imgData, 0, 0);
+  let blankedImgData = ctx.getImageData(0, 0, w, h);
+
+  let boxHeight = maxBoxY - minBoxY;
+  let textY = minBoxY + boxHeight * 0.45; 
+  let sumX = 0; let validRows = 0; let scanRange = Math.floor(boxHeight * 0.2);
+  
+  for(let y = Math.floor(textY - scanRange); y <= Math.floor(textY + scanRange); y++) {
+    let firstX = -1, lastX = -1;
+    if(y >= 0 && y < h) {
+      for(let x = minBoxX; x <= maxBoxX; x++) {
+        if(!outsideMask[y*w + x]) { if(firstX === -1) firstX = x; lastX = x; }
+      }
+      if(firstX !== -1) { sumX += (firstX + lastX) / 2; validRows++; }
+    }
+  }
+
+  let textX = validRows > 0 ? (sumX / validRows) : ((minBoxX + maxBoxX) / 2);
+  return { blankedImgData, textX, textY, boxHeight };
+}
+
+function drawPriceText(ctx, w, h, textStr, info) {
+  if (!textStr || textStr.trim() === "") return;
+  let { textX, textY, boxHeight } = info;
+  let fontSize = Math.floor(boxHeight * 0.60); 
+  if (fontSize < 22) fontSize = 22;
+
+  let isFree = textStr.trim().toUpperCase() === 'FREE';
+  let isNumber = !isNaN(textStr.trim()) && textStr.trim() !== '';
+  let numStr = textStr.trim(); 
+  let symStr = isNumber ? " ₽" : ""; 
+  let mainColor = isFree ? "#3bf83b" : "#ffffff";
+  let fontNum = `normal ${fontSize}px 'Lilita One', 'Arial Black', Impact, sans-serif`;
+  let fontSym = `normal ${Math.max(fontSize - 4, 16)}px 'Rockwell', serif`;
+
+  ctx.font = fontNum; let wNum = ctx.measureText(numStr).width;
+  ctx.font = fontSym; let wSym = ctx.measureText(symStr).width;
+  let totalW = wNum + wSym;
+  let startX = Math.round(textX - totalW / 2); 
+  let symStartX = Math.round(startX + wNum);
+
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; 
+  ctx.lineWidth = Math.max(2, Math.floor(fontSize * 0.075)); 
+  ctx.strokeStyle = '#000000'; ctx.lineJoin = 'round';
+
+  let textBaseY = Math.round(textY + fontSize * 0.33);
+  let shadowOffset = Math.max(3, Math.floor(fontSize * 0.075) + 1);
+
+  const drawTextParts = (offsetX, offsetY, isFill, color) => {
+    ctx.font = fontNum;
+    if(isFill) { ctx.fillStyle = color; ctx.fillText(numStr, startX + offsetX, textBaseY + offsetY); }
+    else { ctx.strokeText(numStr, startX + offsetX, textBaseY + offsetY); }
+    ctx.font = fontSym;
+    if(isFill) { ctx.fillStyle = color; ctx.fillText(symStr, symStartX + offsetX, textBaseY + offsetY); }
+    else { ctx.strokeText(symStr, symStartX + offsetX, textBaseY + offsetY); }
+  };
+
+  drawTextParts(0, shadowOffset, false, ''); drawTextParts(0, shadowOffset, true, '#000000');
+  drawTextParts(0, 0, false, ''); drawTextParts(0, 0, true, mainColor);
+}
+
+function runMagicLogic(img) {
+  const w = img.width; const h = img.height;
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = w; tmpCanvas.height = h;
+  const tCtx = tmpCanvas.getContext('2d', { willReadFrequently: true });
+  tCtx.drawImage(img, 0, 0);
+  
+  const imgData = tCtx.getImageData(0, 0, w, h);
+  const d = imgData.data;
+
+  const gray = new Uint8Array(w * h);
+  for(let i=0; i < w*h; i++) gray[i] = 0.299*d[i*4] + 0.587*d[i*4+1] + 0.114*d[i*4+2];
+
+  const edges = new Uint8Array(w * h);
+  const dilated = new Uint8Array(w * h);
+  
+  for(let y=1; y < h-1; y++) {
+    for(let x=1; x < w-1; x++) {
+      let i = y*w + x;
+      let p00 = gray[(y-1)*w+(x-1)], p02 = gray[(y-1)*w+(x+1)];
+      let p10 = gray[y*w+(x-1)],     p12 = gray[y*w+(x+1)];
+      let p20 = gray[(y+1)*w+(x-1)], p22 = gray[(y+1)*w+(x+1)];
+      let p01 = gray[(y-1)*w+x],     p21 = gray[(y+1)*w+x];
+
+      let gx = -p00 + p02 - 2*p10 + 2*p12 - p20 + p22;
+      let gy = -p00 - 2*p01 - p02 + p20 + 2*p21 + p22;
+      if (Math.sqrt(gx*gx + gy*gy) > 35) edges[i] = 1; 
+    }
+  }
+
+  for(let y=2; y < h-2; y++) {
+    for(let x=2; x < w-2; x++) {
+      if (edges[y*w+x]) {
+        for(let dy=-1; dy<=1; dy++) {
+          for(let dx=-1; dx<=1; dx++) { dilated[(y+dy)*w+(x+dx)] = 1; }
+        }
+      }
+    }
+  }
+
+  const colorBins = {}; let sampleCount = 0;
+  const bandY = Math.floor(h * 0.10); const bandX = Math.floor(w * 0.10);
+
+  function sampleArea(startY, endY, startX, endX) {
+    for(let y = startY; y < endY; y += 4) {
+      for(let x = startX; x < endX; x += 4) {
+        let i = (y * w + x) * 4;
+        let r = Math.round(d[i]/32)*32, g = Math.round(d[i+1]/32)*32, b = Math.round(d[i+2]/32)*32;
+        let key = `${r},${g},${b}`;
+        colorBins[key] = (colorBins[key] || 0) + 1;
+        sampleCount++;
+      }
+    }
+  }
+
+  sampleArea(0, bandY, 0, w); sampleArea(h - bandY, h, 0, w); 
+  sampleArea(bandY, h - bandY, 0, bandX); sampleArea(bandY, h - bandY, w - bandX, w); 
+
+  const targetColors = [];
+  const threshold = sampleCount * 0.05; 
+  for (const [key, count] of Object.entries(colorBins)) {
+    if (count > threshold) targetColors.push(key.split(',').map(Number));
+  }
+
+  function isBgColor(r, g, b) {
+    for (let tc of targetColors) {
+      if (Math.sqrt((r-tc[0])**2 + (g-tc[1])**2 + (b-tc[2])**2) < 60) return true;
+    }
+    return false;
+  }
+
+  const visited = new Uint8Array(w * h);
+  const stackX = new Int32Array(w * h); const stackY = new Int32Array(w * h);
+  let stackLen = 0;
+
+  function tryEraseAndSpread(nx, ny) {
+    if (nx < 0 || nx >= w || ny < 0 || ny >= h) return;
+    let ni = ny * w + nx;
+    if (visited[ni]) return;
+    visited[ni] = 1;
+    let r = d[ni*4], g = d[ni*4+1], b = d[ni*4+2];
+    if (dilated[ni] && r < 110 && g < 110 && b < 145) return;
+    if (isBgColor(r, g, b)) {
+        d[ni*4+3] = 0; stackX[stackLen] = nx; stackY[stackLen] = ny; stackLen++;
+    }
+  }
+
+  for(let y=0; y < Math.min(h, 5); y++) {
+    for(let x=0; x < w; x++) { tryEraseAndSpread(x, y); tryEraseAndSpread(x, h-1-y); }
+  }
+  for(let y=0; y < h; y++) {
+    for(let x=0; x < Math.min(w, 5); x++) { tryEraseAndSpread(x, y); tryEraseAndSpread(w-1-x, y); }
+  }
+
+  while(stackLen > 0) {
+    stackLen--;
+    let x = stackX[stackLen], y = stackY[stackLen];
+    tryEraseAndSpread(x+1, y); tryEraseAndSpread(x-1, y); tryEraseAndSpread(x, y+1); tryEraseAndSpread(x, y-1);
+  }
+
+  const islandIDs = new Int32Array(w * h); let currentID = 1;
+  const islandRects = [ {minY: h, maxY: 0, minX: w, maxX: 0} ];
+
+  for(let y=0; y < h; y++) {
+    for(let x=0; x < w; x++) {
+      let i = y * w + x;
+      if (d[i*4+3] > 0 && islandIDs[i] === 0) {
+        let minY = y, maxY = y, minX = x, maxX = x;
+        stackLen = 0; stackX[stackLen] = x; stackY[stackLen] = y; stackLen++;
+        islandIDs[i] = currentID;
+
+        while(stackLen > 0) {
+          stackLen--;
+          let cx = stackX[stackLen], cy = stackY[stackLen];
+          if (cy < minY) minY = cy; if (cy > maxY) maxY = cy;
+          if (cx < minX) minX = cx; if (cx > maxX) maxX = cx;
+
+          const check = (nx, ny) => {
+            if(nx >= 0 && nx < w && ny >= 0 && ny < h) {
+              let ni = ny * w + nx;
+              if (d[ni*4+3] > 0 && islandIDs[ni] === 0) {
+                islandIDs[ni] = currentID; stackX[stackLen] = nx; stackY[stackLen] = ny; stackLen++;
+              }
+            }
+          };
+          check(cx+1, cy); check(cx-1, cy); check(cx, cy+1); check(cx, cy-1);
+        }
+        islandRects.push({minY, maxY, minX, maxX});
+        currentID++;
+      }
+    }
+  }
+
+  for (let i = 0; i < w * h; i++) {
+    if (d[i*4+3] > 0) {
+      let id = islandIDs[i]; let rect = islandRects[id];
+      let objHeight = rect.maxY - rect.minY;
+      let touchesEdges = (rect.minX <= 5 || rect.maxX >= w - 6);
+      if (objHeight < h * 0.30 || touchesEdges) { d[i*4+3] = 0; islandIDs[i] = 0; }
+    }
+  }
+
+  for(let pass = 0; pass < 2; pass++) {
+    const currentAlpha = new Uint8Array(w * h);
+    for (let i = 0; i < w * h; i++) currentAlpha[i] = d[i * 4 + 3];
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        let i = y * w + x;
+        if (currentAlpha[i] > 0 && (currentAlpha[i - 1] === 0 || currentAlpha[i + 1] === 0 || currentAlpha[i - w] === 0 || currentAlpha[i + w] === 0)) {
+          d[i * 4 + 3] = 0;
+        }
+      }
+    }
+  }
+
+  const blurAlpha = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) blurAlpha[i] = d[i * 4 + 3];
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      let i = y * w + x;
+      if (blurAlpha[i] > 0 && (blurAlpha[i-1]===0 || blurAlpha[i+1]===0 || blurAlpha[i-w]===0 || blurAlpha[i+w]===0)) {
+        d[i * 4 + 3] = (blurAlpha[i] * 2 + blurAlpha[i-1] + blurAlpha[i+1] + blurAlpha[i-w] + blurAlpha[i+w]) / 6; 
+      }
+    }
+  }
+
+  const finalIslands = new Map();
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let i = y * w + x;
+      if (d[i*4+3] > 0 && islandIDs[i] > 0) {
+        let id = islandIDs[i];
+        if (!finalIslands.has(id)) { finalIslands.set(id, { minX: x, maxX: x, minY: y, maxY: y }); } 
+        else {
+          let rect = finalIslands.get(id);
+          if (x < rect.minX) rect.minX = x; if (x > rect.maxX) rect.maxX = x;
+          if (y < rect.minY) rect.minY = y; if (y > rect.maxY) rect.maxY = y;
+        }
+      }
+    }
+  }
+
+  if (finalIslands.size === 0) { checkBatchCompletion(); return; }
+
+  const sortedIslands = Array.from(finalIslands.entries()).sort((a, b) => a[1].minX - b[1].minX);
+
+  sortedIslands.forEach(([id, rect], index) => {
+    let margin = 5; 
+    let minX = Math.max(0, rect.minX - margin); let minY = Math.max(0, rect.minY - margin);
+    let maxX = Math.min(w - 1, rect.maxX + margin); let maxY = Math.min(h - 1, rect.maxY + margin);
+    let cW = maxX - minX + 1; let cH = maxY - minY + 1;
+
+    const c = document.createElement('canvas');
+    c.width = cW; c.height = cH;
+    const cx = c.getContext('2d', { willReadFrequently: true });
+    
+    const layerData = cx.createImageData(cW, cH);
+    const ld = layerData.data;
+
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        let sourceIdx = y * w + x;
+        if (islandIDs[sourceIdx] === id) {
+          let destIdx = ((y - minY) * cW + (x - minX)) * 4;
+          ld[destIdx] = d[sourceIdx * 4]; ld[destIdx + 1] = d[sourceIdx * 4 + 1]; 
+          ld[destIdx + 2] = d[sourceIdx * 4 + 2]; ld[destIdx + 3] = d[sourceIdx * 4 + 3]; 
+        }
+      }
+    }
+    cx.putImageData(layerData, 0, 0);
+
+    let eraseResult = autoReplacePrice(cx, cW, cH);
+    let drawInfo = eraseResult || {
+        blankedImgData: cx.getImageData(0, 0, cW, cH),
+        textX: cW / 2, textY: cH - cH * 0.1, boxHeight: Math.max(20, cH * 0.15)
+    };
+
+    drawPriceText(cx, cW, cH, "FREE", drawInfo);
+
+    let offerIdx = allGeneratedCards.length;
+    let offerObj = { canvas: c, x: minX, y: minY, info: drawInfo };
+    
+    allGeneratedCards.push(offerObj);
+    
+    let stateOffer = {
+        id: offerIdx,
+        visible: true,
+        hasStroke: true,
+        price: "FREE",
+        ref: offerObj,
+        anim: { x: null, y: null, w: null, h: null, scale: 0, alpha: 0 },
+        target: { x: null, y: null, w: null, h: null, scale: 1, alpha: 1 },
+        cache: null
+    };
+    window.layerState.offers.push(stateOffer);
+  });
+
+  checkBatchCompletion();
+}
+
+function checkBatchCompletion() {
+  filesProcessed++;
+  if (filesProcessed === filesToProcess) {
+    setupPersistentCanvas();
+    renderLayerPanel(true);
+    calculateLayoutTarget();
+  }
+}
+
+function setupPersistentCanvas() {
+    cardsContainer.innerHTML = ''; 
+
+    if (!persistentCanvas) {
+        persistentCanvas = document.createElement('canvas');
+        persistentCtx = persistentCanvas.getContext('2d');
+    }
+
+    let container = document.createElement('div');
+    container.className = 'card-wrapper fade-in-anim';
+    
+    let canvasWrapper = document.createElement('div');
+    canvasWrapper.className = 'canvas-display-wrapper';
+    canvasWrapper.appendChild(persistentCanvas);
+    
+    container.appendChild(canvasWrapper);
+    cardsContainer.appendChild(container);
+
+    if (!document.getElementById('download-btn-wrap')) {
+        let hdBtnWrap = document.createElement('div');
+        hdBtnWrap.id = 'download-btn-wrap';
+        hdBtnWrap.className = 'bottom-fade-container'; 
+        
+        let addScreensLink = document.createElement('div');
+        addScreensLink.className = 'ios-add-screens-link';
+        addScreensLink.innerHTML = `Новые скриншоты <svg viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" fill="none" stroke="var(--tg-theme-accent-text-color)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        addScreensLink.onclick = () => document.getElementById('file-add-screens').click();
+        hdBtnWrap.appendChild(addScreensLink);
+
+        let hdBtn = document.createElement('button');
+        hdBtn.id = 'ios-btn-download-all';
+        hdBtn.className = 'ios-action-btn'; 
+        hdBtn.style.margin = '0 auto';
+        hdBtn.innerHTML = `Скачать <svg style="margin-left:8px; width:20px; height:20px" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+        
+        hdBtn.onclick = (e) => {
+            e.preventDefault();
+            window.triggerHaptic();
+            window.openDownloadOverlay();
+        };
+        
+        hdBtnWrap.appendChild(hdBtn);
+        document.body.appendChild(hdBtnWrap);
+    } else {
+        document.getElementById('download-btn-wrap').style.display = 'flex';
+    }
+    
+    let scale = getHDScale();
+    persistentCanvas.width = rawBgImage.width * scale;
+    persistentCanvas.height = rawBgImage.height * scale;
+    
+    window.updateCachedTextCanvas();
+}
+
+window.updateCachedTextCanvas = () => {
+    if (!persistentCanvas) return;
+    cachedTextCanvas = document.createElement('canvas');
+    cachedTextCanvas.width = persistentCanvas.width; 
+    cachedTextCanvas.height = persistentCanvas.height;
+    drawBeautifulNick(cachedTextCanvas.getContext('2d'), window.layerState.textValue, persistentCanvas.width, persistentCanvas.height);
+};
+
+function calculateLayoutTarget() {
+  if (!rawBgImage) return;
+
+  let scale = getHDScale();
+  let bgW = rawBgImage.width * scale;
+  let bgH = rawBgImage.height * scale;
+  
+  animText.targetScale = window.layerState.textVisible ? 1 : 0.5;
+  animText.targetAlpha = window.layerState.textVisible ? 1 : 0;
+  
+  let isTop = window.layerState.textPosition !== 'bottom';
+  let effectiveTextVisible = window.layerState.textVisible || window.layerState.isReadyBg;
+  let boxTop = (effectiveTextVisible && isTop) ? (bgH * 0.22) : (bgH * 0.05);   
+  let boxBottom = (effectiveTextVisible && !isTop) ? (bgH * 0.78) : (bgH * 0.96);               
+  let boxLeft = bgW * 0.04;                 
+  let boxRight = bgW * 0.96;                 
+
+  let boxW = boxRight - boxLeft;
+  let boxH = boxBottom - boxTop;
+
+  let activeOffers = window.layerState.offers.filter(o => o.visible);
+  
+  let bestCols = 1; let bestH = 0; let bestRows = 1; let gapX = 0; let gapY = 0;
+  let n = activeOffers.length;
+
+  if (n > 0) {
+      let cardRatios = activeOffers.map(item => item.ref.canvas.width / item.ref.canvas.height);
+      for (let cols = 1; cols <= n; cols++) {
+          let rows = Math.ceil(n / cols);
+          let maxRowRatioSum = 0;
+          for (let r = 0; r < rows; r++) {
+              let rowCards = cardRatios.slice(r * cols, (r + 1) * cols);
+              let rowRatioSum = rowCards.reduce((a, b) => a + b, 0);
+              if (rowRatioSum > maxRowRatioSum) maxRowRatioSum = rowRatioSum;
+          }
+          let gapRatioX = 0.05; let gapRatioY = 0.08;
+          let maxH_width = boxW / (maxRowRatioSum + gapRatioX * (cols - 1));
+          let maxH_height = boxH / (rows + gapRatioY * (rows - 1));
+          let currentH = Math.min(maxH_width, maxH_height);
+
+          if (currentH > bestH) { bestH = currentH; bestCols = cols; bestRows = rows; }
+      }
+      gapX = bestH * 0.05; gapY = bestH * 0.08;
+  }
+  
+  let totalGridH = bestRows * bestH + (bestRows - 1) * gapY;
+  let startGridY = boxTop + (boxH - totalGridH) / 2;
+  let currentY = startGridY;
+  
+  for (let r = 0; r < bestRows; r++) {
+     let rowCards = activeOffers.slice(r * bestCols, (r + 1) * bestCols);
+     if (rowCards.length === 0) break;
+     
+     let rowWidth = rowCards.reduce((sum, o) => sum + (bestH * o.ref.canvas.width / o.ref.canvas.height), 0) + (rowCards.length - 1) * gapX;
+     let startX = boxLeft + (boxW - rowWidth) / 2;
+     let currentX = startX;
+     
+     rowCards.forEach(o => {
+        let ratio = o.ref.canvas.width / o.ref.canvas.height;
+        o.target = { 
+            x: Math.round(currentX), 
+            y: Math.round(currentY), 
+            w: Math.round(bestH * ratio), 
+            h: Math.round(bestH), 
+            scale: 1, 
+            alpha: 1 
+        };
+        
+        if (o.anim.w === null) {
+            o.anim.x = o.target.x; o.anim.y = o.target.y; o.anim.w = o.target.w; o.anim.h = o.target.h; o.anim.scale = 0; o.anim.alpha = 0;
+        }
+
+        if (!o.cache || o.cache.tW !== o.target.w || o.cache.tH !== o.target.h) {
+            generateOfferCache(o, o.target.w, o.target.h);
+        }
+
+        currentX += (bestH * ratio) + gapX;
+     });
+     currentY += bestH + gapY;
+  }
+  
+  window.layerState.offers.forEach(o => {
+     if (!o.visible) {
+         o.target.scale = 0;
+         o.target.alpha = 0;
+     }
+  });
+  
+  startAnimation();
+}
+
+function startAnimation() {
+   if (!animReq) animReq = requestAnimationFrame(renderLoop);
+}
+
+function renderLoop() {
+   let needsMore = false;
+   
+   const isNonApple = document.body.classList.contains('os-non-apple');
+   const lerp = isNonApple ? 1 : 0.12;
+   const MathAbs = Math.abs;
+   
+   let dxTextScale = animText.targetScale - animText.scale;
+   if (MathAbs(dxTextScale) > 0.005) { animText.scale += dxTextScale * lerp; needsMore = true; } else { animText.scale = animText.targetScale; }
+   animText.alpha += (animText.targetAlpha - animText.alpha) * lerp;
+   
+   window.layerState.offers.forEach(o => {
+       let a = o.anim; let t = o.target;
+       let dx = t.x - a.x; if (MathAbs(dx) > 0.5) { a.x += dx * lerp; needsMore = true; } else { a.x = t.x; }
+       let dy = t.y - a.y; if (MathAbs(dy) > 0.5) { a.y += dy * lerp; needsMore = true; } else { a.y = t.y; }
+       let dw = t.w - a.w; if (MathAbs(dw) > 0.5) { a.w += dw * lerp; needsMore = true; } else { a.w = t.w; }
+       let dh = t.h - a.h; if (MathAbs(dh) > 0.5) { a.h += dh * lerp; needsMore = true; } else { a.h = t.h; }
+       let ds = t.scale - a.scale; if (MathAbs(ds) > 0.005) { a.scale += ds * lerp; needsMore = true; } else { a.scale = t.scale; }
+       a.alpha += (t.alpha - a.alpha) * lerp;
+   });
+   
+   drawScene();
+   
+   if (isNonApple) needsMore = false;
+
+   if (needsMore) {
+       animReq = requestAnimationFrame(renderLoop);
+   } else {
+       animReq = null;
+   }
+}
+
+function drawScene() {
+    if (!persistentCtx) return;
+    let w = persistentCanvas.width; let h = persistentCanvas.height;
+    persistentCtx.clearRect(0, 0, w, h);
+    
+    if (window.layerState.bgVisible && rawBgImage) {
+        persistentCtx.drawImage(rawBgImage, 0, 0, w, h);
+    }
+
+    if (window.layerState.isGeneratedBg && window.layerState.pointsVisible && globalAssets.pointsImg) {
+        persistentCtx.save();
+        persistentCtx.globalCompositeOperation = "source-over";
+        persistentCtx.drawImage(globalAssets.pointsImg, 0, 0, w, h);
+        persistentCtx.restore();
+    }
+    
+    if (window.layerState.luchVisible) {
+        persistentCtx.save();
+        persistentCtx.globalCompositeOperation = "overlay"; 
+        
+        if (globalAssets.luchImg) {
+            persistentCtx.globalAlpha = window.layerState.luchOpacity;
+            let luchW = w * 2; let luchH = h * 2;
+            persistentCtx.drawImage(globalAssets.luchImg, -(luchW-w)/2, -(luchH-h)/2, luchW, luchH);
+        } else {
+            drawFallbackRays(persistentCtx, w, h, window.layerState.luchOpacity);
+        }
+        persistentCtx.restore();
+    }
+    
+    if (window.layerState.starsVisible && globalAssets.starImg) {
+        drawStars(persistentCtx, globalAssets.starImg, w, h, window.layerState.starsOpacity);
+    }
+    
+    if (window.layerState.watermarksVisible && window.layerState.textValue) {
+        drawWatermarks(persistentCtx, window.layerState.textValue, w, h, window.layerState.watermarksOpacity);
+    }
+    
+    if (cachedTextCanvas && animText.alpha > 0.01) {
+        persistentCtx.save();
+        persistentCtx.globalAlpha = animText.alpha;
+        let tw2 = Math.round(w/2);
+        let th2 = Math.round(h/2);
+        persistentCtx.translate(tw2, th2);
+        persistentCtx.scale(animText.scale, animText.scale);
+        persistentCtx.translate(-tw2, -th2);
+        persistentCtx.imageSmoothingEnabled = true;
+        persistentCtx.imageSmoothingQuality = 'high';
+        persistentCtx.drawImage(cachedTextCanvas, 0, 0);
+        persistentCtx.restore();
+    }
+    
+    let hdScale = getHDScale();
+    
+    window.layerState.offers.forEach(o => {
+        if (o.anim.alpha < 0.01 || o.anim.scale < 0.01) return;
+        let c = o.cache;
+        if (!c) return;
+        
+        persistentCtx.save();
+        persistentCtx.globalAlpha = o.anim.alpha;
+        
+        persistentCtx.shadowColor = "rgba(0, 0, 0, 0.3)"; 
+        let isAndroid = document.body.classList.contains('os-android');
+        persistentCtx.shadowBlur = isAndroid ? Math.round(8 * hdScale) : Math.round(21 * hdScale);                    
+        persistentCtx.shadowOffsetX = 0;                  
+        persistentCtx.shadowOffsetY = Math.round(16 * hdScale);  
+        
+        let cx = Math.round(o.anim.x + o.anim.w/2);
+        let cy = Math.round(o.anim.y + o.anim.h/2);
+        
+        persistentCtx.translate(cx, cy);
+        persistentCtx.scale(o.anim.scale, o.anim.scale);
+
+        persistentCtx.imageSmoothingEnabled = true;
+        persistentCtx.imageSmoothingQuality = 'high';
+
+        let drawOffsetX = Math.round(-(c.tW / 2) - c.pad);
+        let drawOffsetY = Math.round(-(c.tH / 2) - c.pad);
+
+        persistentCtx.drawImage(c.canvas, drawOffsetX, drawOffsetY);
+        
+        persistentCtx.restore();
+    });
+}
+
+function drawFallbackRays(ctx, w, h, opacity = 1.0) {
+    let cx = Math.round(w / 2); let cy = Math.round(h / 2); let radius = Math.sqrt(w*w + h*h); 
+    let numRays = 30; let angleStep = (Math.PI * 2) / numRays;
+    ctx.save(); 
+    ctx.globalAlpha = opacity * 0.4; 
+    ctx.fillStyle = "#ffffff";
+    for (let i = 0; i < numRays; i += 2) {
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, radius, i * angleStep, (i + 1) * angleStep); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+}
+
+function drawWatermarks(ctx, text, w, h, opacity = 0.8, forExport = false) {
+    ctx.save(); 
+    ctx.globalCompositeOperation = forExport ? "source-over" : "overlay"; 
+    ctx.globalAlpha = opacity; 
+    ctx.fillStyle = "#ffffff";
+    
+    let baseFontSize = Math.floor(h * 0.022); if (baseFontSize < 10) baseFontSize = 10;
+    ctx.textBaseline = "middle";
+    
+    const watermarks = [
+      { x: w * 0.04, y: h * 0.18, scale: 1.50, align: "left" }, { x: w * 0.02, y: h * 0.43, scale: 0.60, align: "left" }, 
+      { x: w * 0.03, y: h * 0.88, scale: 1.10, align: "left" }, { x: w * 0.96, y: h * 0.22, scale: 0.80, align: "right" }, 
+      { x: w * 0.98, y: h * 0.45, scale: 1.60, align: "right" }, { x: w * 0.97, y: h * 0.85, scale: 0.70, align: "right" }  
+    ];
+    
+    watermarks.forEach(wm => {
+      ctx.save(); ctx.textAlign = wm.align; let currentFontSize = Math.floor(baseFontSize * wm.scale);
+      ctx.font = `${currentFontSize}px '${window.layerState.watermarksFont}', sans-serif`;
+      ctx.translate(Math.round(wm.x), Math.round(wm.y)); ctx.transform(1, 0, -0.10, 1, 0, 0); ctx.fillText(text, 0, 0); ctx.restore();
+    });
+    ctx.restore();
+}
+
+function drawStars(ctx, starImg, w, h, opacity = 1.0, forExport = false) {
+    ctx.save(); 
+    let blurValue = Math.max(6, Math.floor(h * 0.008)); 
+    ctx.filter = `blur(${blurValue}px)`;
+    ctx.globalCompositeOperation = forExport ? "source-over" : "overlay"; 
+    ctx.globalAlpha = opacity;
+    let baseSize = h * 0.18; 
+    const stars = [
+      { x: w * 0.08, y: h * 0.10, scale: 0.9, rot: 0.2 }, { x: w * 0.15, y: h * 0.35, scale: 1.2, rot: -0.15 },
+      { x: w * 0.05, y: h * 0.65, scale: 0.8, rot: 0.5 }, { x: w * 0.19, y: h * 0.98, scale: 1.1, rot: -0.2 }, 
+      { x: w * 0.92, y: h * 0.12, scale: 1.0, rot: -0.3 }, { x: w * 0.85, y: h * 0.38, scale: 1.1, rot: 0.25 },
+      { x: w * 0.95, y: h * 0.62, scale: 0.85, rot: -0.1 }, { x: w * 0.87, y: h * 0.99, scale: 1.2, rot: 0.15 }
+    ];
+    stars.forEach(s => {
+      ctx.save(); ctx.translate(Math.round(s.x), Math.round(s.y)); ctx.rotate(s.rot);
+      let sWidth = baseSize * s.scale; let sHeight = (starImg.height / starImg.width) * sWidth; 
+      ctx.drawImage(starImg, Math.round(-sWidth / 2), Math.round(-sHeight / 2), sWidth, sHeight); ctx.restore();
+    });
+    ctx.restore();
+}
+
+function drawBeautifulNick(ctx, text, w, h) {
+    let fontSize = Math.floor(h * 0.12); if (fontSize < 30) fontSize = 30;
+    let x = Math.round(w / 2); 
+    let y = window.layerState.textPosition === 'bottom' 
+        ? Math.round(h * 0.92 - (fontSize / 2))
+        : Math.round(h * 0.06 + (fontSize / 2)); 
+    let shadowDepth = Math.max(1, Math.floor(fontSize * 0.10));
+
+    let style = TEXT_STYLES[window.layerState.textStyleIndex || 0];
+
+    let textCanvas = document.createElement('canvas'); textCanvas.width = w; textCanvas.height = h; let txCtx = textCanvas.getContext('2d');
+    txCtx.textAlign = "center"; txCtx.textBaseline = "middle"; txCtx.font = `${fontSize}px '${window.layerState.textFont}', sans-serif`;
+    txCtx.lineJoin = "round"; txCtx.lineCap = "round";
+
+    txCtx.save(); txCtx.translate(x, y); txCtx.transform(1, 0, -0.10, 1, 0, 0); 
+    
+    if (style.isClassic) {
+        txCtx.lineWidth = fontSize * 0.18; txCtx.strokeStyle = "#ffffff"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = "#42003d"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = "#61005a"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+    } else {
+        if (style.outer2) {
+            txCtx.lineWidth = fontSize * 0.18; txCtx.strokeStyle = style.outer2; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            
+            txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            
+            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        } else if (style.outer) {
+            txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            
+            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        } else {
+            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        }
+    }
+    
+    txCtx.restore();
+
+    let tempCanvas = document.createElement('canvas'); tempCanvas.width = w; tempCanvas.height = h; let tCtx = tempCanvas.getContext('2d');
+    tCtx.textAlign = "center"; tCtx.textBaseline = "middle"; tCtx.font = `${fontSize}px '${window.layerState.textFont}', sans-serif`;
+    tCtx.save(); tCtx.translate(x, y); tCtx.transform(1, 0, -0.10, 1, 0, 0); 
+
+    let grad = tCtx.createLinearGradient(0, -fontSize * 0.4, 0, fontSize * 0.4);
+    grad.addColorStop(0, style.grad[0]); 
+    grad.addColorStop(style.isClassic ? 0.48 : 0.52, style.grad[1]); 
+    grad.addColorStop(1, style.grad[2]);
+    tCtx.fillStyle = grad; tCtx.fillText(text, 0, 0);
+    
+    tCtx.globalCompositeOperation = "source-atop"; 
+    tCtx.lineWidth = fontSize * 0.06; 
+    tCtx.strokeStyle = style.isClassic ? "#fcff00" : style.inner; 
+    tCtx.lineJoin = "round"; 
+    tCtx.strokeText(text, 0, 0);
+    tCtx.restore();
+
+    txCtx.drawImage(tempCanvas, 0, 0);
+
+    ctx.save();
+    let scaleMult = h / 1080;
+    ctx.shadowColor = "rgba(0, 0, 0, 0.3)"; 
+    ctx.shadowBlur = Math.max(5, Math.round(21 * scaleMult)); 
+    ctx.shadowOffsetX = 0; 
+    ctx.shadowOffsetY = Math.max(4, Math.round(16 * scaleMult));                
+    ctx.drawImage(textCanvas, 0, 0);
+    ctx.restore();
+}
+
+(function initWizard() {
+  const wizardOverlay = document.getElementById('wizard-overlay');
+  const step1 = document.getElementById('wizard-step1');
+  const step2 = document.getElementById('wizard-step2');
+  const step3 = document.getElementById('wizard-step3');
+  
+  const wizardBgInput = document.getElementById('wizard-bg-input');
+  const wizardUploadBtn = document.getElementById('wizard-upload-bg-btn');
+  
+  const wizardReadyBgInput = document.getElementById('wizard-ready-bg-input');
+  const wizardUploadReadyBtn = document.getElementById('wizard-upload-ready-bg-btn');
+
+  const wizardNextBtn1 = document.getElementById('wizard-next-btn1');
+  const wizardNextBtn2 = document.getElementById('wizard-next-btn2');
+  const wizardNextBtn3 = document.getElementById('wizard-next-btn3');
+  const wizardUploadScreensBtn = document.getElementById('wizard-upload-screens-btn');
+  const wizardNickInput = document.getElementById('wizard-nick-input');
+  const wizardColorWraps = document.querySelectorAll('#wizard-color-presets .ios-color-btn-wrap');
+  const wizardInsertBtn = document.getElementById('wizard-insert-btn');
+  const wizardInsertText = document.getElementById('wizard-insert-text');
+
+  let uploadMode = null; 
+  let uploadedBaseImg = new Image();
+  let uploadedReadyBaseImg = new Image();
+  let selectedColor = null;
+  let savedNick = localStorage.getItem('Snapi_last_nick');
+
+  if (savedNick) {
+      wizardInsertText.innerText = savedNick;
+      wizardInsertBtn.style.display = 'flex';
+  }
+
+  function checkStep1Ready() {
+    if (selectedColor || uploadedBaseImg.src || uploadedReadyBaseImg.src) {
+        wizardNextBtn1.classList.add('show');
+    } else {
+        wizardNextBtn1.classList.remove('show');
+    }
+  }
+
+  wizardColorWraps.forEach(wrap => {
+     wrap.onclick = () => {
+         wizardColorWraps.forEach(w => w.classList.remove('selected'));
+         wrap.classList.add('selected');
+         selectedColor = wrap.getAttribute('data-color');
+         uploadMode = 'color';
+         uploadedBaseImg.removeAttribute('src');
+         uploadedReadyBaseImg.removeAttribute('src');
+         document.getElementById('wizard-upload-text').innerText = "Загрузить фон";
+         document.getElementById('wizard-upload-ready-text').innerText = "Загрузить готовый фон";
+         checkStep1Ready();
+     };
+  });
+
+  wizardUploadBtn.onclick = () => wizardBgInput.click();
+  wizardUploadReadyBtn.onclick = () => wizardReadyBgInput.click();
+
+  wizardBgInput.onchange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      selectedColor = null;
+      uploadMode = 'normal_bg';
+      wizardColorWraps.forEach(w => w.classList.remove('selected'));
+      document.getElementById('wizard-upload-ready-text').innerText = "Загрузить готовый фон";
+      uploadedReadyBaseImg.removeAttribute('src');
+
+      uploadedBaseImg.onload = () => {
+        document.getElementById('wizard-upload-text').innerText = "Фон выбран";
+        checkStep1Ready();
+      };
+      uploadedBaseImg.src = URL.createObjectURL(e.target.files[0]);
+    }
+  };
+
+  wizardReadyBgInput.onchange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      selectedColor = null;
+      uploadMode = 'ready_bg';
+      wizardColorWraps.forEach(w => w.classList.remove('selected'));
+      document.getElementById('wizard-upload-text').innerText = "Загрузить фон";
+      uploadedBaseImg.removeAttribute('src');
+
+      uploadedReadyBaseImg.onload = () => {
+        document.getElementById('wizard-upload-ready-text').innerText = "Готовый фон выбран";
+        checkStep1Ready();
+      };
+      uploadedReadyBaseImg.src = URL.createObjectURL(e.target.files[0]);
+    }
+  };
+
+  function transitionStep(currentStep, nextStep, currentProg, nextProg, lineProg) {
+    currentStep.classList.add('fade-out');
+    setTimeout(() => {
+        currentStep.classList.remove('active', 'fade-out');
+        nextStep.classList.add('active');
+
+        currentProg.classList.remove('active');
+        currentProg.classList.add('small');
+        lineProg.classList.add('active');
+        
+        nextProg.classList.remove('small');
+        nextProg.classList.add('active');
+    }, 300);
+  }
+
+  wizardNextBtn1.onclick = () => {
+    window.triggerHaptic();
+    if (uploadMode === 'ready_bg') {
+        step1.classList.add('fade-out');
+        setTimeout(() => {
+            step1.classList.remove('active', 'fade-out');
+            step3.classList.add('active');
+
+            document.getElementById('prog-step1').classList.remove('active');
+            document.getElementById('prog-step1').classList.add('small');
+            document.getElementById('prog-line1').classList.add('active');
+
+            document.getElementById('prog-step2').classList.remove('active');
+            document.getElementById('prog-step2').classList.add('small');
+            document.getElementById('prog-line2').classList.add('active');
+
+            document.getElementById('prog-step3').classList.remove('small');
+            document.getElementById('prog-step3').classList.add('active');
+        }, 300);
+    } else {
+        transitionStep(step1, step2, document.getElementById('prog-step1'), document.getElementById('prog-step2'), document.getElementById('prog-line1'));
+    }
+  };
+
+  function checkStep2Ready() {
+    if (wizardNickInput.value.trim().length > 0) {
+        wizardNextBtn2.classList.add('show');
+    } else {
+        wizardNextBtn2.classList.remove('show');
+    }
+  }
+
+  function updateCapsBtnState() {
+    let val = wizardNickInput.value;
+    let btn = document.getElementById('wizard-caps-btn');
+    
+    if (val.length === 0) {
+        btn.classList.remove('visible');
+        return;
+    } else {
+        btn.classList.add('visible');
+    }
+
+    if (val && val === val.toUpperCase() && val.trim().length > 0) {
+        btn.innerText = 'a';
+    } else {
+        btn.innerText = 'A';
+    }
+  }
+
+  wizardNickInput.addEventListener('input', () => {
+    checkStep2Ready();
+    updateCapsBtnState();
+  });
+
+  wizardInsertBtn.onclick = () => {
+    if (!savedNick) return;
+    
+    wizardNickInput.classList.remove('blur-insert-anim');
+    void wizardNickInput.offsetWidth; 
+    wizardNickInput.classList.add('blur-insert-anim');
+    
+    setTimeout(() => {
+        wizardNickInput.value = savedNick;
+        checkStep2Ready();
+        updateCapsBtnState();
+    }, 200); 
+  };
+
+  document.getElementById('wizard-caps-btn').onclick = () => {
+    let val = wizardNickInput.value;
+    if (!val) return;
+    
+    if (val === val.toUpperCase()) {
+        wizardNickInput.value = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+    } else {
+        wizardNickInput.value = val.toUpperCase();
+    }
+    checkStep2Ready();
+    updateCapsBtnState();
+  };
+
+  wizardNextBtn2.onclick = () => {
+    window.triggerHaptic();
+    let currentNick = wizardNickInput.value.trim();
+    if (currentNick) {
+        localStorage.setItem('Snapi_last_nick', currentNick);
+        savedNick = currentNick;
+        wizardInsertText.innerText = savedNick;
+        wizardInsertBtn.style.display = 'flex';
+    }
+    wizardNickInput.blur(); 
+    transitionStep(step2, step3, document.getElementById('prog-step2'), document.getElementById('prog-step3'), document.getElementById('prog-line2'));
+  };
+
+  wizardUploadScreensBtn.onclick = () => fileInput.click();
+
+  wizardNextBtn3.onclick = async () => {
+    window.triggerHaptic();
+    let nick = wizardNickInput.value.trim().substring(0, 16) || "Snapi";
+    window.layerState.textValue = nick;
+    window.layerState.bgColorType = selectedColor; 
+    globalAssets.luchImg = await loadImage('Luch.png');
+    globalAssets.starImg = await loadImage('Star.png');
+    globalAssets.pointsImg = await loadImage('points.png');
+    
+    if (uploadMode === 'ready_bg') {
+        window.layerState.isReadyBg = true;
+        window.layerState.isGeneratedBg = false;
+        rawBgImage = uploadedReadyBaseImg;
+        window.layerState.textVisible = false;
+        window.layerState.luchVisible = false;
+        window.layerState.starsVisible = false;
+        window.layerState.pointsVisible = false;
+        window.layerState.watermarksVisible = false;
+    } else if (selectedColor) {
+        window.layerState.isReadyBg = false;
+        window.layerState.isGeneratedBg = true;
+        rawBgImage = await createGradientBg(selectedColor);
+        window.layerState.textVisible = true;
+        window.layerState.luchVisible = true;
+        window.layerState.starsVisible = true;
+        window.layerState.pointsVisible = true;
+        window.layerState.watermarksVisible = true;
+    } else {
+        window.layerState.isReadyBg = false;
+        window.layerState.isGeneratedBg = false;
+        rawBgImage = uploadedBaseImg;
+        window.layerState.textVisible = true;
+        window.layerState.luchVisible = true;
+        window.layerState.starsVisible = true;
+        window.layerState.pointsVisible = true;
+        window.layerState.watermarksVisible = true;
+    }
+
+    processImages(stagedFiles);
+  };
+
+document.getElementById('dl-btn-save-project').onclick = (e) => {
+    e.preventDefault();
+    window.triggerHaptic();
+    let btn = e.currentTarget;
+    if (btn.classList.contains('is-loading')) return; 
+    
+    btn.classList.add('is-loading');
+    btn.style.pointerEvents = 'none';
+
+    setTimeout(async () => {
+        try {
+            let currentSaved = await localDB.getAll();
+            let maxAllowed = window.hasActiveSubscription ? 12 : 3;
+
+            if (currentSaved.length >= maxAllowed) {
+                if (window.hasActiveSubscription) {
+                    alert("Вы достигли максимум сохранённых работ!\n\nУдалите, что бы освободить место");
+                } else {
+                    alert("Вы достигли максимум сохранений проектов работ!\n\nОформите или продлите подписку, что бы увеличить лимит.");
+                }
+                btn.classList.remove('is-loading');
+                btn.style.pointerEvents = 'auto';
+                return;
+            }
+
+            let stateToSave = {
+                textVisible: window.layerState.textVisible,
+                textValue: window.layerState.textValue,
+                textPosition: window.layerState.textPosition,
+                textFont: window.layerState.textFont,
+                textStyleIndex: window.layerState.textStyleIndex,
+                globalStrokeWidth: window.layerState.globalStrokeWidth,
+                bgVisible: window.layerState.bgVisible,
+                isGeneratedBg: window.layerState.isGeneratedBg,
+                isReadyBg: window.layerState.isReadyBg,
+                bgColorType: window.layerState.bgColorType,
+                luchVisible: window.layerState.luchVisible,
+                luchOpacity: window.layerState.luchOpacity,
+                starsVisible: window.layerState.starsVisible,
+                starsOpacity: window.layerState.starsOpacity,
+                watermarksVisible: window.layerState.watermarksVisible,
+                watermarksOpacity: window.layerState.watermarksOpacity,
+                watermarksFont: window.layerState.watermarksFont,
+                pointsVisible: window.layerState.pointsVisible,
+                offers: window.layerState.offers.map(o => {
+                    let tempC = document.createElement('canvas');
+                    tempC.width = o.ref.canvas.width; tempC.height = o.ref.canvas.height;
+                    tempC.getContext('2d').putImageData(o.ref.info.blankedImgData, 0, 0);
+
+                    return {
+                        id: o.id,
+                        visible: o.visible,
+                        hasStroke: o.hasStroke,
+                        price: o.price,
+                        imgData: tempC.toDataURL('image/png'),
+                        infoTextX: o.ref.info.textX,
+                        infoTextY: o.ref.info.textY,
+                        infoBoxHeight: o.ref.info.boxHeight
+                    };
+                })
+            };
+
+            let bgDataUrl = null;
+            if (!window.layerState.isGeneratedBg && rawBgImage) {
+                let c = document.createElement('canvas');
+                let w = rawBgImage.width;
+                let h = rawBgImage.height;
+                if (w > 1920) { h = Math.round((1920 / w) * h); w = 1920; }
+                c.width = w; c.height = h;
+                c.getContext('2d').drawImage(rawBgImage, 0, 0, w, h);
+                bgDataUrl = c.toDataURL('image/jpeg', 0.8);
+            }
+
+            let thumbCanvas = document.createElement('canvas');
+            let tW = 400;
+            let tH = Math.round((persistentCanvas.height / persistentCanvas.width) * tW);
+            thumbCanvas.width = tW; thumbCanvas.height = tH;
+            thumbCanvas.getContext('2d').drawImage(persistentCanvas, 0, 0, tW, tH);
+            let thumbUrl = thumbCanvas.toDataURL('image/jpeg', 0.6); 
+
+            let project = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                state: stateToSave,
+                bg: bgDataUrl,
+                thumb: thumbUrl
+            };
+
+            await localDB.save(project);
+            await window.updateSavedCount();
+            
+            isCurrentProjectSaved = true; 
+            
+            setTimeout(() => {
+                let wrapper = document.getElementById('save-btn-wrapper');
+                wrapper.classList.add('hidden-animated');
+
+                setTimeout(() => {
+                    wrapper.style.display = 'none';
+                }, 500); 
+            }, 1500);
+
+        } catch (err) {
+            console.error(err);
+            alert("Не удалось сохранить проект.");
+            btn.classList.remove('is-loading');
+            btn.style.pointerEvents = 'auto';
+        }
+    }, 500);
+};
+
+document.getElementById('dl-btn-actual-download').onclick = (e) => {
+    let btn = e.currentTarget;
+    window.triggerHaptic();
+    if (btn.classList.contains('is-loading')) return;
+
+    setTimeout(async () => {
+        const limit = await checkUsageLimit();
+        if (!limit.allowed) return;
+
+        btn.classList.add('is-loading');
+        btn.style.pointerEvents = 'none';
+
+        try {
+            if (!persistentCanvas || persistentCanvas.width === 0) throw new Error("Холст пуст");
+
+            let isNonApple = document.body.classList.contains('os-non-apple');
+
+            let smallC = document.createElement('canvas');
+            let ratio = persistentCanvas.height / persistentCanvas.width;
+            smallC.width = Math.min(persistentCanvas.width, isNonApple ? 2048 : persistentCanvas.width);
+            smallC.height = Math.round(smallC.width * ratio);
+            let sCtx = smallC.getContext('2d');
+            sCtx.imageSmoothingEnabled = true;
+            sCtx.imageSmoothingQuality = 'high';
+            sCtx.drawImage(persistentCanvas, 0, 0, smallC.width, smallC.height);
+
+            if (!window.hasActiveSubscription) {
+              await localDB.recordDownload();
+            }
+
+            if (isNonApple) {
+                try {
+                     let dataUrl = smallC.toDataURL('image/jpeg', 0.90);
+                    let base64Image = dataUrl.split(',')[1]; 
+
+                    const formData = new FormData();
+                    formData.append('image', base64Image);
+
+                    const response = await fetch(`https://snapi.vl5955074.workers.dev/`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const viewerHtml = `
+                        <!DOCTYPE html>
+                        <html lang="ru">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                            <title>Сохранение работы</title>
+                            <style>
+                                body {
+                                    background-color: #131415;
+                                    color: #ffffff;
+                                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: center;
+                                    justify-content: center;
+                                    margin: 0;
+                                    padding: 20px;
+                                    min-height: 100vh;
+                                    box-sizing: border-box;
+                                }
+                                img {
+                                    max-width: 100%;
+                                    max-height: 65vh;
+                                    border-radius: 12px;
+                                    margin-bottom: 24px;
+                                    object-fit: contain;
+                                    -webkit-touch-callout: default !important;
+                                    user-select: auto !important;
+                                }
+                                .instruction {
+                                    background: #131415;
+                                    padding: 20px;
+                                    text-align: center;
+                                    max-width: 320px;
+                                }
+                                .instruction p {
+                                    color: #b0c2d5;
+                                    font-size: 14px;
+                                    line-height: 1.4;
+                                    margin: 0 0 8px 0;
+                                    font-weight: 600;
+                                }
+                                .instruction span {
+                                    color: #b0c2d5;
+                                    font-size: 14px;
+                                    line-height: 1.3;
+                                    display: block;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <img src="${data.data.url}" alt="Result">
+                            <div class="instruction">
+                                <p>👆 Зажмите картинку пальцем</p>
+                                <span>В появившемся меню выберите пункт «Загрузить». После успешной загрузки закройте окно, нажав на крестик сверху.</span>
+                            </div>
+                        </body>
+                        </html>
+                        `;
+
+                        let w = null;
+                        try { w = window.open('', '_blank'); } catch(e) {}
+
+                        if (w) {
+                            w.document.write(viewerHtml);
+                            w.document.close();
+                        } else {
+                            try {
+                                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                                    window.Telegram.WebApp.openLink(data.data.url);
+                                } else {
+                                    window.location.href = data.data.url;
+                                }
+                            } catch(e) {}
+
+                            setTimeout(() => {
+                                alert("У Вас открылся браузер, скачайте картинку там!\n\nЕсли картинка не открылась, пожалуйста, включите встроенный браузер в настройках Telegram (Настройки → Настройки чатов → Встроенный браузер).");
+                            }, 1500);
+                        }
+                    } else {
+                        alert("Ошибка ImgBB: " + data.error.message);
+                    }
+                } catch (err) {
+                    alert("Ошибка при отправке: " + err.message);
+                } finally {
+                    btn.classList.remove('is-loading');
+                    btn.style.pointerEvents = '';
+                }
+            } else {
+                smallC.toBlob((blob) => {
+                    try {
+                        if (!blob) throw new Error("Не удалось создать Blob");
+                        const file = new File([blob], 'result.png', { type: 'image/png' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            navigator.share({ files: [file] }).catch(() => {});
+                        } else {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.download = 'result.png';
+                            a.href = url;
+                            a.click();
+                            setTimeout(() => URL.revokeObjectURL(url), 3000);
+                        }
+                    } catch (e) {
+                        alert("Ошибка скачивания: " + e.message);
+                    } finally {
+                        btn.classList.remove('is-loading');
+                        btn.style.pointerEvents = '';
+                    }
+                }, 'image/png');
+            }
+        } catch(err) {
+            alert("Ошибка подготовки изображения: " + err.message);
+            btn.classList.remove('is-loading');
+            btn.style.pointerEvents = '';
+        }
+    }, 200);
+};
+
+function androidFallback(canvas, blob) {
+    alert("androidFallback вызван, размер blob: " + blob.size);
+    try {
+        alert("шаг 1 - создаём File");
+        const file = new File([blob], 'result.jpg', { type: 'image/jpeg' });
+        alert("шаг 2 - проверяем canShare, navigator.canShare: " + typeof navigator.canShare);
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            alert("шаг 3 - canShare доступен, вызываем share");
+            navigator.share({ files: [file] }).catch((err) => {
+                alert("Share ошибка: " + err.message);
+                androidFallback2(blob);
+            });
+            return;
+        }
+        alert("шаг 3 - canShare недоступен");
+    } catch(e) {
+        alert("catch в androidFallback: " + e.message);
+    }
+    alert("Идём в androidFallback2");
+    androidFallback2(blob);
+}
+
+function androidFallback2(blob) {
+    try {
+        const url = URL.createObjectURL(blob);
+        const w = window.open(url, '_blank');
+        if (!w) {
+            alert("Не удалось открыть. Сделайте скриншот экрана.");
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch(e) {
+        alert("catch: " + e.message);
+    }
+}
+  window.updateSavedCount();
+})();
+</script>
+</body>
+</html>
