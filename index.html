@@ -6,7 +6,7 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.2.6(1)";
+  const APP_VERSION = "v2.2.7";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
@@ -20,7 +20,7 @@
   }
 
 
-  const MANUAL_FALLBACK_DATE = "6 Apr 2026";
+  const MANUAL_FALLBACK_DATE = "7 Apr 2026";
 
   const SUBSCRIPTIONS = [
     { hash: "b649217db02e99c3c766b454c09787b95870daa99703e67aff87b6c4e6b92f23", period: "21 May 2026" },
@@ -1370,6 +1370,87 @@ async function hashTelegramId(id) {
       transform: none !important;
   }
 
+  #fankit-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--tg-viewport-stable-height, 100vh);
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 300;
+    display: none;
+    flex-direction: column;
+    justify-content: flex-end;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  #fankit-overlay.show {
+    display: flex;
+    opacity: 1;
+  }
+
+  .fankit-sheet {
+    background: var(--tg-theme-secondary-bg-color, #F2F2F7);
+    width: 100%;
+    max-height: 85vh;
+    border-radius: 24px 24px 0 0;
+    padding: 16px 20px 40px 20px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #fankit-overlay.show .fankit-sheet {
+    transform: translateY(0);
+  }
+
+  .fankit-drag-pill {
+    width: 40px;
+    height: 5px;
+    background: #C7C7CC;
+    border-radius: 3px;
+    margin: 0 auto 20px auto;
+  }
+
+  .fankit-title {
+    font-size: 18px;
+    color: var(--tg-theme-subtitle-text-color, #8E8E93);
+    margin-bottom: 16px;
+    text-align: left;
+  }
+
+  .fankit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    overflow-y: auto;
+    padding-bottom: 20px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .fankit-item {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    background-color: var(--tg-theme-section-separator-color, #E5E5EA);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.1s, border-color 0.2s;
+  }
+
+  .fankit-item:active {
+    transform: scale(0.95);
+  }
+
+  .fankit-item.selected {
+    border-color: var(--tg-theme-accent-text-color);
+  }
+
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -1472,10 +1553,10 @@ async function hashTelegramId(id) {
     
     <div class="ios-or-text">ИЛИ</div>
     <div class="ios-upload-link" id="wizard-upload-bg-btn">
-       <span id="wizard-upload-text">Загрузить фон</span>
+       <span id="wizard-upload-text">Фон с Fankit</span>
        <svg viewBox="0 0 8 14"><path d="M1 1l6 6-6 6"/></svg>
     </div>
-    <div class="ios-upload-subtitle">Пустой фон, без ников и эффектов.</div>
+    <div class="ios-upload-subtitle">Фон, взятый с сайта Fankit, от Supercell.</div>
 
     <div class="ios-or-text">ИЛИ</div>
     <div class="ios-upload-link" id="wizard-upload-ready-bg-btn">
@@ -1634,10 +1715,8 @@ async function hashTelegramId(id) {
 </div>
 
 <div id="subscription-overlay" style="display: none; width: 100%; height: 100dvh; background: var(--tg-theme-secondary-bg-color, #F2F2F7); flex-direction: column; box-sizing: border-box; position: fixed; top: 0; left: 0; z-index: 200; overflow: hidden;">
-  <!-- Вернули стандартный padding-top -->
   <div class="ios-container" style="margin: 0 auto; padding-top: var(--app-top-padding); padding-bottom: 30px; height: 100%; min-height: auto; display: flex; flex-direction: column; align-items: center; box-sizing: border-box;">
     
-    <!-- Доллары (дизайн) с анимацией -->
     <div class="sub-art-container">
       <div class="dollar-small" style="top: 30%; left: 15%; font-size: 26px; --dx: -20px; --dy: -40px; animation: fly 3.5s infinite ease-in-out 0s;">$</div>
       <div class="dollar-small" style="top: 50%; left: 22%; font-size: 14px; --dx: -15px; --dy: -50px; animation: fly 2.8s infinite ease-in-out 1.2s;">$</div>
@@ -1684,6 +1763,14 @@ async function hashTelegramId(id) {
   </div>
 </div>
 
+<div id="fankit-overlay">
+  <div class="fankit-sheet" id="fankit-sheet">
+    <div class="fankit-drag-pill"></div>
+    <div class="fankit-title">Выбери 1 фон из Fankit.</div>
+    <div class="fankit-grid" id="fankit-grid">
+    </div>
+  </div>
+</div>
 <script>
 window.triggerHaptic = function() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
@@ -4051,7 +4138,59 @@ function drawBeautifulNick(ctx, text, w, h) {
   });
 
   wizardUploadBtn.onclick = () => wizardBgInput.click();
-  wizardUploadReadyBtn.onclick = () => wizardReadyBgInput.click();
+  const fankitOverlay = document.getElementById('fankit-overlay');
+  const fankitGrid = document.getElementById('fankit-grid');
+
+  if (fankitGrid && fankitGrid.children.length === 0) {
+      for (let i = 1; i <= 16; i++) {
+          let item = document.createElement('div');
+          item.className = 'fankit-item';
+          item.style.backgroundImage = `url('bg/bg${i}.png')`;
+          
+          item.onclick = () => {
+              window.triggerHaptic();
+              
+              document.querySelectorAll('.fankit-item').forEach(el => el.classList.remove('selected'));
+              item.classList.add('selected');
+
+              selectedColor = null;
+              uploadMode = 'ready_bg';
+              wizardColorWraps.forEach(w => w.classList.remove('selected'));
+              document.getElementById('wizard-upload-text').innerText = "Загрузить фон";
+              uploadedBaseImg.removeAttribute('src');
+
+              uploadedReadyBaseImg.onload = () => {
+                  document.getElementById('wizard-upload-ready-text').innerText = `Выбран фон Fankit ${i}`;
+                  checkStep1Ready();
+              };
+              uploadedReadyBaseImg.src = `bg/bg${i}.png`;
+
+              setTimeout(() => {
+                  closeFankit();
+              }, 200);
+          };
+          fankitGrid.appendChild(item);
+      }
+  }
+
+  function openFankit() {
+      window.triggerHaptic();
+      fankitOverlay.style.display = 'flex';
+      setTimeout(() => fankitOverlay.classList.add('show'), 10);
+  }
+
+  function closeFankit() {
+      fankitOverlay.classList.remove('show');
+      setTimeout(() => {
+          fankitOverlay.style.display = 'none';
+      }, 300); 
+  }
+
+  fankitOverlay.onclick = (e) => {
+      if (e.target === fankitOverlay) closeFankit();
+  };
+
+  wizardUploadReadyBtn.onclick = () => openFankit();
 
   wizardBgInput.onchange = (e) => {
     if (e.target.files && e.target.files[0]) {
