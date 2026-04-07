@@ -6,7 +6,7 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.2.9";
+  const APP_VERSION = "v2.3.0";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
@@ -22,9 +22,19 @@
 
   const MANUAL_FALLBACK_DATE = "6 Apr 2026";
 
+
+
   const SUBSCRIPTIONS = [
     { hash: "b649217db02e99c3c766b454c09787b95870daa99703e67aff87b6c4e6b92f23", period: "21 May 2026" },
     { hash: "1d0245588da0bb70a11ca21c770f7114ee33579430b3ed86295af981face92ea", period: "21 May 2026" }
+  ];
+
+  const TRANSACTIONS = [
+    { hash: "b649217db02e99c3c766b454c09787b95870daa99703e67aff87b6c4e6b92f23", period1: "6 апреля 2026", period2: "21 мая 2026" },
+    { hash: "b649217db02e99c3c766b454c09787b95870daa99703e67aff87b6c4e6b92f23", period1: "19 июня 2026", period2: "16 мая 2027" },
+    { hash: "1d0245588da0bb70a11ca21c770f7114ee33579430b3ed86295af981face92ea", period1: "6 апреля 2026", period2: "21 мая 2026" },
+    { hash: "4ea45595e36d2385b8462b2566379b97276e29afa4c1ee1b64dc02758407e24c", period1: "6 апреля 2026", period2: "21 мая 2026" }
+
   ];
 
   window.hasActiveSubscription = false;
@@ -61,6 +71,38 @@
           if (subOverlay) subOverlay.innerText = 'активирована до ' + userSub.period;
           if (subBtn) subBtn.innerText = 'Продлить подписку';
       }
+  }
+
+  async function checkAndDisplayTransactions(userId) {
+      const userHash = await hashTelegramId(userId);
+      const userTrans = TRANSACTIONS.filter(t => t.hash === userHash);
+      const container = document.getElementById('transactions-container');
+      
+      if (!container) return;
+
+      if (userTrans.length === 0) {
+          container.style.display = 'none';
+          return;
+      }
+
+      container.style.display = 'block';
+      let html = '<div class="ios-section-title" style="margin-top: 0; margin-left: 14px; margin-bottom: 12px;">МОИ ТРАНЗАКЦИИ</div>';
+      html += '<div class="ios-layer-group" style="padding: 0 20px; margin-bottom: 8px;">'; 
+      
+      userTrans.forEach((t, index) => {
+          let borderBottom = index === userTrans.length - 1 ? 'border-bottom: none;' : '';
+          html += `
+          <div class="ios-layer-row" style="${borderBottom} padding: 16px 0; min-height: auto; cursor: default;">
+              <div class="ios-layer-name" style="font-size: 17px; font-weight: 400; white-space: normal; color: var(--tg-theme-text-color, #000000);">
+                  с ${t.period1} по ${t.period2}
+              </div>
+          </div>`;
+      });
+      
+      html += '</div>';
+      html += '<div class="sp-info-text" style="padding: 0 14px; font-size: 13px; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-top: 0px; margin-bottom: 24px;">Это Ваши транзакции за оплату подписки.</div>';
+      
+      container.innerHTML = html;
   }
 
   async function checkUsageLimit() {
@@ -1394,7 +1436,7 @@ async function hashTelegramId(id) {
     background: var(--tg-theme-secondary-bg-color, #F2F2F7);
     width: 100%;
     max-height: 85vh;
-    border-radius: 24px 24px 0 0;
+    border-radius: 46px 46px 0 0;
     padding: 16px 0 40px 0; 
     display: flex;
     flex-direction: column;
@@ -1476,6 +1518,14 @@ async function hashTelegramId(id) {
     cursor: pointer;
     border: 2px solid transparent;
     transition: transform 0.1s, border-color 0.2s;
+  }
+
+  .fankit-item.loading {
+    background: linear-gradient(110deg, var(--tg-theme-section-bg-color, #ffffff) 30%, var(--tg-theme-secondary-bg-color, #F2F2F7) 50%, var(--tg-theme-section-bg-color, #ffffff) 70%);
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border: none;
+    cursor: default;
   }
 
   .fankit-item:active {
@@ -1742,6 +1792,8 @@ async function hashTelegramId(id) {
       Время ответа составляет не более 72 часов.    
     </div>
 
+    <div id="transactions-container" style="display: none; width: 100%; box-sizing: border-box; margin-top: 16px;"></div>
+
     <div style="margin-top: auto; display: flex; align-items: center; justify-content: flex-start; padding: 20px 20px 40px 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; width: 100%; box-sizing: border-box;">
         <span id="app-version-display" style="font-size: 18px; font-weight: 600; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-right: 6px;"></span>
         <span id="app-build-display" style="font-family: 'ArialRoundedOld', Arial, sans-serif; background: var(--tg-theme-section-separator-color, #E5E5EA); color: var(--tg-theme-text-color, #000); font-size: 14px; font-weight: normal; padding: 2px 6px; border-radius: 6px; letter-spacing: 0.5px; display: none;"></span>
@@ -1934,6 +1986,7 @@ if (window.Telegram && window.Telegram.WebApp) {
         }
         
         checkAndApplySubscription(tgUser.id);
+        checkAndDisplayTransactions(tgUser.id); 
         
         if (userAvatarElement) {
             if (tgUser.photo_url) {
@@ -4181,10 +4234,18 @@ function drawBeautifulNick(ctx, text, w, h) {
   if (fankitGrid && fankitGrid.children.length === 0) {
       for (let i = 1; i <= 16; i++) {
           let item = document.createElement('div');
-          item.className = 'fankit-item';
-          item.style.backgroundImage = `url('bg/bg${i}.png')`;
+          item.className = 'fankit-item loading'; 
+          fankitGrid.appendChild(item); 
+
+          let img = new Image();
+          img.onload = () => {
+              item.classList.remove('loading');
+              item.style.backgroundImage = `url('${img.src}')`;
+          };
+          img.src = `bg/bg${i}.png`;
           
           item.onclick = async () => {
+              if (item.classList.contains('loading')) return; 
               window.triggerHaptic();
               
               document.querySelectorAll('.fankit-item').forEach(el => el.classList.remove('selected'));
@@ -4209,11 +4270,8 @@ function drawBeautifulNick(ctx, text, w, h) {
               };
               uploadedBaseImg.src = `bg/bg${i}.png`;
 
-              setTimeout(() => {
-                  closeFankit();
-              }, 200);
+              setTimeout(() => closeFankit(), 200);
           };
-          fankitGrid.appendChild(item);
       }
   }
 
