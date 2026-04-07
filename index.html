@@ -6,7 +6,7 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.2.8";
+  const APP_VERSION = "v2.2.9";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
@@ -4175,6 +4175,7 @@ function drawBeautifulNick(ctx, text, w, h) {
   });
 
   const fankitOverlay = document.getElementById('fankit-overlay');
+  const fankitSheet = document.getElementById('fankit-sheet'); 
   const fankitGrid = document.getElementById('fankit-grid');
 
   if (fankitGrid && fankitGrid.children.length === 0) {
@@ -4203,7 +4204,7 @@ function drawBeautifulNick(ctx, text, w, h) {
               document.getElementById('wizard-upload-ready-text').innerText = "Загрузить готовый фон";
 
               uploadedBaseImg.onload = () => {
-                  document.getElementById('wizard-upload-text').innerText = `Фон Fankit #${i} выбран`;
+                  document.getElementById('wizard-upload-text').innerText = `Фон Fankit ${i} выбран`;
                   checkStep1Ready();
               };
               uploadedBaseImg.src = `bg/bg${i}.png`;
@@ -4224,6 +4225,7 @@ function drawBeautifulNick(ctx, text, w, h) {
 
   function closeFankit() {
       fankitOverlay.classList.remove('show');
+      fankitSheet.style.transform = ''; 
       setTimeout(() => {
           fankitOverlay.style.display = 'none';
       }, 300); 
@@ -4234,6 +4236,43 @@ function drawBeautifulNick(ctx, text, w, h) {
   };
 
   wizardUploadBtn.onclick = () => openFankit();
+
+  let startY = 0;
+  let currentTranslateY = 0;
+  let isDragging = false;
+
+  fankitSheet.addEventListener('touchstart', (e) => {
+      if (fankitGrid.contains(e.target) && fankitGrid.scrollTop > 0) return;
+      
+      startY = e.touches[0].clientY;
+      isDragging = true;
+      fankitSheet.style.transition = 'none'; 
+  }, { passive: true });
+
+  fankitSheet.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      
+      let deltaY = e.touches[0].clientY - startY;
+      
+      if (deltaY < 0) deltaY = 0;
+      
+      currentTranslateY = deltaY;
+      fankitSheet.style.transform = `translateY(${currentTranslateY}px)`;
+  }, { passive: true });
+
+  fankitSheet.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      fankitSheet.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+      
+      if (currentTranslateY > 120) {
+          closeFankit();
+      } else {
+          fankitSheet.style.transform = '';
+      }
+      currentTranslateY = 0;
+  });
 
   wizardBgInput.onchange = (e) => {
     if (e.target.files && e.target.files[0]) {
