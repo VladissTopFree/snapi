@@ -6,7 +6,7 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.3.0";
+  const APP_VERSION = "v2.3.0(1)";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
@@ -1787,7 +1787,7 @@ async function hashTelegramId(id) {
       </div>
     </div>
 
-    <div class="sp-info-text" style="padding: 0 14px; font-size: 13px; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-top: -10px;">
+    <div class="sp-info-text" style="padding: 0 14px; font-size: 13px; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-top: -10px; padding-bottom: 0;">
       Вы можете обратиться в поддержку по любому интересующему Вас вопросу.
       Время ответа составляет не более 72 часов.    
     </div>
@@ -4294,6 +4294,7 @@ function drawBeautifulNick(ctx, text, w, h) {
   };
 
   wizardUploadBtn.onclick = () => openFankit();
+  wizardUploadReadyBtn.onclick = () => wizardReadyBgInput.click();
 
   let startY = 0;
   let currentTranslateY = 0;
