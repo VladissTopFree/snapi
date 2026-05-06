@@ -6,7 +6,7 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.0(104)";
+  const APP_VERSION = "v2.4.0(105)";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
@@ -283,7 +283,7 @@
     image-rendering: crisp-edges;
   }
   
-  #layer-panel {
+#layer-panel {
     width: 100%;
     flex-grow: 1; 
     margin-top: -30px; 
@@ -297,11 +297,11 @@
     z-index: 50;
     box-shadow: none;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    padding: 40px 20px 120px 20px; 
+    padding: 40px 20px 180px 20px; 
     box-sizing: border-box;
   }
 
-  .bottom-fade-container {
+.bottom-fade-container {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -315,6 +315,11 @@
     padding-top: 20px;
     padding-bottom: 40px; 
     box-sizing: border-box;
+    pointer-events: none; 
+  }
+
+  .bottom-fade-container > * {
+    pointer-events: auto; 
   }
 
   .bottom-fade-container::before {
