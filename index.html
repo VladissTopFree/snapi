@@ -5395,13 +5395,11 @@ window.changeGlobalPriceScale = (val) => {
 
 window.changeMainTextOffsetY = (val) => {
     window.layerState.mainTextOffsetY = parseFloat(val);
-    window.updateCachedTextCanvas(); 
     window.requestRender();          
 };
 
 window.changeMainTextScale = (val) => {
     window.layerState.mainTextScale = parseFloat(val);
-    window.updateCachedTextCanvas();
     window.requestRender();
 };
 
@@ -6885,15 +6883,24 @@ function drawScene() {
                 ctx.restore();
             }
 
-            if (cachedTextCanvas && animText.alpha > 0.01) {
-                ctx.save();
-                ctx.globalAlpha = animText.alpha;
-                ctx.translate(W/2, H/2);
-                ctx.translate(-225*s, -115*s);
-                ctx.scale(0.7 * animText.scale, 0.7 * animText.scale); 
-                ctx.translate(-W/2, -H/2);
-                ctx.drawImage(cachedTextCanvas, 0, 0);
-                ctx.restore();
+        if (cachedTextCanvas && animText.alpha > 0.01) {
+                persistentCtx.save();
+                persistentCtx.globalAlpha = animText.alpha;
+                let tw2 = Math.round(w/2);
+                let th2 = Math.round(h/2);
+                persistentCtx.translate(tw2, th2);
+                
+                let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+                let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
+                let scaleMult = h / 675;
+                persistentCtx.translate(0, tOffsetY * scaleMult);
+                persistentCtx.scale(animText.scale * tScale, animText.scale * tScale);
+                
+                persistentCtx.translate(-tw2, -th2);
+                persistentCtx.imageSmoothingEnabled = true;
+                persistentCtx.imageSmoothingQuality = 'high';
+                persistentCtx.drawImage(cachedTextCanvas, 0, 0);
+                persistentCtx.restore();
             }
 
             let lineW = 16*s; let lineH = H * 1.5;
@@ -7243,21 +7250,21 @@ function drawScene() {
             ctx.restore();
 
             if (cachedTextCanvas && animText.alpha > 0.01) {
-
-                let txtX = window.layerState.s3TextX !== undefined ? window.layerState.s3TextX : 0;
-                let txtY = window.layerState.s3TextY !== undefined ? window.layerState.s3TextY : 581;
-                let txtS = window.layerState.s3TextScale !== undefined ? window.layerState.s3TextScale : 1.1;
-
-                ctx.save();
-                ctx.globalAlpha = animText.alpha;
-                let tw2 = Math.round(W/2); let th2 = Math.round(H/2);
-                ctx.translate(tw2, th2);
-                ctx.translate(txtX * s, txtY * s); 
-                ctx.scale(txtS * animText.scale, txtS * animText.scale); 
-                ctx.translate(-W/2, -H/2);
-                ctx.drawImage(cachedTextCanvas, 0, 0);
-                ctx.restore();
-            } 
+                persistentCtx.save();
+                persistentCtx.globalAlpha = animText.alpha;
+                let tw2 = Math.round(w/2); let th2 = Math.round(h/2);
+                persistentCtx.translate(tw2, th2);
+                
+                let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+                let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
+                let scaleMult = h / 675;
+                persistentCtx.translate(0, tOffsetY * scaleMult);
+                persistentCtx.scale(animText.scale * tScale, animText.scale * tScale);
+                
+                persistentCtx.translate(-tw2, -th2);
+                persistentCtx.drawImage(cachedTextCanvas, 0, 0);
+                persistentCtx.restore();
+            }
             
             return; 
         }
@@ -7526,14 +7533,19 @@ function drawScene() {
             }
 
             if (cachedTextCanvas && animText.alpha > 0.01) {
-                persistentCtx.save();
-                persistentCtx.globalAlpha = animText.alpha;
-                let tw2 = Math.round(w/2); let th2 = Math.round(h/2);
-                persistentCtx.translate(tw2, th2);
-                persistentCtx.scale(animText.scale, animText.scale);
-                persistentCtx.translate(-tw2, -th2);
-                persistentCtx.drawImage(cachedTextCanvas, 0, 0);
-                persistentCtx.restore();
+                ctx.save();
+                ctx.globalAlpha = animText.alpha;
+                ctx.translate(W/2, H/2);
+                ctx.translate(-225*s, -115*s);
+                
+                let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+                let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
+                ctx.translate(0, tOffsetY * s);
+                ctx.scale(0.7 * animText.scale * tScale, 0.7 * animText.scale * tScale); 
+                
+                ctx.translate(-W/2, -H/2);
+                ctx.drawImage(cachedTextCanvas, 0, 0);
+                ctx.restore();
             }
         }
         
@@ -7569,19 +7581,26 @@ function drawScene() {
         drawWatermarks(persistentCtx, window.layerState.textValue, w, h, window.layerState.watermarksOpacity);
     }
     
-    if (cachedTextCanvas && animText.alpha > 0.01) {
-        persistentCtx.save();
-        persistentCtx.globalAlpha = animText.alpha;
-        let tw2 = Math.round(w/2);
-        let th2 = Math.round(h/2);
-        persistentCtx.translate(tw2, th2);
-        persistentCtx.scale(animText.scale, animText.scale);
-        persistentCtx.translate(-tw2, -th2);
-        persistentCtx.imageSmoothingEnabled = true;
-        persistentCtx.imageSmoothingQuality = 'high';
-        persistentCtx.drawImage(cachedTextCanvas, 0, 0);
-        persistentCtx.restore();
-    }
+        if (cachedTextCanvas && animText.alpha > 0.01) {
+                let txtX = window.layerState.s3TextX !== undefined ? window.layerState.s3TextX : 0;
+                let txtY = window.layerState.s3TextY !== undefined ? window.layerState.s3TextY : 581;
+                let txtS = window.layerState.s3TextScale !== undefined ? window.layerState.s3TextScale : 1.1;
+
+                ctx.save();
+                ctx.globalAlpha = animText.alpha;
+                let tw2 = Math.round(W/2); let th2 = Math.round(H/2);
+                ctx.translate(tw2, th2);
+                ctx.translate(txtX * s, txtY * s); 
+                
+                let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+                let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
+                ctx.translate(0, tOffsetY * s);
+                ctx.scale(txtS * animText.scale * tScale, txtS * animText.scale * tScale); 
+                
+                ctx.translate(-W/2, -H/2);
+                ctx.drawImage(cachedTextCanvas, 0, 0);
+                ctx.restore();
+            }
     
 let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
     let globalScale = window.layerState.globalOffersScale !== undefined ? window.layerState.globalOffersScale : 1;
@@ -7716,20 +7735,10 @@ function drawStars(ctx, starImg, w, h, opacity = 1.0, forExport = false) {
 
 function drawBeautifulNick(ctx, text, w, h) {
     let fontSize = Math.floor(h * 0.12); if (fontSize < 30) fontSize = 30;
-    
-    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
-    fontSize = Math.floor(fontSize * tScale);
-    if (fontSize < Math.floor(30 * tScale)) fontSize = Math.floor(30 * tScale);
-
     let x = Math.round(w / 2); 
     let y = window.layerState.textPosition === 'bottom' 
         ? Math.round(h * 0.92 - (fontSize / 2))
         : Math.round(h * 0.06 + (fontSize / 2)); 
-
-    let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
-    let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
-    y += tOffsetY * hdScale;
-    
     let shadowDepth = Math.max(1, Math.floor(fontSize * 0.10));
 
     let style = TEXT_STYLES[window.layerState.textStyleIndex || 0];
@@ -7748,16 +7757,13 @@ function drawBeautifulNick(ctx, text, w, h) {
         if (style.outer2) {
             txCtx.lineWidth = fontSize * 0.18; txCtx.strokeStyle = style.outer2; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
-            
             txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
-            
             txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
         } else if (style.outer) {
             txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
-            
             txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
         } else {
@@ -7765,7 +7771,6 @@ function drawBeautifulNick(ctx, text, w, h) {
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
         }
     }
-    
     txCtx.restore();
 
     let tempCanvas = document.createElement('canvas'); tempCanvas.width = w; tempCanvas.height = h; let tCtx = tempCanvas.getContext('2d');
@@ -9016,8 +9021,6 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
     if (bpText.length === 5) {
         bpFontSize = bpFontSize * 0.88; 
     }
-    
-    // Получаем базовый "правильный" размер шрифта без искажений
     mCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`; 
 
     const bpShadowDepth = Math.max(1, Math.floor(bpFontSize * 0.10));
@@ -9068,19 +9071,13 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
     sCtx.textAlign = "center"; sCtx.textBaseline = "middle"; sCtx.lineJoin = "round"; sCtx.lineCap = "round";
     sCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
 
-    // ДОБАВЛЯЕМ МАСШТАБ И СДВИГ ЗДЕСЬ (чтобы масштабировался готовый текст вместе с тенью)
-    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
-    let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
-    let offsetPx = tOffsetY * scaleMult;
-
     const drawStrokeLayer = (width, color) => {
         sCtx.lineWidth = width;
         sCtx.strokeStyle = color;
         for (let i = bpShadowDepth; i >= 0; i--) {
             lines.forEach(({ text, y }) => {
                 sCtx.save();
-                sCtx.translate(bpTextX, y + offsetPx); // Применяем сдвиг по высоте
-                sCtx.scale(tScale, tScale);            // Применяем масштаб к холсту
+                sCtx.translate(bpTextX, y);
                 sCtx.transform(1, 0, -0.07, 1, 0, 0);
                 sCtx.rotate(-0.02);
                 sCtx.strokeText(text, 0, i);
@@ -9114,8 +9111,7 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
 
     lines.forEach(({ text, y }) => {
         fCtx.save();
-        fCtx.translate(bpTextX, y + offsetPx); // Применяем сдвиг по высоте
-        fCtx.scale(tScale, tScale);            // Применяем масштаб к холсту
+        fCtx.translate(bpTextX, y);
         fCtx.transform(1, 0, -0.07, 1, 0, 0);
         fCtx.rotate(-0.02);
         
@@ -9135,9 +9131,9 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
 
     ctx.save();
     ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
-    ctx.shadowBlur = Math.max(5, Math.round(21 * scaleMult * tScale)); 
+    ctx.shadowBlur = Math.max(5, Math.round(21 * scaleMult)); 
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = Math.max(4, Math.round(16 * scaleMult * tScale));
+    ctx.shadowOffsetY = Math.max(4, Math.round(16 * scaleMult));
     ctx.drawImage(strokeC, 0, 0);
     ctx.restore();
     ctx.drawImage(fillC, 0, 0);
