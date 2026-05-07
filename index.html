@@ -9015,12 +9015,10 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
 
     if (bpText.length === 5) {
         bpFontSize = bpFontSize * 0.88; 
-        mCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`; 
     }
-
-    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
-    bpFontSize = bpFontSize * tScale;
-    mCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
+    
+    // Получаем базовый "правильный" размер шрифта без искажений
+    mCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`; 
 
     const bpShadowDepth = Math.max(1, Math.floor(bpFontSize * 0.10));
     const lineGap = 0;
@@ -9062,10 +9060,6 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
         y1 = FIXED_BOTTOM_Y - (maxLineH / 2); 
     }
 
-    let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
-    y1 += tOffsetY * scaleMult;
-    if (y2 !== undefined) y2 += tOffsetY * scaleMult;
-
     const lines = line2 ? [{ text: line1, y: y1 }, { text: line2, y: y2 }] : [{ text: line1, y: y1 }];
 
     const strokeC = document.createElement('canvas');
@@ -9074,13 +9068,19 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
     sCtx.textAlign = "center"; sCtx.textBaseline = "middle"; sCtx.lineJoin = "round"; sCtx.lineCap = "round";
     sCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
 
+    // ДОБАВЛЯЕМ МАСШТАБ И СДВИГ ЗДЕСЬ (чтобы масштабировался готовый текст вместе с тенью)
+    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+    let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
+    let offsetPx = tOffsetY * scaleMult;
+
     const drawStrokeLayer = (width, color) => {
         sCtx.lineWidth = width;
         sCtx.strokeStyle = color;
         for (let i = bpShadowDepth; i >= 0; i--) {
             lines.forEach(({ text, y }) => {
                 sCtx.save();
-                sCtx.translate(bpTextX, y);
+                sCtx.translate(bpTextX, y + offsetPx); // Применяем сдвиг по высоте
+                sCtx.scale(tScale, tScale);            // Применяем масштаб к холсту
                 sCtx.transform(1, 0, -0.07, 1, 0, 0);
                 sCtx.rotate(-0.02);
                 sCtx.strokeText(text, 0, i);
@@ -9114,7 +9114,8 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
 
     lines.forEach(({ text, y }) => {
         fCtx.save();
-        fCtx.translate(bpTextX, y);
+        fCtx.translate(bpTextX, y + offsetPx); // Применяем сдвиг по высоте
+        fCtx.scale(tScale, tScale);            // Применяем масштаб к холсту
         fCtx.transform(1, 0, -0.07, 1, 0, 0);
         fCtx.rotate(-0.02);
         
@@ -9134,9 +9135,9 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
 
     ctx.save();
     ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
-    ctx.shadowBlur = Math.max(5, Math.round(21 * scaleMult));
+    ctx.shadowBlur = Math.max(5, Math.round(21 * scaleMult * tScale)); 
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = Math.max(4, Math.round(16 * scaleMult));
+    ctx.shadowOffsetY = Math.max(4, Math.round(16 * scaleMult * tScale));
     ctx.drawImage(strokeC, 0, 0);
     ctx.restore();
     ctx.drawImage(fillC, 0, 0);
