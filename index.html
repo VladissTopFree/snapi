@@ -3,10 +3,11 @@
 <head> 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.0(105)";
+  const APP_VERSION = "v2.4.0(121)";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
@@ -2375,6 +2376,20 @@ body:not(.os-non-apple) .saved-works-icon {
     margin-left: 0.5px !important; 
   }
 
+  .sortable-drag {
+    background: var(--tg-theme-section-bg-color, #ffffff) !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+    border-bottom: none !important;
+    
+    padding: 16px 12px !important; 
+    box-sizing: border-box !important;
+  }
+  
+  .sortable-ghost {
+    opacity: 0 !important; 
+  }
+
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -2826,7 +2841,7 @@ body:not(.os-non-apple) .saved-works-icon {
             </div>
             <div class="cat-info" style="justify-content: flex-start; align-items: flex-start; text-align: left;">
                 <div class="cat-name" style="width: 100%;">50 сезон</div>
-                <div class="cat-desc">Новый сезон Brawl Pass.<br>Выйдет 7 мая.</div>
+                <div class="cat-desc">Текущий сезон Brawl Pass.<br>Вышел 7 мая.</div>
             </div>
          </div>
          
@@ -2839,7 +2854,7 @@ body:not(.os-non-apple) .saved-works-icon {
             </div>
             <div class="cat-info" style="justify-content: flex-start; align-items: flex-start; text-align: left;">
                 <div class="cat-name" style="width: 100%;">49 сезон</div>
-                <div class="cat-desc">Текущий сезон Brawl Pass.<br>Вышел 2 апреля.</div>
+                <div class="cat-desc">Прошлый сезон Brawl Pass.<br>Вышел 2 апреля.</div>
             </div>
          </div>
 
@@ -4019,6 +4034,9 @@ window.layerState = {
     textFont: 'Font16103',
     textStyleIndex: 0, 
     globalStrokeWidth: 2, 
+    globalOffersScale: 1.0,       
+    globalStrokeColor: '#ffffff', 
+    globalOffersOffsetY: 0,       
     offers: [],
     bgVisible: true,
     luchVisible: true,
@@ -4675,6 +4693,22 @@ if (window.layerState.isBrawlPassMode) {
                     </div>
                 </div>
             `;
+
+            html += `
+                <div class="ios-layer-row">
+                    <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Высота</div>
+                    <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">вверх</div>
+                    <input type="range" class="ios-slider" min="-500" max="500" step="1" value="${window.layerState.mainTextOffsetY || 0}" oninput="window.changeMainTextOffsetY(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
+                    <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">вниз</div>
+                </div>
+                <div class="ios-layer-row" style="border-bottom:none; padding-bottom: 0;">
+                    <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Размер</div>
+                    <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">меньше</div>
+                    <input type="range" class="ios-slider" min="0.1" max="3" step="0.01" value="${window.layerState.mainTextScale || 1}" oninput="window.changeMainTextScale(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
+                    <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">больше</div>
+                </div>
+            `;
+
             html += `<div class="ios-font-label">Изменить шрифт</div>`;
             html += `<div class="ios-font-grid">`;
             FONT_OPTIONS.forEach((f) => {
@@ -4976,18 +5010,31 @@ if (window.layerState.isBrawlPassMode) {
     } else {
         html += `
             <div class="ios-layer-group ${animCls}">
-            <div class="ios-layer-row" style="border-bottom:none; padding-bottom: 0;">
+            <div class="ios-layer-row">
                 <div class="ios-icon-btn ios-eye-icon ${window.layerState.textVisible ? '' : 'hidden'}" onclick="toggleTextLayer()">
                     ${getEyeSVG(window.layerState.textVisible)}
                 </div>
-                <div class="ios-layer-name" style="max-width: 120px;">${(window.layerState.textValue || 'SNAPI').substring(0, 10)}${(window.layerState.textValue || '').length > 10 ? '...' : ''}</div>
-                <div class="ios-layer-action-text">расположение</div>
-                <button class="ios-pill-btn" onclick="toggleTextPosition()">
+                <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">${(window.layerState.textValue || 'SNAPI').substring(0, 10)}${(window.layerState.textValue || '').length > 10 ? '...' : ''}</div>
+                <div class="ios-layer-action-text" style="flex-shrink: 0; margin-right: 8px;">расположение</div>
+                <button class="ios-pill-btn" onclick="toggleTextPosition()" style="flex-shrink: 0;">
                     ${window.layerState.textPosition !== 'bottom' ? 'ВВЕРХ' : 'ВНИЗ'}
                 </button>
-                <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadTextLayer()">
+                <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color); flex-shrink: 0;" onclick="downloadTextLayer()">
                     ${downloadIconSVG}
                 </div>
+            </div>
+            
+            <div class="ios-layer-row">
+                <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Высота</div>
+                <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">вверх</div>
+                <input type="range" class="ios-slider" min="-500" max="500" step="1" value="${window.layerState.mainTextOffsetY || 0}" oninput="window.changeMainTextOffsetY(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
+                <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">вниз</div>
+            </div>
+            <div class="ios-layer-row" style="border-bottom:none; padding-bottom: 0;">
+                <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Размер</div>
+                <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">меньше</div>
+                <input type="range" class="ios-slider" min="0.1" max="3" step="0.01" value="${window.layerState.mainTextScale || 1}" oninput="window.changeMainTextScale(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
+                <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">больше</div>
             </div>
         `;
         html += `<div class="ios-font-label">Изменить шрифт</div>`;
@@ -5009,32 +5056,65 @@ if (window.layerState.isBrawlPassMode) {
 
     if (!window.layerState.isBrawlPassMode && window.layerState.offers && window.layerState.offers.length > 0) {
         html += `<div class="ios-layer-group ${animCls}">`;
+        
+        html += `<div style="font-size: 13px; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-top: 16px; margin-bottom: 4px; padding: 0;">Редактирование акций</div>`;
+
         html += `
-            <div class="ios-layer-row">
-                <div class="ios-layer-name">Обводка</div>
-                <div class="ios-layer-action-text">размер</div>
-                <div class="ios-stroke-control">
-                    <button class="ios-stroke-btn" onclick="changeGlobalStroke(-1)">-</button>
-                    <div class="ios-stroke-val" id="global-stroke-val">${window.layerState.globalStrokeWidth}</div>
-                    <button class="ios-stroke-btn" onclick="changeGlobalStroke(1)">+</button>
+        <div class="ios-layer-row">
+            <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: auto;">Обводка</div>
+            
+            <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 4px;">цвет</div>
+            
+            <div style="position: relative; width: 26px; height: 26px; flex-shrink: 0; background: ${window.layerState.globalStrokeColor || '#ffffff'}; border-radius: 50%; margin-right: 4px; display: flex; align-items: center; justify-content: center; padding: 1px; box-sizing: border-box; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);" id="stroke-color-display">
+                <input type="color" value="${window.layerState.globalStrokeColor || '#ffffff'}" style="position: absolute; opacity: 0; width: 100%; height: 100%; left: 0; top: 0; cursor: pointer;" oninput="window.changeStrokeColor(this.value)">
+                <div style="width: 22px; height: 22px; background: transparent; border-radius: 50%; z-index: 2; pointer-events: none; display: flex; align-items: center; justify-content: center;">
+                    <svg id="stroke-color-icon" viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: ${(window.layerState.globalStrokeColor || '#ffffff').toLowerCase() === '#ffffff' ? '#b7b7b7' : '#ffffff'};"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                 </div>
-                <div style="width: 24px; margin-left: 10px; flex-shrink: 0;"></div>
             </div>
+
+            <div style="width: 0.5px; height: 14px; background-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent); margin-left: 0; margin-right: 4px; flex-shrink: 0;"></div>
+
+            <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 4px;">толщина</div>
+            
+            <div class="ios-stroke-control" style="background: transparent; flex-shrink: 0;">
+                <button class="ios-stroke-btn" style="padding: 0 8px; background: #01a2ff1f; color: #01a2ff;" onclick="changeGlobalStroke(-1)">-</button>
+                <div class="ios-stroke-val" style="padding: 0 6px; background: #01a2ff1f; color: #01a2ff;" id="global-stroke-val">${window.layerState.globalStrokeWidth}</div>
+                <button class="ios-stroke-btn" style="padding: 0 8px; background: #01a2ff1f; color: #01a2ff;" onclick="changeGlobalStroke(1)">+</button>
+            </div>
+        </div>
         `;
 
-        if (window.layerState.isReadyBg) {
-            let offersPos = window.layerState.offersPosition || 'bottom';
-            html += `
-            <div class="ios-layer-row">
-                <div class="ios-layer-name">Акции</div>
-                <div class="ios-layer-action-text">расположение</div>
-                <button class="ios-pill-btn" onclick="toggleOffersPosition()">
-                    ${offersPos !== 'bottom' ? 'ВНИЗ' : 'ВВЕРХ'}
-                </button>
-                <div style="width: 24px; margin-left: 10px; flex-shrink: 0;"></div>
-            </div>
-            `;
-        }
+        html += `
+        <div class="ios-layer-row">
+            <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Высота</div>
+            
+            <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">вверх</div>
+            <input type="range" class="ios-slider" min="-500" max="500" step="1" value="${window.layerState.globalOffersOffsetY || 0}" oninput="window.changeOffersOffsetY(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
+            <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">вниз</div>
+        </div>
+        `;
+
+    html += `
+        <div class="ios-layer-row">
+            <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Размер</div>
+            
+            <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">меньше</div>
+            <input type="range" class="ios-slider" min="0.1" max="2.5" step="0.01" value="${window.layerState.globalOffersScale || 1}" oninput="window.changeOffersScale(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
+            <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">больше</div>
+        </div>
+        `;
+
+        html += `
+        <div class="ios-layer-row">
+            <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Цены</div>
+            
+            <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">меньше</div>
+            <input type="range" class="ios-slider" min="0.5" max="2.0" step="0.01" value="${window.layerState.globalPriceScale || 1}" oninput="window.changeGlobalPriceScale(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
+            <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">больше</div>
+        </div>
+        `;
+
+        html += `<div id="offers-sortable-list">`;
 
         window.layerState.offers.forEach((offer, idx) => {
             let isFree = offer.price.trim().toUpperCase() === 'FREE';
@@ -5043,19 +5123,36 @@ if (window.layerState.isBrawlPassMode) {
             let offerEyeClass = offer.visible ? '' : 'hidden';
 
             html += `
-                <div class="ios-layer-row" ${idx === window.layerState.offers.length - 1 ? 'style="border-bottom:none;"' : ''}>
-                    <div class="ios-icon-btn ios-eye-icon ${offerEyeClass}" onclick="toggleOffer(${idx})">
+                <div class="ios-layer-row offer-item" data-idx="${idx}" ${idx === window.layerState.offers.length - 1 ? 'style="border-bottom:none;"' : ''}>
+                    
+                    <div class="ios-icon-btn ios-eye-icon ${offerEyeClass}" style="margin-right: 8px; flex-shrink: 0;" onclick="toggleOffer(${idx})">
                         ${getEyeSVG(offer.visible)}
                     </div>
-                    <div class="ios-layer-name">Акция #${idx + 1}</div>
-                    <div class="ios-layer-action-text">значение</div>
-                        <input type="text" inputmode="numeric" pattern="[0-9]*" class="ios-price-input" id="layer-price-${idx}" value="${offer.price}" maxlength="5" style="background: ${priceBg}; color: ${priceColor};" oninput="updateOfferPriceFromLayer(${idx}, this)">
-                    <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadOfferLayer(${idx})">
+                    
+                    ${window.layerState.offers.length > 1 ? `
+                    <div class="ios-drag-handle" style="display: flex; align-items: center; justify-content: center; margin-right: 8px; cursor: grab; padding: 4px; touch-action: none; flex-shrink: 0;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--tg-theme-subtitle-text-color, #8E8E93)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" y1="12" x2="20" y2="12"></line>
+                            <line x1="4" y1="6" x2="20" y2="6"></line>
+                            <line x1="4" y1="18" x2="20" y2="18"></line>
+                        </svg>
+                    </div>
+                    ` : ''}
+
+                    <div class="ios-layer-name" style="flex-grow: 1; flex-shrink: 0; margin-right: 8px;">#${idx + 1}</div>
+                    
+                    <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 6px;">значение</div>
+                    
+                    <input type="text" inputmode="numeric" class="ios-price-input" id="layer-price-${idx}" value="${offer.price}" maxlength="5" style="background: ${priceBg}; color: ${priceColor}; flex-shrink: 0; width: 65px; padding: 0 4px;" oninput="updateOfferPriceFromLayer(${idx}, this)">
+                    
+                    <div class="ios-icon-btn" style="margin-left: 8px; color: var(--tg-theme-section-header-text-color); flex-shrink: 0;" onclick="downloadOfferLayer(${idx})">
                         ${downloadIconSVG}
                     </div>
                 </div>
             `;
         });
+        
+        html += `</div>`;
         html += `</div>`;
     }
 
@@ -5243,6 +5340,26 @@ if (window.layerState.isBrawlPassMode) {
             window.lastBPNickLeft = 16; 
             window.updateBPTextCounter(bpInput);
         }
+
+        let sortableList = document.getElementById('offers-sortable-list');
+        if (sortableList && window.Sortable) {
+            new Sortable(sortableList, {
+                handle: '.ios-drag-handle',
+                animation: 200,
+                forceFallback: true,             
+                fallbackClass: 'sortable-drag',  
+                ghostClass: 'sortable-ghost',    
+                onEnd: function (evt) {
+                    let offers = window.layerState.offers;
+                    
+                    let movedItem = offers.splice(evt.oldIndex, 1)[0];
+                    offers.splice(evt.newIndex, 0, movedItem);
+                    
+                    renderLayerPanel();
+                    calculateLayoutTarget();
+                }
+            });
+        }
     }, 0);
     layerPanel.style.display = 'flex';
 }
@@ -5257,6 +5374,58 @@ window.changeGlobalStroke = (delta) => {
         }
     });
     startAnimation();
+};
+
+window.changeOffersScale = (val) => {
+    window.layerState.globalOffersScale = parseFloat(val);
+    window.requestRender();
+};
+
+window.changeGlobalPriceScale = (val) => {
+    window.layerState.globalPriceScale = parseFloat(val);
+    
+    window.layerState.offers.forEach(offer => {
+        if (offer.target && offer.target.w) {
+            generateOfferCache(offer, offer.target.w, offer.target.h);
+        }
+    });
+    
+    if (typeof startAnimation === 'function') startAnimation();
+};
+
+window.changeMainTextOffsetY = (val) => {
+    window.layerState.mainTextOffsetY = parseFloat(val);
+    window.updateCachedTextCanvas(); 
+    window.requestRender();          
+};
+
+window.changeMainTextScale = (val) => {
+    window.layerState.mainTextScale = parseFloat(val);
+    window.updateCachedTextCanvas();
+    window.requestRender();
+};
+
+window.changeStrokeColor = (color) => {
+    window.layerState.globalStrokeColor = color;
+    let colorDisplay = document.getElementById('stroke-color-display');
+    if(colorDisplay) colorDisplay.style.background = color;
+    
+    let colorIcon = document.getElementById('stroke-color-icon');
+    if(colorIcon) {
+        colorIcon.style.fill = (color.toLowerCase() === '#ffffff') ? '#b7b7b7' : '#ffffff';
+    }
+
+    window.layerState.offers.forEach(offer => {
+        if (offer.hasStroke && offer.target.w) {
+            generateOfferCache(offer, offer.target.w, offer.target.h);
+        }
+    });
+    startAnimation();
+};
+
+window.changeOffersOffsetY = (val) => {
+    window.layerState.globalOffersOffsetY = parseFloat(val);
+    window.requestRender();
 };
 
 window.toggleTextLayer = () => {
@@ -5283,6 +5452,19 @@ window.toggleOffer = (idx) => {
     offer.visible = !offer.visible;
     renderLayerPanel();
     calculateLayoutTarget(); 
+};
+
+window.moveOfferLayer = (idx, direction) => {
+    let offers = window.layerState.offers;
+    
+    if (idx + direction < 0 || idx + direction >= offers.length) return;
+    
+    let temp = offers[idx];
+    offers[idx] = offers[idx + direction];
+    offers[idx + direction] = temp;
+    
+    renderLayerPanel();
+    calculateLayoutTarget();
 };
 
 window.updateOfferPriceFromLayer = (idx, inputEl) => {
@@ -5622,7 +5804,7 @@ function generateOfferCache(offer, targetW, targetH) {
         let silCtx = silCanvas.getContext('2d');
         silCtx.drawImage(hdCard, 0, 0);
         silCtx.globalCompositeOperation = 'source-in';
-        silCtx.fillStyle = '#ffffff';
+        silCtx.fillStyle = window.layerState.globalStrokeColor || '#ffffff';
         silCtx.fillRect(0, 0, tW, tH);
 
         const steps = 36;
@@ -5785,8 +5967,10 @@ function isBg(x, y) {
 function drawPriceText(ctx, w, h, textStr, info) {
   if (!textStr || textStr.trim() === "") return;
   let { textX, textY, boxHeight } = info;
-  let fontSize = Math.floor(boxHeight * 0.60); 
-  if (fontSize < 22) fontSize = 22;
+  
+  let priceScale = window.layerState.globalPriceScale !== undefined ? window.layerState.globalPriceScale : 1;
+  let fontSize = Math.floor((boxHeight * 0.60) * priceScale); 
+  if (fontSize < Math.floor(22 * priceScale)) fontSize = Math.floor(22 * priceScale);
 
   let isFree = textStr.trim().toUpperCase() === 'FREE';
   let isNumber = !isNaN(textStr.trim()) && textStr.trim() !== '';
@@ -6396,10 +6580,13 @@ function calculateLayoutTarget() {
   let boxLeft = bgW * 0.04;                 
   let boxRight = bgW * 0.96;                 
 
-  let boxW = boxRight - boxLeft;
-  let boxH = boxBottom - boxTop;
+    let boxW = boxRight - boxLeft;
+    let boxH = boxBottom - boxTop;
 
-  let activeOffers = window.layerState.offers.filter(o => o.visible);
+    window.layerState.gridCx = boxLeft + boxW / 2;
+    window.layerState.gridCy = boxTop + boxH / 2;
+
+    let activeOffers = window.layerState.offers.filter(o => o.visible);
   
   let bestCols = 1; let bestH = 0; let bestRows = 1; let gapX = 0; let gapY = 0;
   let n = activeOffers.length;
@@ -7396,7 +7583,10 @@ function drawScene() {
         persistentCtx.restore();
     }
     
-    let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
+let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
+    let globalScale = window.layerState.globalOffersScale !== undefined ? window.layerState.globalOffersScale : 1;
+    let gridCx = window.layerState.gridCx || (w / 2);
+    let gridCy = window.layerState.gridCy || (h / 2);
     
     window.layerState.offers.forEach(o => {
         if (o.anim.alpha < 0.01 || o.anim.scale < 0.01) return;
@@ -7415,8 +7605,14 @@ function drawScene() {
         let cx = Math.round(o.anim.x + o.anim.w/2);
         let cy = Math.round(o.anim.y + o.anim.h/2);
         
+        cx = gridCx + (cx - gridCx) * globalScale;
+        cy = gridCy + (cy - gridCy) * globalScale;
+
+        let offsetY = window.layerState.globalOffersOffsetY !== undefined ? window.layerState.globalOffersOffsetY : 0;
+        cy += offsetY;
+        
         persistentCtx.translate(cx, cy);
-        persistentCtx.scale(o.anim.scale, o.anim.scale);
+        persistentCtx.scale(o.anim.scale * globalScale, o.anim.scale * globalScale);
 
         persistentCtx.imageSmoothingEnabled = true;
         persistentCtx.imageSmoothingQuality = 'high';
@@ -7520,10 +7716,20 @@ function drawStars(ctx, starImg, w, h, opacity = 1.0, forExport = false) {
 
 function drawBeautifulNick(ctx, text, w, h) {
     let fontSize = Math.floor(h * 0.12); if (fontSize < 30) fontSize = 30;
+    
+    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+    fontSize = Math.floor(fontSize * tScale);
+    if (fontSize < Math.floor(30 * tScale)) fontSize = Math.floor(30 * tScale);
+
     let x = Math.round(w / 2); 
     let y = window.layerState.textPosition === 'bottom' 
         ? Math.round(h * 0.92 - (fontSize / 2))
         : Math.round(h * 0.06 + (fontSize / 2)); 
+
+    let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
+    let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
+    y += tOffsetY * hdScale;
+    
     let shadowDepth = Math.max(1, Math.floor(fontSize * 0.10));
 
     let style = TEXT_STYLES[window.layerState.textStyleIndex || 0];
@@ -8812,6 +9018,10 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
         mCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`; 
     }
 
+    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+    bpFontSize = bpFontSize * tScale;
+    mCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
+
     const bpShadowDepth = Math.max(1, Math.floor(bpFontSize * 0.10));
     const lineGap = 0;
 
@@ -8851,6 +9061,10 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
     } else {
         y1 = FIXED_BOTTOM_Y - (maxLineH / 2); 
     }
+
+    let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
+    y1 += tOffsetY * scaleMult;
+    if (y2 !== undefined) y2 += tOffsetY * scaleMult;
 
     const lines = line2 ? [{ text: line1, y: y1 }, { text: line2, y: y2 }] : [{ text: line1, y: y1 }];
 
