@@ -7,11 +7,11 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.0(121)";
+  const APP_VERSION = "v2.4.0(126)";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
-  const SHOW_PROMO_BANNER = true; 
+  const SHOW_PROMO_BANNER = false; 
 
   window.isNewUser = localStorage.getItem('Snapi_visited') === null;
 
@@ -2390,6 +2390,19 @@ body:not(.os-non-apple) .saved-works-icon {
     opacity: 0 !important; 
   }
 
+  @keyframes spin-svg {
+      100% { transform: rotate(360deg); }
+  }
+  .loading-spinner {
+      animation: spin-svg 1s linear infinite;
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+  }
+
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -4285,13 +4298,29 @@ function processImages(filesParam) {
   
   filesToProcess = files.length;
 
+  let currentIndex = 0;
+  
+  function processNext() {
+      if (currentIndex >= files.length) return;
+      
+      const img = new Image();
+      img.onload = () => {
+          setTimeout(() => {
+              runMagicLogic(img);
+              currentIndex++;
+              processNext();
+          }, 30);
+      };
+      img.onerror = () => {
+          checkBatchCompletion();
+          currentIndex++;
+          processNext();
+      };
+      img.src = URL.createObjectURL(files[currentIndex]);
+  }
+  
   setTimeout(() => {
-      for(let i = 0; i < files.length; i++) {
-        const img = new Image();
-        img.onload = () => runMagicLogic(img);
-        img.onerror = () => checkBatchCompletion(); 
-        img.src = URL.createObjectURL(files[i]);
-      }
+      processNext();
   }, 50);
 }
 
@@ -4437,9 +4466,17 @@ window.updateBPPrice = (side, inputEl) => {
 window.ENABLE_TEMP_EDITOR = false; 
 
 
-window.requestRender = function() {
+window.needsTextCacheUpdate = false;
+
+window.requestRender = function(updateTextCache = false) {
+    if (updateTextCache) window.needsTextCacheUpdate = true;
     if (window.renderThrottle) return;
+    
     window.renderThrottle = setTimeout(() => {
+        if (window.needsTextCacheUpdate && typeof window.updateCachedTextCanvas === 'function') {
+            window.updateCachedTextCanvas();
+            window.needsTextCacheUpdate = false;
+        }
         if (typeof startAnimation === 'function') startAnimation();
         window.renderThrottle = null;
     }, 35); 
@@ -4731,6 +4768,17 @@ if (window.layerState.isBrawlPassMode) {
         html += `<div class="ios-layer-group ${animCls}">`;
         
         if (window.layerState.bpStyleIndex === 2) {
+            let detS2EyeClass = window.layerState.detailsS2Visible !== false ? '' : 'hidden';
+            html += `
+                <div class="ios-layer-row">
+                    <div class="ios-icon-btn ios-eye-icon ${detS2EyeClass}" onclick="toggleCosmeticLayer('detailsS2')">
+                        ${getEyeSVG(window.layerState.detailsS2Visible !== false)}
+                    </div>
+                    <div class="ios-layer-name">Детали взади</div>
+                    <div style="flex-grow:1;"></div>
+                </div>
+            `;
+
             const labels = ["30 gems", "80 gems", "170 gems", "360 gems", "950 gems", "2000 gems", "Pro pass", "BP +", "Улучшение", "BP", "Особая скидка"];
             for(let i=0; i<=10; i++) {
                 let val = (window.layerState.style2Prices && window.layerState.style2Prices[i]) ? window.layerState.style2Prices[i] : "";
@@ -5395,14 +5443,12 @@ window.changeGlobalPriceScale = (val) => {
 
 window.changeMainTextOffsetY = (val) => {
     window.layerState.mainTextOffsetY = parseFloat(val);
-    window.updateCachedTextCanvas(); 
-    window.requestRender();          
+    window.requestRender(true); 
 };
 
 window.changeMainTextScale = (val) => {
     window.layerState.mainTextScale = parseFloat(val);
-    window.updateCachedTextCanvas();
-    window.requestRender();
+    window.requestRender(true); 
 };
 
 window.changeStrokeColor = (color) => {
@@ -6807,6 +6853,12 @@ function drawScene() {
                 drawMaskedBg(C.backgrounds[1], false); 
             }
 
+            if (window.layerState.detailsS2Visible !== false && globalAssets.style2Details) {
+                ctx.save();
+                ctx.drawImage(globalAssets.style2Details, 0, 0, W, H);
+                ctx.restore();
+            }
+
             ctx.save();
             const colorsMap = {
                 'green': {r: 94, g: 229, b: 104}, 
@@ -7170,7 +7222,20 @@ function drawScene() {
                 offCtx.restore();
             };
 
-            if (rawBgImage) offCtx.drawImage(rawBgImage, 0, 0, W, H);
+            if (!window.layerState.isGeneratedBg) {
+                drawZone('#ffaa00', -20, 0, 507, 736, -76, 0.7); 
+                drawZone('#0015ff', 488, -5, 436, 736, -76, 0.7); 
+                drawZone('#005e0e', 924, -2, 451, 736, -76, 0.7); 
+            }   
+
+            if (rawBgImage) {
+                offCtx.save();
+                if (!window.layerState.isGeneratedBg) {
+                    offCtx.globalCompositeOperation = 'overlay';
+                }
+                offCtx.drawImage(rawBgImage, 0, 0, W, H);
+                offCtx.restore();
+            }
 
             if (window.layerState.watermarksVisible !== false) {
                 let wmText = window.layerState.textValue || "SNAPI";
@@ -7212,12 +7277,6 @@ function drawScene() {
 
             if (window.layerState.detailsVisible !== false) {
                 drawLayer(globalAssets.s3Details, 0, 0, 1280, 720, 1, 1, 'source-over');
-            }
-            
-            if (!window.layerState.isGeneratedBg) {
-                drawZone('#ffaa00', -20, 0, 507, 736, -76, 0.36);
-                drawZone('#0015ff', 488, -5, 436, 736, -76, 0.36);
-                drawZone('#005e0e', 924, -2, 451, 736, -76, 0.36);
             }
 
             drawLayer(globalAssets.s3PanelL, 34, 33, 417, 520, 1, 1, 'source-over');
@@ -7715,16 +7774,17 @@ function drawStars(ctx, starImg, w, h, opacity = 1.0, forExport = false) {
 }
 
 function drawBeautifulNick(ctx, text, w, h) {
-    let fontSize = Math.floor(h * 0.12); if (fontSize < 30) fontSize = 30;
-    
-    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
-    fontSize = Math.floor(fontSize * tScale);
-    if (fontSize < Math.floor(30 * tScale)) fontSize = Math.floor(30 * tScale);
+    let baseFontSize = Math.floor(h * 0.12); 
+    if (baseFontSize < 30) baseFontSize = 30;
+    
+    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+    let fontSize = Math.floor(baseFontSize * tScale);
+    if (fontSize < Math.floor(30 * tScale)) fontSize = Math.floor(30 * tScale);
 
-    let x = Math.round(w / 2); 
-    let y = window.layerState.textPosition === 'bottom' 
-        ? Math.round(h * 0.92 - (fontSize / 2))
-        : Math.round(h * 0.06 + (fontSize / 2)); 
+    let x = Math.round(w / 2); 
+    let y = window.layerState.textPosition === 'bottom' 
+        ? Math.round(h * 0.92 - (baseFontSize / 2))
+        : Math.round(h * 0.06 + (baseFontSize / 2));
 
     let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
     let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
@@ -8356,46 +8416,57 @@ wizardNextBtn2.onclick = async () => {
 
   wizardUploadScreensBtn.onclick = () => fileInput.click();
 
-  wizardNextBtn3.onclick = async () => {
-    window.triggerHaptic();
-    window.layerState.isBrawlPassMode = false;
-    let nick = wizardNickInput.value.trim().substring(0, 16) || "Snapi";
-    window.layerState.textValue = nick;
-    window.layerState.bgColorType = selectedColor; 
-    globalAssets.luchImg = await loadImage('Luch.png');
-    globalAssets.starImg = await loadImage('Star.png');
-    globalAssets.pointsImg = await loadImage('points.png');
-    
-    if (uploadMode === 'ready_bg') {
-        window.layerState.isReadyBg = true;
-        window.layerState.isGeneratedBg = false;
-        rawBgImage = uploadedReadyBaseImg;
-        window.layerState.textVisible = false;
-        window.layerState.luchVisible = false;
-        window.layerState.starsVisible = false;
-        window.layerState.pointsVisible = false;
-        window.layerState.watermarksVisible = false;
-    } else if (selectedColor) {
-        window.layerState.isReadyBg = false;
-        window.layerState.isGeneratedBg = true;
-        rawBgImage = await createGradientBg(selectedColor);
-        window.layerState.textVisible = true;
-        window.layerState.luchVisible = true;
-        window.layerState.starsVisible = true;
-        window.layerState.pointsVisible = true;
-        window.layerState.watermarksVisible = true;
-    } else {
-        window.layerState.isReadyBg = false;
-        window.layerState.isGeneratedBg = false;
-        rawBgImage = uploadedBaseImg;
-        window.layerState.textVisible = true;
-        window.layerState.luchVisible = true;
-        window.layerState.starsVisible = true;
-        window.layerState.pointsVisible = true;
-        window.layerState.watermarksVisible = true;
-    }
+wizardNextBtn3.onclick = async () => {
+      window.triggerHaptic();
+      
+      let originalText = wizardNextBtn3.innerHTML;
+      wizardNextBtn3.style.pointerEvents = 'none';
+      wizardNextBtn3.innerHTML = `<svg class="loading-spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="10"></circle></svg>`;
+      
+      setTimeout(async () => {
+          window.layerState.isBrawlPassMode = false;
+          let nick = wizardNickInput.value.trim().substring(0, 16) || "Snapi";
+          window.layerState.textValue = nick;
+          window.layerState.bgColorType = selectedColor; 
+          
+          globalAssets.luchImg = await loadImage('Luch.png');
+          globalAssets.starImg = await loadImage('Star.png');
+          globalAssets.pointsImg = await loadImage('points.png');
+          
+          if (uploadMode === 'ready_bg') {
+              window.layerState.isReadyBg = true;
+              window.layerState.isGeneratedBg = false;
+              rawBgImage = uploadedReadyBaseImg;
+              window.layerState.textVisible = false;
+              window.layerState.luchVisible = false;
+              window.layerState.starsVisible = false;
+              window.layerState.pointsVisible = false;
+              window.layerState.watermarksVisible = false;
+          } else if (selectedColor) {
+              window.layerState.isReadyBg = false;
+              window.layerState.isGeneratedBg = true;
+              rawBgImage = await createGradientBg(selectedColor);
+              window.layerState.textVisible = true;
+              window.layerState.luchVisible = true;
+              window.layerState.starsVisible = true;
+              window.layerState.pointsVisible = true;
+              window.layerState.watermarksVisible = true;
+          } else {
+              window.layerState.isReadyBg = false;
+              window.layerState.isGeneratedBg = false;
+              rawBgImage = uploadedBaseImg;
+              window.layerState.textVisible = true;
+              window.layerState.luchVisible = true;
+              window.layerState.starsVisible = true;
+              window.layerState.pointsVisible = true;
+              window.layerState.watermarksVisible = true;
+          }
 
-    processImages(stagedFiles);
+          processImages(stagedFiles);
+          
+          wizardNextBtn3.style.pointerEvents = 'auto';
+          wizardNextBtn3.innerHTML = originalText;
+      }, 50);
   };
 
 document.getElementById('wizard-next-btn3-bp-style2').onclick = async () => {
@@ -8520,14 +8591,20 @@ document.getElementById('wizard-next-btn3-bp-dop').onclick = async () => {
 
 document.getElementById('wizard-next-btn4-bp').onclick = async () => {
     window.triggerHaptic();
-    if (window.layerState.bpSeason !== selectedBPSeason) {
-        window.clearBrawlerCache();
-    }
-    window.layerState.bpSeason = selectedBPSeason;
     
-    window.layerState.bgColorType = selectedColor; 
+    let btn = document.getElementById('wizard-next-btn4-bp');
+    let originalText = btn.innerHTML;
+    btn.style.pointerEvents = 'none';
+    btn.innerHTML = `<svg class="loading-spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="10"></circle></svg>`;
     
-    document.getElementById('wizard-overlay').style.display = 'none';
+    setTimeout(async () => {
+        if (window.layerState.bpSeason !== selectedBPSeason) {
+            window.clearBrawlerCache();
+        }
+        window.layerState.bpSeason = selectedBPSeason;
+        window.layerState.bgColorType = selectedColor; 
+        
+        document.getElementById('wizard-overlay').style.display = 'none';
 
         if (window.layerState.bpStyleIndex === 2) {
             if (selectedColor) {
@@ -8546,7 +8623,8 @@ document.getElementById('wizard-next-btn4-bp').onclick = async () => {
                 window.layerState.textVisible = true;
             }
             if (typeof window.openBPTestEditor === 'function') window.openBPTestEditor();
-            } else if (window.layerState.bpStyleIndex === 3) {
+            
+        } else if (window.layerState.bpStyleIndex === 3) {
             if (selectedColor) {
                 window.layerState.isReadyBg = false;
                 window.layerState.isGeneratedBg = true;
@@ -8564,27 +8642,32 @@ document.getElementById('wizard-next-btn4-bp').onclick = async () => {
             }
             if (typeof window.openBPStyle3Editor === 'function') window.openBPStyle3Editor();
 
-    } else if (window.layerState.bpStyleIndex === 'dop') {
-        if (selectedColor) {
-            window.layerState.isReadyBg = false;
-            window.layerState.isGeneratedBg = true;
-            rawBgImage = await createGradientBg(selectedColor);
-        } else if (uploadMode === 'ready_bg') {
-            window.layerState.isReadyBg = true;
-            window.layerState.isGeneratedBg = false;
-            rawBgImage = uploadedReadyBaseImg;
-            window.layerState.textVisible = true;
-        } else {
-            window.layerState.isReadyBg = false;
-            window.layerState.isGeneratedBg = false;
-            rawBgImage = uploadedBaseImg;
-            window.layerState.textVisible = true;
-        }
-        if (typeof window.openBPDopEditor === 'function') window.openBPDopEditor();
+        } else if (window.layerState.bpStyleIndex === 'dop') {
+            if (selectedColor) {
+                window.layerState.isReadyBg = false;
+                window.layerState.isGeneratedBg = true;
+                rawBgImage = await createGradientBg(selectedColor);
+            } else if (uploadMode === 'ready_bg') {
+                window.layerState.isReadyBg = true;
+                window.layerState.isGeneratedBg = false;
+                rawBgImage = uploadedReadyBaseImg;
+                window.layerState.textVisible = true;
+            } else {
+                window.layerState.isReadyBg = false;
+                window.layerState.isGeneratedBg = false;
+                rawBgImage = uploadedBaseImg;
+                window.layerState.textVisible = true;
+            }
+            if (typeof window.openBPDopEditor === 'function') window.openBPDopEditor();
 
         } else {
-        generateBrawlPassTest();
-    }
+            generateBrawlPassTest();
+        }
+        
+        btn.style.pointerEvents = 'auto';
+        btn.innerHTML = originalText;
+        
+    }, 50);
 };
 
 document.getElementById('dl-btn-save-project').onclick = (e) => {
@@ -9017,7 +9100,6 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
         bpFontSize = bpFontSize * 0.88; 
     }
     
-    // Получаем базовый "правильный" размер шрифта без искажений
     mCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`; 
 
     const bpShadowDepth = Math.max(1, Math.floor(bpFontSize * 0.10));
@@ -9052,15 +9134,23 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
         }
     }
 
-    let y1, y2;
-    if (line2) {
-        y2 = FIXED_BOTTOM_Y - (maxLineH / 2); 
-        y1 = y2 - maxLineH - lineGap;         
-    } else {
-        y1 = FIXED_BOTTOM_Y - (maxLineH / 2); 
-    }
+    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+    let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
+    let offsetPx = tOffsetY * scaleMult;
 
-    const lines = line2 ? [{ text: line1, y: y1 }, { text: line2, y: y2 }] : [{ text: line1, y: y1 }];
+let y1, y2;
+    if (line2) {
+        y2 = FIXED_BOTTOM_Y - (maxLineH / 2);
+        y1 = y2 - maxLineH - lineGap;
+    } else {
+        y1 = FIXED_BOTTOM_Y - (maxLineH / 2);
+    }
+
+    let blockCenterY = line2 ? (y1 + y2) / 2 : y1;
+
+    const lines = line2 
+        ? [{ text: line1, yOffset: y1 - blockCenterY }, { text: line2, yOffset: y2 - blockCenterY }] 
+        : [{ text: line1, yOffset: 0 }];
 
     const strokeC = document.createElement('canvas');
     strokeC.width = WIDTH; strokeC.height = HEIGHT;
@@ -9068,25 +9158,21 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
     sCtx.textAlign = "center"; sCtx.textBaseline = "middle"; sCtx.lineJoin = "round"; sCtx.lineCap = "round";
     sCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
 
-    // ДОБАВЛЯЕМ МАСШТАБ И СДВИГ ЗДЕСЬ (чтобы масштабировался готовый текст вместе с тенью)
-    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
-    let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
-    let offsetPx = tOffsetY * scaleMult;
-
     const drawStrokeLayer = (width, color) => {
         sCtx.lineWidth = width;
         sCtx.strokeStyle = color;
-        for (let i = bpShadowDepth; i >= 0; i--) {
-            lines.forEach(({ text, y }) => {
-                sCtx.save();
-                sCtx.translate(bpTextX, y + offsetPx); // Применяем сдвиг по высоте
-                sCtx.scale(tScale, tScale);            // Применяем масштаб к холсту
-                sCtx.transform(1, 0, -0.07, 1, 0, 0);
-                sCtx.rotate(-0.02);
-                sCtx.strokeText(text, 0, i);
-                sCtx.restore();
-            });
-        }
+            for (let i = bpShadowDepth; i >= 0; i--) {
+            lines.forEach(({ text, yOffset }) => {
+                sCtx.save();
+                sCtx.translate(bpTextX, blockCenterY + offsetPx);
+                sCtx.scale(tScale, tScale); 
+                sCtx.translate(0, yOffset);
+                sCtx.transform(1, 0, -0.07, 1, 0, 0);
+                sCtx.rotate(-0.02);
+                sCtx.strokeText(text, 0, i);
+                sCtx.restore();
+            });
+        }
     };
 
     if (bpStyle.isClassic) {
@@ -9112,14 +9198,15 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
     fCtx.textAlign = "center"; fCtx.textBaseline = "middle"; fCtx.lineJoin = "round"; fCtx.lineCap = "round";
     fCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
 
-    lines.forEach(({ text, y }) => {
-        fCtx.save();
-        fCtx.translate(bpTextX, y + offsetPx); // Применяем сдвиг по высоте
-        fCtx.scale(tScale, tScale);            // Применяем масштаб к холсту
-        fCtx.transform(1, 0, -0.07, 1, 0, 0);
-        fCtx.rotate(-0.02);
-        
-        let bpGrad = fCtx.createLinearGradient(0, -bpFontSize * 0.4, 0, bpFontSize * 0.4);
+    lines.forEach(({ text, yOffset }) => {
+        fCtx.save();
+        fCtx.translate(bpTextX, blockCenterY + offsetPx);
+        fCtx.scale(tScale, tScale);           
+        fCtx.translate(0, yOffset);
+        fCtx.transform(1, 0, -0.07, 1, 0, 0);
+        fCtx.rotate(-0.02);
+        
+        let bpGrad = fCtx.createLinearGradient(0, -bpFontSize * 0.4, 0, bpFontSize * 0.4);
         bpGrad.addColorStop(0, bpStyle.grad[0]);
         bpGrad.addColorStop(bpStyle.isClassic ? 0.48 : 0.52, bpStyle.grad[1] || bpStyle.grad[0]);
         bpGrad.addColorStop(1, bpStyle.grad[2] || bpStyle.grad[0]);
@@ -9173,6 +9260,7 @@ window.openBPTestEditor = function() {
         if (!globalAssets.style2BP) globalAssets.style2BP = await load('BP/bp_icon_brawl_pass.png');
         if (!globalAssets.style2YellowPlate) globalAssets.style2YellowPlate = await load('BP/bp_price_brawl_pass.png');
         if (!globalAssets.style2BluePlate) globalAssets.style2BluePlate = await load('BP/bp_price_bg_right.png');
+        if (!globalAssets.style2Details) globalAssets.style2Details = await load('BP/bp_style2_det.png'); 
         if (!globalAssets[`brawler_${season}_1`]) globalAssets[`brawler_${season}_1`] = await load(`BP/brawler_s${season}_1.png`);
         if (!globalAssets[`brawler_${season}_2`]) globalAssets[`brawler_${season}_2`] = await load(`BP/brawler_s${season}_2.png`);
 
@@ -9436,6 +9524,12 @@ const TARGET_DATE_STRING = "2026-05-07T11:00:00+03:00";
 
 
 window.initPromoTimer = function() {
+    if (!SHOW_PROMO_BANNER) {
+        let bannerEl = document.getElementById('main-promo');
+        if (bannerEl) bannerEl.style.display = 'none';
+        return;
+    }
+
     const timerEl = document.getElementById('promo-timer');
     if (!timerEl) return;
 
