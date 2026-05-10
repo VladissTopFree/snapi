@@ -7,7 +7,7 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.0(126)";
+  const APP_VERSION = "v2.4.0(128)";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
@@ -5103,6 +5103,59 @@ if (window.layerState.isBrawlPassMode) {
     }
 
     if (!window.layerState.isBrawlPassMode && window.layerState.offers && window.layerState.offers.length > 0) {
+        
+        html += `<div class="ios-layer-group ${animCls}">`;
+
+        if (!window.layerState.customTexts) window.layerState.customTexts = [];
+
+        html += `<div class="ios-layer-row" style="${window.layerState.customTexts.length === 0 ? 'border-bottom:none;' : ''}">
+                    <button class="ios-pill-btn" style="background:#00ff591f; flex-grow:1; color: #16a34a;" onclick="addCustomText()">+ Добавить текст (${window.layerState.customTexts.length}/3)</button>
+                 </div>`;
+
+        window.layerState.customTexts.forEach((ct, idx) => {
+            let isLast = idx === window.layerState.customTexts.length - 1;
+            html += `
+            <div style="padding: 10px 0; ${!isLast ? 'border-bottom: 0.5px solid var(--tg-theme-section-separator-color, #E5E5EA);' : 'border-bottom:none;'}">
+                <div class="ios-layer-row" style="border-bottom:none; min-height: 40px; padding: 4px 0;">
+                    <input type="text" class="ios-price-input" style="flex-grow: 1; width: auto; text-align: left;" value="${ct.text}" placeholder="Текст..." oninput="updateCustomText(${idx}, 'text', this.value)">
+                    <button class="ios-pill-btn" style="background: color-mix(in srgb, var(--tg-theme-destructive-text-color) 10%, transparent); color: var(--tg-theme-destructive-text-color); margin-left: 8px;" onclick="removeCustomText(${idx})">Удалить</button>
+                </div>
+                <div class="ios-layer-row" style="border-bottom:none; min-height: 30px; padding: 4px 0;">
+                    <div class="ios-layer-name" style="font-size:14px; width: 80px;">X: <span id="v-ctx-x-${idx}" style="color:#8E8E93;">${ct.x}%</span></div>
+                    <input type="range" class="ios-slider" min="0" max="100" step="1" value="${ct.x}" oninput="document.getElementById('v-ctx-x-${idx}').innerText=this.value+'%'; updateCustomText(${idx}, 'x', this.value)" style="flex-grow:1;">
+                </div>
+                <div class="ios-layer-row" style="border-bottom:none; min-height: 30px; padding: 4px 0;">
+                    <div class="ios-layer-name" style="font-size:14px; width: 80px;">Y: <span id="v-ctx-y-${idx}" style="color:#8E8E93;">${ct.y}%</span></div>
+                    <input type="range" class="ios-slider" min="0" max="100" step="1" value="${ct.y}" oninput="document.getElementById('v-ctx-y-${idx}').innerText=this.value+'%'; updateCustomText(${idx}, 'y', this.value)" style="flex-grow:1;">
+                </div>
+                    <div class="ios-layer-row" style="border-bottom:none; min-height: 30px; padding: 4px 0;">
+                    <div class="ios-layer-name" style="font-size:14px; width: 80px;">Размер: <span id="v-ctx-s-${idx}" style="color:#8E8E93;">${ct.scale}</span></div>
+                    <input type="range" class="ios-slider" min="0.1" max="3" step="0.05" value="${ct.scale}" oninput="document.getElementById('v-ctx-s-${idx}').innerText=this.value; updateCustomText(${idx}, 'scale', this.value)" style="flex-grow:1;">
+                </div>`;
+                
+            let curFont = ct.font || window.layerState.textFont || 'Font16103';
+            let curStyle = ct.styleIndex !== undefined ? ct.styleIndex : (window.layerState.textStyleIndex || 0);
+            
+            html += `<div class="ios-font-label" style="margin-top: 8px;">Шрифт (текст #${idx+1})</div>`;
+            html += `<div class="ios-font-grid">`;
+            FONT_OPTIONS.forEach((f) => {
+                let activeCls = curFont === f.family ? 'active' : '';
+                html += `<div class="ios-font-item custom-font-item-${idx} ${activeCls}" style="font-family: '${f.family}', sans-serif;" onclick="updateCustomText(${idx}, 'font', '${f.family}')">${ct.text || 'TEXT'}</div>`;
+            });
+            html += `</div>`;
+
+            html += `<div class="ios-font-label">Стиль (текст #${idx+1})</div>`;
+            html += `<div class="ios-style-grid" style="padding-bottom: 0; border-bottom: none;">`;
+            TEXT_STYLES.forEach((st, sIdx) => {
+                let activeCls = curStyle === sIdx ? 'active' : '';
+                let previewDataUrl = createStylePreviewURL(st, curFont);
+                html += `<div class="ios-style-item ${activeCls}" style="background-image: url(${previewDataUrl});" onclick="updateCustomText(${idx}, 'styleIndex', ${sIdx})"></div>`;
+            });
+            html += `</div></div>`;
+        });
+        html += `</div>`;
+
+
         html += `<div class="ios-layer-group ${animCls}">`;
         
         html += `<div style="font-size: 13px; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-top: 16px; margin-bottom: 4px; padding: 0;">Редактирование акций</div>`;
@@ -6590,6 +6643,115 @@ function setupPersistentCanvas() {
     window.updateCachedTextCanvas();
 }
 
+window.addCustomText = () => {
+    if (!window.layerState.customTexts) window.layerState.customTexts = [];
+    if (window.layerState.customTexts.length >= 3) {
+        alert('Максимум 3 дополнительных текста!');
+        return;
+    }
+    window.layerState.customTexts.push({ 
+        text: 'АКЦИЯ', 
+        x: 50, 
+        y: 50, 
+        scale: 1,
+        font: window.layerState.textFont || 'Font16103',
+        styleIndex: window.layerState.textStyleIndex !== undefined ? window.layerState.textStyleIndex : 0
+    });
+    renderLayerPanel();
+    window.requestRender(true);
+};
+
+window.removeCustomText = (idx) => {
+    window.layerState.customTexts.splice(idx, 1);
+    renderLayerPanel();
+    window.requestRender(true);
+};
+
+window.updateCustomText = (idx, prop, val) => {
+    if (prop === 'scale' || prop === 'x' || prop === 'y') val = parseFloat(val);
+    window.layerState.customTexts[idx][prop] = val;
+    
+    if (prop === 'text') {
+        let previewText = val.trim() !== '' ? val : 'TEXT';
+        document.querySelectorAll('.custom-font-item-' + idx).forEach(el => el.innerText = previewText);
+    } else if (prop === 'font' || prop === 'styleIndex') {
+        renderLayerPanel(); 
+    }
+    window.requestRender(true);
+};
+
+function drawCustomBeautifulNick(ctx, text, w, h, customX, customY, customScale, customFont, customStyleIndex) {
+    let baseFontSize = Math.floor(h * 0.12); 
+    if (baseFontSize < 30) baseFontSize = 30;
+    
+    let fontSize = Math.floor(baseFontSize * customScale);
+    if (fontSize < Math.floor(30 * customScale)) fontSize = Math.floor(30 * customScale);
+
+    let x = Math.round((customX / 100) * w); 
+    let y = Math.round((customY / 100) * h);
+    
+    let shadowDepth = Math.max(1, Math.floor(fontSize * 0.10));
+    let style = TEXT_STYLES[customStyleIndex];
+
+    let textCanvas = document.createElement('canvas'); textCanvas.width = w; textCanvas.height = h; let txCtx = textCanvas.getContext('2d');
+    txCtx.textAlign = "center"; txCtx.textBaseline = "middle"; txCtx.font = `${fontSize}px '${customFont}', sans-serif`;
+    txCtx.lineJoin = "round"; txCtx.lineCap = "round";
+
+    txCtx.save(); txCtx.translate(x, y); txCtx.transform(1, 0, -0.10, 1, 0, 0); 
+    
+    if (style.isClassic) {
+        txCtx.lineWidth = fontSize * 0.18; txCtx.strokeStyle = "#ffffff"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = "#42003d"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = "#61005a"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+    } else {
+        if (style.outer2) {
+            txCtx.lineWidth = fontSize * 0.18; txCtx.strokeStyle = style.outer2; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        } else if (style.outer) {
+            txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        } else {
+            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
+            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+        }
+    }
+    txCtx.restore();
+
+    let tempCanvas = document.createElement('canvas'); tempCanvas.width = w; tempCanvas.height = h; let tCtx = tempCanvas.getContext('2d');
+    tCtx.textAlign = "center"; tCtx.textBaseline = "middle"; tCtx.font = `${fontSize}px '${customFont}', sans-serif`;
+    tCtx.save(); tCtx.translate(x, y); tCtx.transform(1, 0, -0.10, 1, 0, 0); 
+
+    let grad = tCtx.createLinearGradient(0, -fontSize * 0.4, 0, fontSize * 0.4);
+    grad.addColorStop(0, style.grad[0]); 
+    grad.addColorStop(style.isClassic ? 0.48 : 0.52, style.grad[1]); 
+    grad.addColorStop(1, style.grad[2]);
+    tCtx.fillStyle = grad; tCtx.fillText(text, 0, 0);
+    
+    tCtx.globalCompositeOperation = "source-atop"; 
+    tCtx.lineWidth = fontSize * 0.06; 
+    tCtx.strokeStyle = style.isClassic ? "#fcff00" : style.inner; 
+    tCtx.lineJoin = "round"; 
+    tCtx.strokeText(text, 0, 0);
+    tCtx.restore();
+
+    txCtx.drawImage(tempCanvas, 0, 0);
+
+    ctx.save();
+    let scaleMult = h / 1080;
+    ctx.shadowColor = "rgba(0, 0, 0, 0.3)"; 
+    ctx.shadowBlur = Math.max(5, Math.round(21 * scaleMult * customScale)); 
+    ctx.shadowOffsetX = 0; 
+    ctx.shadowOffsetY = Math.max(4, Math.round(16 * scaleMult * customScale));                
+    ctx.drawImage(textCanvas, 0, 0);
+    ctx.restore();
+}
+
 window.updateCachedTextCanvas = () => {
     if (!persistentCanvas) return;
     cachedTextCanvas = document.createElement('canvas');
@@ -6601,6 +6763,16 @@ window.updateCachedTextCanvas = () => {
         drawBPNickText(ctx, window.layerState.textValue || "SNAPI", persistentCanvas.width, persistentCanvas.height);
     } else {
         drawBeautifulNick(ctx, window.layerState.textValue, persistentCanvas.width, persistentCanvas.height);
+        
+        if (!window.layerState.isBrawlPassMode && window.layerState.customTexts && window.layerState.customTexts.length > 0) {
+            window.layerState.customTexts.forEach(ct => {
+                if (ct.text.trim() !== '') {
+                    let f = ct.font || window.layerState.textFont || 'Font16103';
+                    let s = ct.styleIndex !== undefined ? ct.styleIndex : (window.layerState.textStyleIndex || 0);
+                    drawCustomBeautifulNick(ctx, ct.text, persistentCanvas.width, persistentCanvas.height, ct.x, ct.y, ct.scale, f, s);
+                }
+            });
+        }
     }
 };
 
@@ -7624,22 +7796,8 @@ function drawScene() {
         drawStars(persistentCtx, globalAssets.starImg, w, h, window.layerState.starsOpacity);
     }
     
-    if (window.layerState.watermarksVisible && window.layerState.textValue) {
+if (window.layerState.watermarksVisible && window.layerState.textValue) {
         drawWatermarks(persistentCtx, window.layerState.textValue, w, h, window.layerState.watermarksOpacity);
-    }
-    
-    if (cachedTextCanvas && animText.alpha > 0.01) {
-        persistentCtx.save();
-        persistentCtx.globalAlpha = animText.alpha;
-        let tw2 = Math.round(w/2);
-        let th2 = Math.round(h/2);
-        persistentCtx.translate(tw2, th2);
-        persistentCtx.scale(animText.scale, animText.scale);
-        persistentCtx.translate(-tw2, -th2);
-        persistentCtx.imageSmoothingEnabled = true;
-        persistentCtx.imageSmoothingQuality = 'high';
-        persistentCtx.drawImage(cachedTextCanvas, 0, 0);
-        persistentCtx.restore();
     }
     
 let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
@@ -7683,6 +7841,20 @@ let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
         
         persistentCtx.restore();
     });
+
+    if (cachedTextCanvas && animText.alpha > 0.01) {
+        persistentCtx.save();
+        persistentCtx.globalAlpha = animText.alpha;
+        let tw2 = Math.round(w/2);
+        let th2 = Math.round(h/2);
+        persistentCtx.translate(tw2, th2);
+        persistentCtx.scale(animText.scale, animText.scale);
+        persistentCtx.translate(-tw2, -th2);
+        persistentCtx.imageSmoothingEnabled = true;
+        persistentCtx.imageSmoothingQuality = 'high';
+        persistentCtx.drawImage(cachedTextCanvas, 0, 0);
+        persistentCtx.restore();
+    }
 }
 
 function drawFallbackRays(ctx, w, h, opacity = 1.0) {
@@ -7995,7 +8167,8 @@ function drawBeautifulNick(ctx, text, w, h) {
       let bpNextBtn3Style2 = document.getElementById('wizard-next-btn3-bp-style2');
       if (bpNextBtn3Style2) bpNextBtn3Style2.classList.remove('show');
 
-      window.layerState.offers = [];
+        window.layerState.offers = [];
+      window.layerState.customTexts = []; 
       window.layerState.isBrawlPassMode = false;
       window.layerState.bpStyleIndex = null;
       
