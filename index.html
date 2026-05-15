@@ -7,11 +7,12 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.0(128)";
+  const APP_VERSION = "v2.4.1";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
   const SHOW_PROMO_BANNER = false; 
+  const REQUIRE_TELEGRAM_APP = true; 
 
   window.isNewUser = localStorage.getItem('Snapi_visited') === null;
 
@@ -149,6 +150,13 @@
   @font-face { font-family: 'BebasNeue'; src: url('bebasneuecyrillic.ttf') format('truetype'); }
   @font-face { font-family: 'AmericanCaptain'; src: url('americancaptaincyrillic.ttf') format('truetype'); }
   @font-face { font-family: 'ArialRoundedOld'; src: local('Arial Rounded MT Bold'), local('ArialRoundedMTBold'), url('Arial%20Rounded%20Old.ttf') format('truetype'); font-display: swap; }
+
+  @font-face { font-family: 'Molot'; src: url('Molot.otf') format('opentype'); }
+  @font-face { font-family: 'Nougat'; src: url('ofont.ru_Nougat.ttf') format('truetype'); }
+  @font-face { font-family: 'TTSupermolot'; src: url('TTSupermolotNeue-ExpXBoldIt.ttf') format('truetype'); }
+  @font-face { font-family: 'ArialBlackCustom'; src: local('Arial Black'), url('Arial Black.ttf') format('truetype'); }
+  @font-face { font-family: 'ImpactCustom'; src: local('Impact'), url('Impact.ttf') format('truetype'); }
+  @font-face { font-family: 'Font11246'; src: url('11246.ttf') format('truetype'); }
 
   :root {
     --app-top-padding: 140px;
@@ -377,17 +385,6 @@
 
   .fade-in-anim {
     animation: fadeInContent 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  }
-
-  .ios-section-title {
-    color: var(--tg-theme-subtitle-text-color, #8E8E93);
-    font-size: 13px;
-    text-transform: uppercase;
-    margin-top: 20px;
-    margin-bottom: 12px; 
-    margin-left: 14px;
-    letter-spacing: 0.5px;
-    width: 100%;
   }
 
   .ios-layer-group {
@@ -649,8 +646,17 @@
   }
 
   .ios-profile-info { display: flex; flex-direction: column; gap: 4px; }
-  .ios-id { color: var(--tg-theme-subtitle-text-color, #8E8E93); font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
-  .ios-sub { color: var(--tg-theme-text-color, #000000); font-size: 14px; font-weight: 400; }
+  .ios-id { 
+    background: #01a2ff1f;
+    color: #01a2ff;
+    font-size: 11px; 
+    font-weight: 500; 
+    letter-spacing: 0.5px; 
+    padding: 4px 10px; 
+    border-radius: 100px; 
+    display: inline-block; 
+  }
+  .ios-sub { color: var(--tg-theme-text-color, #000000); font-size: 14px; font-weight: 300; }
 
   .ios-menu-item { display: flex; align-items: center; padding: 10px 20px; margin: 0 -20px; cursor: pointer; transition: background-color 0.2s; min-height: 54px; border-radius: 0; }
   .ios-menu-item:active { background-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent); }
@@ -678,6 +684,7 @@
     margin-left: 14px;
     letter-spacing: 0.5px;
     width: 100%;
+    font-weight: 200; 
   }
 
   @keyframes shimmerBg {
@@ -1401,21 +1408,6 @@
     border-radius: 16px !important; 
   }
 
-  .android-browser-warning {
-    display: none;
-    font-size: 8px;
-    color: var(--tg-theme-subtitle-text-color, #8E8E93);
-    text-align: center;
-    line-height: 1.3;
-    margin-bottom: 12px;
-    padding: 0 10px;
-    max-width: 320px;
-  }
-
-  body.os-non-apple .android-browser-warning {
-    display: block;
-  }
-
   body.os-non-apple .fade-in-anim {
       animation: none !important;
       opacity: 1 !important;
@@ -2011,7 +2003,7 @@
     height: 116px;    
     min-height: 116px; 
     flex-shrink: 0;    
-    background: linear-gradient(to right, #70b0ff 0%, #3991ff 100%);    
+    background: linear-gradient(to right, #d39eff 0%, #c885ff 100%);    
     border-radius: 24px;
     margin: 0 auto 24px auto; 
     
@@ -2029,9 +2021,9 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     
-    --b2-x: -68px; --b2-y: -26px; --b2-s: 1.15; 
+    --b2-x: -146px; --b2-y: -46px; --b2-s: 1.36; 
     --b1-x: -7px; --b1-y: -4px;  --b1-s: 0.86;  
-    --star-x: -14px; --star-y: -1px; --star-s: 0.73; 
+    --star-x: 41px; --star-y: -1px; --star-s: 0.86; 
     --txt-x: 0px; --txt-y: 0px; 
   }
   
@@ -2057,9 +2049,9 @@ body.os-non-apple .promo-banner {
   
   .promo-brawler-left {
     position: absolute;
-    bottom: calc(-5px + var(--b2-y));
-    right: calc(110px + var(--b2-x)); 
-    height: 140px; 
+    bottom: calc(12px + var(--b2-y));
+    right: calc(136px + var(--b2-x)); 
+    height: 121px; 
     z-index: 2;
     pointer-events: none;
     transform: scale(var(--b2-s));
@@ -2067,10 +2059,11 @@ body.os-non-apple .promo-banner {
   }
   
   .promo-brawler-right {
+    display: none;
     position: absolute;
-    bottom: calc(-5px + var(--b1-y));
-    right: calc(-10px + var(--b1-x));
-    height: 130px; 
+    bottom: calc(-12px + var(--b1-y));
+    right: calc(-36px + var(--b1-x));
+    height: 131px; 
     z-index: 1;
     pointer-events: none;
     transform: scale(var(--b1-s));
@@ -2303,7 +2296,7 @@ body.os-non-apple .promo-banner {
   bottom: 25px;   
   left: 30px; 
   width: 256px; 
-  background: #70b0ffc9; 
+  background: #d39eff; 
   filter: blur(26px); 
   opacity: 0.76;
   border-radius: 50%; 
@@ -2403,15 +2396,111 @@ body:not(.os-non-apple) .saved-works-icon {
       stroke-linecap: round;
   }
 
+  .avatar-spark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    pointer-events: none;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: flyAvatarSpark var(--duration) linear infinite;
+  }
+
+  @keyframes flyAvatarSpark {
+    0% {
+      transform: translate(calc(-50% + var(--sx)), calc(-50% + var(--sy))) scale(0) rotate(0deg);
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+      transform: translate(calc(-50% + var(--sx) + (var(--ex) - var(--sx)) * 0.15), calc(-50% + var(--sy) + (var(--ey) - var(--sy)) * 0.15)) scale(1) rotate(calc(var(--rot) * 0.15));
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(calc(-50% + var(--ex)), calc(-50% + var(--ey))) scale(0) rotate(var(--rot));
+      opacity: 0;
+    }
+  }
+
+  .avatar-line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: var(--thickness);
+    width: var(--length);
+    background: linear-gradient(90deg, transparent 0%, var(--color) 100%);
+    border-radius: 100px;
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: left center;
+    margin-top: calc(var(--thickness) / -2); 
+    animation: flyAvatarLine var(--duration) cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  }
+
+  @keyframes flyAvatarLine {
+    0% {
+      transform: rotate(var(--rot)) translateX(var(--startRadius)) scaleX(0);
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+      transform: rotate(var(--rot)) translateX(calc(var(--startRadius) + 15px)) scaleX(1);
+    }
+    100% {
+      transform: rotate(var(--rot)) translateX(var(--endRadius)) scaleX(0.3);
+      opacity: 0;
+    }
+  }
+
+  @keyframes flyOutBlurRight {
+    0% { transform: translateX(0); filter: blur(0px); opacity: 1; }
+    100% { transform: translateX(25px); filter: blur(6px); opacity: 0; }
+  }
+  
+  @keyframes flyInBlurLeft {
+    0% { transform: translateX(-25px); filter: blur(6px); opacity: 0; }
+    100% { transform: translateX(0); filter: blur(0px); opacity: 1; }
+  }
+
+  .text-fly-out {
+    animation: flyOutBlurRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .text-fly-in {
+    animation: flyInBlurLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
 </style>
 </head>
 <body oncontextmenu="return false;">
 
 <div id="ios-dashboard">
   <div class="ios-container">
-    <div class="ios-card ios-profile">
-      <div class="ios-avatar loading" id="user-tg-avatar"></div>
-      <div class="ios-profile-info">
+
+    <div style="display: flex; align-items: center; justify-content: flex-start; margin-left: 8px; margin-bottom: 6px; overflow: hidden;">
+      
+      <img src="AnimatedSticker-ezgif.com-gif-maker-2.gif" alt="" draggable="false" style="width: 28px; height: 28px; margin-right: 6px; object-fit: contain; margin-bottom: 3px; user-select: none; -webkit-user-drag: none;">
+      
+      <span id="snapi-app-title" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 800; color: var(--tg-theme-link-color, #3390ec); letter-spacing: 0.5px; display: inline-block;">
+        Snapi
+      </span>
+    </div>
+
+    <div class="ios-card ios-profile" style="flex-direction: column; justify-content: center; padding: 20px; overflow: hidden; position: relative;">
+      
+      <div id="avatar-interactive-zone" style="position: relative; margin-bottom: 12px; margin-left: auto; margin-right: auto; width: 74px; height: 74px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s ease; -webkit-tap-highlight-color: transparent;" onclick="boostAvatar()">
+        
+        <div id="avatar-sparks-container" style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; z-index: 0; pointer-events: none;"></div>
+        
+        <video src="ava_Snapi.mp4" autoplay loop muted playsinline style="position: relative; z-index: 1; width: 74px; height: 74px; border-radius: 50%; object-fit: cover; background: var(--tg-theme-secondary-bg-color, #F2F2F7);"></video>
+        
+        <div class="ios-avatar loading" id="user-tg-avatar" style="position: absolute; bottom: -2px; right: -6px; z-index: 2; width: 32px; height: 32px; margin: 0; border: 2.5px solid var(--tg-theme-section-bg-color, #ffffff); box-sizing: content-box;"></div>
+      </div>
+
+      <div class="ios-profile-info" style="align-items: center; text-align: center;">
         <div class="ios-id" id="user-tg-id">ID: загрузка...</div>
         <div class="ios-sub" id="sub-profile-status">Добро пожаловать в Snapi</div>
       </div>
@@ -2419,8 +2508,8 @@ body:not(.os-non-apple) .saved-works-icon {
 
 <div class="promo-banner is-loading" id="main-promo" onclick="window.openBPFromPromo()">
 <div id="promo-bg-stars-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99;"></div>
-      <img src="BP/brawler_s50_2.png" class="promo-brawler-left" alt="">
-      <img src="BP/brawler_s50_1.png" class="promo-brawler-right" alt="">
+      <img src="BP/brawler_s51_2.png" class="promo-brawler-left" alt="">
+      <img src="BP/brawler_s51_1.png" class="promo-brawler-right" alt="">
 
     <div class="promo-text-glow"></div>
 
@@ -2444,7 +2533,7 @@ body:not(.os-non-apple) .saved-works-icon {
           <path d="M 50 12 L 60.33 25.05 L 76.87 23.13 L 74.95 39.67 L 88 50 L 74.95 60.33 L 76.87 76.87 L 60.33 74.95 L 50 88 L 39.67 74.95 L 23.13 76.87 L 25.05 60.33 L 12 50 L 25.05 39.67 L 23.13 23.13 L 39.67 25.05 Z" 
                 fill="url(#star-grad)" stroke="url(#star-grad)" stroke-width="6" stroke-linejoin="round"/>
         </svg>
-        <span>50</span>
+        <span>51</span>
       </div>
       
       <div class="promo-content">
@@ -2531,6 +2620,12 @@ body:not(.os-non-apple) .saved-works-icon {
     <span style="font-family: 'BebasNeue'">preload</span>
     <span style="font-family: 'AmericanCaptain'">preload</span>
     <span style="font-family: 'ArialRoundedOld'">preload</span>
+    <span style="font-family: 'Molot'">preload</span>
+    <span style="font-family: 'Nougat'">preload</span>
+    <span style="font-family: 'TTSupermolot'">preload</span>
+    <span style="font-family: 'ArialBlackCustom'">preload</span>
+    <span style="font-family: 'ImpactCustom'">preload</span>
+    <span style="font-family: 'Font11246'">preload</span>
 </div>
 
 <div id="category-overlay">
@@ -3096,9 +3191,6 @@ body:not(.os-non-apple) .saved-works-icon {
           </div>
        </button>
      </div>
-     <div class="android-browser-warning">
-         Не работает кнопка скачать, в Telegram:<br>Настройки → Настройки чатов → Встроенный браузер (включить). Нужно подождать!
-     </div>
      <button class="ios-action-btn" id="dl-btn-actual-download">
         <div class="btn-crossfade-wrap">
           <span class="btn-text-layer btn-text-default">
@@ -3335,14 +3427,19 @@ if (window.Telegram && window.Telegram.WebApp) {
     
     let tgData = window.Telegram.WebApp.initDataUnsafe || {};
     let tgUser = tgData.user;
+
+    if (REQUIRE_TELEGRAM_APP && !tgUser) {
+        window.location.href = 'https://t.me/SnapiCreate_bot';
+    }
+
     let userIdElement = document.getElementById('user-tg-id');
     let userAvatarElement = document.getElementById('user-tg-avatar');
     
     if (tgUser) {
         if (userIdElement && tgUser.id) {
-            userIdElement.innerText = 'ID: ' + tgUser.id;
+            userIdElement.innerText = 'id: ' + tgUser.id;
         } else if (userIdElement) {
-            userIdElement.innerText = 'ID: не в Telegram';
+            userIdElement.innerText = 'id: не в Telegram';
         }
               
         if (userAvatarElement) {
@@ -3361,7 +3458,7 @@ if (window.Telegram && window.Telegram.WebApp) {
             }
         }
     } else {
-        if (userIdElement) userIdElement.innerText = 'ID: не в Telegram';
+        if (userIdElement) userIdElement.innerText = 'id: не в Telegram';
         if (userAvatarElement) {
             userAvatarElement.classList.remove('loading');
             userAvatarElement.style.background = '#4A90E2';
@@ -3767,6 +3864,14 @@ window.selectBPStyle = function(styleId) {
 document.getElementById('ios-btn-create').addEventListener('click', async function() {
     window.triggerHaptic();
 
+    if (REQUIRE_TELEGRAM_APP) {
+        let tgData = window.Telegram?.WebApp?.initDataUnsafe || {};
+        if (!tgData.user) {
+            window.location.href = 'https://t.me/SnapiCreate_bot';
+            return; 
+        }
+    }
+
     if (window.resetWizardState) window.resetWizardState();
 
     isCurrentProjectSaved = false; 
@@ -4070,7 +4175,13 @@ const FONT_OPTIONS = [
     { family: 'SupercellMagic' },
     { family: 'PusiaBold' },
     { family: 'BebasNeue' },
-    { family: 'AmericanCaptain' }
+    { family: 'AmericanCaptain' },
+    { family: 'Molot' },
+    { family: 'Nougat' },
+    { family: 'TTSupermolot' },
+    { family: 'ArialBlackCustom' },
+    { family: 'ImpactCustom' },
+    { family: 'Font11246' }
 ];
 
 const TEXT_STYLES = [
@@ -4083,7 +4194,12 @@ const TEXT_STYLES = [
     { grad: ['#ffba00', '#fcff00', '#ffba00'], inner: '#fcff00', shadow: '#5b2900', outer: '#3a1a00' },
     { grad: ['#c7c7c7', '#ffffff', '#c7c7c7'], inner: '#ffffff', shadow: '#000000', outer: '#000000' },
     { grad: ['#c7c7c7', '#ffffff', '#c7c7c7'], inner: '#ffffff', shadow: '#393939', outer: null },
-    { grad: ['#ffba00', '#fcff00', '#ffba00'], inner: '#fcff00', shadow: '#61005a', outer: '#42003d' }
+    { grad: ['#ffba00', '#fcff00', '#ffba00'], inner: '#fcff00', shadow: '#61005a', outer: '#42003d' },
+    { grad: ['#f3f3f3', '#f3f3f3', '#f3f3f3'], inner: null, shadow: '#191919', outer: '#313131', solidColor: '#f3f3f3' },
+    { grad: ['#ffc000', '#ffc000', '#ffc000'], inner: null, shadow: '#2b1a00', outer: '#573500', solidColor: '#ffc000' },
+    { grad: ['#49de00', '#49de00', '#49de00'], inner: null, shadow: '#0c2500', outer: '#174700', solidColor: '#49de00' },
+    { grad: ['#c600f0', '#c600f0', '#c600f0'], inner: null, shadow: '#280031', outer: '#550067', solidColor: '#c600f0' },
+    { grad: ['#008df0', '#008df0', '#008df0'], inner: null, shadow: '#002138', outer: '#003e6a', solidColor: '#008df0' }
 ];
 
 function createStylePreviewURL(style, font) {
@@ -4115,10 +4231,10 @@ function createStylePreviewURL(style, font) {
             txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
         } else if (style.outer) {
+            txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.shadow; 
+            txCtx.strokeText(text, 0, shadowDepth);
             txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
-            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
-            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
-            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            txCtx.strokeText(text, 0, 0);
         } else {
             txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
@@ -4136,11 +4252,13 @@ function createStylePreviewURL(style, font) {
     grad.addColorStop(1, style.grad[2]);
     tCtx.fillStyle = grad; tCtx.fillText(text, 0, 0);
     
-    tCtx.globalCompositeOperation = "source-atop"; 
-    tCtx.lineWidth = fontSize * 0.06; 
-    tCtx.strokeStyle = style.isClassic ? "#fcff00" : style.inner; 
-    tCtx.lineJoin = "round"; 
-    tCtx.strokeText(text, 0, 0);
+    if (style.inner) {
+        tCtx.globalCompositeOperation = "source-atop"; 
+        tCtx.lineWidth = fontSize * 0.06; 
+        tCtx.strokeStyle = style.isClassic ? "#fcff00" : style.inner; 
+        tCtx.lineJoin = "round"; 
+        tCtx.strokeText(text, 0, 0);
+    }
     tCtx.restore();
 
     txCtx.drawImage(tempCanvas, 0, 0);
@@ -4268,15 +4386,20 @@ function processImages(filesParam) {
 
   if (files.length > maxLimit) {
       if (window.hasActiveSubscription) {
-          alert("Вы достигли лимита загрузки скриншотов, удалите и добавьте новый.");
+          alert("Вы достигли лимита загрузки скриншотов, удалите и добавьте новые.");
       } else {
-          alert("Вы достигли лимита загрузки скриншотов, удалите и добавьте новый или оформите/продлите подписку.");
+          alert("Вы достигли лимита загрузки скриншотов, удалите и добавьте новые.");
       }
       files = files.slice(0, maxLimit); 
   }
 
+  window.layerState.textFont = window.layerState.textFont || 'Font16103';
+  window.layerState.textStyleIndex = window.layerState.textStyleIndex !== undefined ? window.layerState.textStyleIndex : 0;
+  window.layerState.watermarksFont = window.layerState.watermarksFont || 'Font16103';
+
   document.body.style.background = "#F2F2F7";
   document.body.style.color = "#000";
+  
   
   document.getElementById('wizard-overlay').style.display = 'none';
   resultBox.style.display = 'block';
@@ -4467,19 +4590,31 @@ window.ENABLE_TEMP_EDITOR = false;
 
 
 window.needsTextCacheUpdate = false;
+window.pendingRenderCache = false;
+
+window.renderDebounceTimer = null;
+window.lastRenderTime = 0;
 
 window.requestRender = function(updateTextCache = false) {
     if (updateTextCache) window.needsTextCacheUpdate = true;
-    if (window.renderThrottle) return;
-    
-    window.renderThrottle = setTimeout(() => {
+
+    if (window.renderThrottle || animReq) {
+        return;
+    }
+
+    window.renderThrottle = true;
+
+    requestAnimationFrame(() => {
         if (window.needsTextCacheUpdate && typeof window.updateCachedTextCanvas === 'function') {
             window.updateCachedTextCanvas();
             window.needsTextCacheUpdate = false;
         }
-        if (typeof startAnimation === 'function') startAnimation();
-        window.renderThrottle = null;
-    }, 35); 
+        if (typeof startAnimation === 'function') {
+            startAnimation();
+        } else {
+            window.renderThrottle = false;
+        }
+    });
 };
 
 window.updateBrawlerParams = (param, val) => {
@@ -4738,11 +4873,28 @@ if (window.layerState.isBrawlPassMode) {
                     <input type="range" class="ios-slider" min="-500" max="500" step="1" value="${window.layerState.mainTextOffsetY || 0}" oninput="window.changeMainTextOffsetY(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
                     <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">вниз</div>
                 </div>
-                <div class="ios-layer-row" style="border-bottom:none; padding-bottom: 0;">
+                <div class="ios-layer-row">
                     <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Размер</div>
                     <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">меньше</div>
                     <input type="range" class="ios-slider" min="0.1" max="3" step="0.01" value="${window.layerState.mainTextScale || 1}" oninput="window.changeMainTextScale(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
                     <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">больше</div>
+                </div>
+
+                <div class="ios-layer-row" style="border-bottom:none; padding-bottom: 0;">
+                    <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 85px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Интервал</div>
+                    <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">уже</div>
+                    <input type="range" class="ios-slider" min="-15" max="50" step="1" value="${window.layerState.mainTextLetterSpacing || 0}" oninput="window.changeMainTextLetterSpacing(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
+                    <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 4px;">шире</div>
+                    
+                    <div style="width: 1px; height: 20px; background-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent); margin: 0 8px; flex-shrink: 0;"></div>
+                    
+                    <div class="ios-icon-btn" onclick="window.toggleMainTextItalic()" style="flex-shrink: 0; width: 28px; height: 28px; background: ${window.layerState.mainTextItalic ? 'var(--tg-theme-button-color, #3390ec)' : 'transparent'}; color: ${window.layerState.mainTextItalic ? '#ffffff' : 'var(--tg-theme-text-color, #000000)'}; border-radius: 6px; transition: 0.2s;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="4" x2="10" y2="4"></line>
+                            <line x1="14" y1="20" x2="5" y2="20"></line>
+                            <line x1="15" y1="4" x2="9" y2="20"></line>
+                        </svg>
+                    </div>
                 </div>
             `;
 
@@ -5078,11 +5230,28 @@ if (window.layerState.isBrawlPassMode) {
                 <input type="range" class="ios-slider" min="-500" max="500" step="1" value="${window.layerState.mainTextOffsetY || 0}" oninput="window.changeMainTextOffsetY(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
                 <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">вниз</div>
             </div>
-            <div class="ios-layer-row" style="border-bottom:none; padding-bottom: 0;">
+            <div class="ios-layer-row">
                 <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 75px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Размер</div>
                 <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">меньше</div>
                 <input type="range" class="ios-slider" min="0.1" max="3" step="0.01" value="${window.layerState.mainTextScale || 1}" oninput="window.changeMainTextScale(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
                 <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 0;">больше</div>
+            </div>
+
+            <div class="ios-layer-row" style="border-bottom:none; padding-bottom: 0;">
+                <div class="ios-layer-name" style="flex-shrink: 1; min-width: 0; max-width: 85px; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">Интервал</div>
+                <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;">уже</div>
+                <input type="range" class="ios-slider" min="-15" max="50" step="1" value="${window.layerState.mainTextLetterSpacing || 0}" oninput="window.changeMainTextLetterSpacing(this.value)" style="flex-grow: 1; flex-shrink: 1; min-width: 40px; margin: 0;">
+                <div class="ios-layer-action-text" style="flex-shrink: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; margin-left: 8px; margin-right: 4px;">шире</div>
+                
+                <div style="width: 1px; height: 20px; background-color: color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent); margin: 0 8px; flex-shrink: 0;"></div>
+                
+                <div class="ios-icon-btn" onclick="window.toggleMainTextItalic()" style="flex-shrink: 0; width: 28px; height: 28px; background: ${window.layerState.mainTextItalic ? 'var(--tg-theme-button-color, #3390ec)' : 'transparent'}; color: ${window.layerState.mainTextItalic ? '#ffffff' : 'var(--tg-theme-text-color, #000000)'}; border-radius: 6px; transition: 0.2s;">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="4" x2="10" y2="4"></line>
+                        <line x1="14" y1="20" x2="5" y2="20"></line>
+                        <line x1="15" y1="4" x2="9" y2="20"></line>
+                    </svg>
+                </div>
             </div>
         `;
         html += `<div class="ios-font-label">Изменить шрифт</div>`;
@@ -5504,6 +5673,18 @@ window.changeMainTextScale = (val) => {
     window.requestRender(true); 
 };
 
+window.changeMainTextLetterSpacing = (val) => {
+    window.layerState.mainTextLetterSpacing = parseFloat(val);
+    window.requestRender(true);
+};
+
+window.toggleMainTextItalic = () => {
+    window.layerState.mainTextItalic = !window.layerState.mainTextItalic;
+    if (window.triggerHaptic) window.triggerHaptic();
+    renderLayerPanel();
+    window.requestRender(true);
+};
+
 window.changeStrokeColor = (color) => {
     window.layerState.globalStrokeColor = color;
     let colorDisplay = document.getElementById('stroke-color-display');
@@ -5693,131 +5874,46 @@ window.downloadOfferLayer = (idx) => {
 async function downloadCanvas(canvas, filename) {
     if (!canvas || canvas.width === 0) return;
     
-    let isNonApple = document.body.classList.contains('os-non-apple');
-
-    if (isNonApple) {
-        try {
-            let smallC = document.createElement('canvas');
-            let ratio = canvas.height / canvas.width;
-            smallC.width = Math.min(canvas.width, 2048);
-            smallC.height = Math.round(smallC.width * ratio);
-            let sCtx = smallC.getContext('2d');
-            sCtx.imageSmoothingEnabled = true;
-            sCtx.imageSmoothingQuality = 'high';
-            sCtx.drawImage(canvas, 0, 0, smallC.width, smallC.height);
-
-            let dataUrl = smallC.toDataURL('image/png', 0.90);
-            let base64Image = dataUrl.split(',')[1];
-
-            const formData = new FormData();
-            formData.append('image', base64Image);
-
-            const response = await fetch(`https://snapi.vl5955074.workers.dev/`, {
-                method: 'POST',
-                body: formData
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                const viewerHtml = `
-                <!DOCTYPE html>
-                <html lang="ru">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-                    <title>Сохранение слоя</title>
-                    <style>
-                        body { background-color: #131415; color: #ffffff; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0; padding: 20px; min-height: 100vh; box-sizing: border-box; }
-                        img { max-width: 100%; max-height: 65vh; border-radius: 12px; margin-bottom: 24px; object-fit: contain; -webkit-touch-callout: default !important; user-select: auto !important; }
-                        .instruction { background: #131415; padding: 20px; text-align: center; max-width: 320px; }
-                        .instruction p { color: #b0c2d5; font-size: 14px; line-height: 1.4; margin: 0 0 8px 0; font-weight: 600; }
-                        .instruction span { color: #b0c2d5; font-size: 14px; line-height: 1.3; display: block; }
-                    </style>
-                </head>
-                <body>
-                    <img src="${data.data.url}" alt="Result">
-                    <div class="instruction">
-                        <p>👆 Зажмите картинку пальцем</p>
-                        <span>В появившемся меню выберите пункт «Загрузить». После успешной загрузки закройте окно, нажав на крестик сверху.</span>
-                    </div>
-                </body>
-                </html>
-                `;
-
-                let w = null;
-                try { w = window.open('', '_blank'); } catch(e) {}
-
-                if (w) {
-                    w.document.write(viewerHtml);
-                    w.document.close();
-                } else {
-                    try {
-                        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
-                            window.Telegram.WebApp.openLink(data.data.url);
-                        } else {
-                            window.location.href = data.data.url;
-                        }
-                    } catch(e) {}
-
-                    setTimeout(() => {
-                        alert("Если картинка не открылась, пожалуйста, включите встроенный браузер в настройках Telegram.");
-                    }, 1500);
-                }
-            } else {
-                alert("Ошибка ImgBB: " + data.error.message);
-            }
-        } catch (err) {
-            alert("Ошибка при отправке слоя: " + err.message);
-        }
-    } 
-    else {
-        canvas.toBlob((blob) => {
-            if (!blob) {
-                alert("Ошибка скачивания: устройству не хватает памяти для рендера слоя.");
-                return;
-            }
-            const file = new File([blob], filename, { type: 'image/png' });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({ files: [file] })
-                .catch(err => {
-                    console.error("Share failed", err);
-                    if (err.name !== 'AbortError' && err.message.indexOf('canceled') === -1) {
-                        fallbackDownload(blob, filename);
-                    }
-                });
-            } else {
-                fallbackDownload(blob, filename);
-            }
-        }, "image/png");
-    }
-}
-
-function fallbackDownload(blob, filename) {
-    if (!blob) return;
-    
     try {
-        const file = new File([blob], filename, { type: blob.type });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            navigator.share({ files: [file] }).catch(() => {});
-            return;
+        let tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+        if (!tgUserId) {
+            throw new Error("Не удалось получить Ваш Telegram ID. Откройте приложение через бота.");
         }
-    } catch(e) {}
 
-    try {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.download = filename;
-        a.href = url;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }, 3000);
-    } catch(e) {
-        alert("Не удалось скачать. Сделайте скриншот работы.");
+        let smallC = document.createElement('canvas');
+        let ratio = canvas.height / canvas.width;
+        smallC.width = Math.min(canvas.width, 2048);
+        smallC.height = Math.round(smallC.width * ratio);
+        let sCtx = smallC.getContext('2d');
+        sCtx.imageSmoothingEnabled = true;
+        sCtx.imageSmoothingQuality = 'high';
+        sCtx.drawImage(canvas, 0, 0, smallC.width, smallC.height);
+
+        let dataUrl = smallC.toDataURL('image/png', 0.90);
+        let base64Image = dataUrl.split(',')[1];
+
+        window.Telegram.WebApp.showAlert("⏳ Отправляем слой в бота...");
+
+        const response = await fetch('https://api.snapi.online/send-result?v=123', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                image: base64Image,
+                chat_id: tgUserId
+            }),
+            mode: 'cors',
+            redirect: 'follow'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            window.Telegram.WebApp.showAlert("✅ Слой успешно отправлен в бота!");
+        } else {
+            alert("Ошибка сервера: " + data.error);
+        }
+    } catch (err) {
+        alert("Ошибка при отправке слоя: " + err.message);
     }
 }
 
@@ -5906,7 +6002,7 @@ function generateOfferCache(offer, targetW, targetH) {
         silCtx.fillStyle = window.layerState.globalStrokeColor || '#ffffff';
         silCtx.fillRect(0, 0, tW, tH);
 
-        const steps = 36;
+        const steps = 8; 
         for (let i = 0; i < steps; i++) {
             let angle = (i / steps) * Math.PI * 2;
             stCtx.drawImage(silCanvas, pad + Math.cos(angle) * sw, pad + Math.sin(angle) * sw, tW, tH);
@@ -6650,7 +6746,7 @@ window.addCustomText = () => {
         return;
     }
     window.layerState.customTexts.push({ 
-        text: 'АКЦИЯ', 
+        text: 'TEXT', 
         x: 50, 
         y: 50, 
         scale: 1,
@@ -6693,7 +6789,9 @@ function drawCustomBeautifulNick(ctx, text, w, h, customX, customY, customScale,
     let shadowDepth = Math.max(1, Math.floor(fontSize * 0.10));
     let style = TEXT_STYLES[customStyleIndex];
 
-    let textCanvas = document.createElement('canvas'); textCanvas.width = w; textCanvas.height = h; let txCtx = textCanvas.getContext('2d');
+    let textCanvas = window._sharedTextCanvas; 
+    textCanvas.width = w; textCanvas.height = h; 
+    let txCtx = textCanvas.getContext('2d');    
     txCtx.textAlign = "center"; txCtx.textBaseline = "middle"; txCtx.font = `${fontSize}px '${customFont}', sans-serif`;
     txCtx.lineJoin = "round"; txCtx.lineCap = "round";
 
@@ -6712,10 +6810,10 @@ function drawCustomBeautifulNick(ctx, text, w, h, customX, customY, customScale,
             txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
         } else if (style.outer) {
+            txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.shadow; 
+            txCtx.strokeText(text, 0, shadowDepth);
             txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
-            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
-            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
-            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            txCtx.strokeText(text, 0, 0);
         } else {
             txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
@@ -6723,7 +6821,9 @@ function drawCustomBeautifulNick(ctx, text, w, h, customX, customY, customScale,
     }
     txCtx.restore();
 
-    let tempCanvas = document.createElement('canvas'); tempCanvas.width = w; tempCanvas.height = h; let tCtx = tempCanvas.getContext('2d');
+let tempCanvas = window._sharedTempCanvas; 
+    tempCanvas.width = w; tempCanvas.height = h; 
+    let tCtx = tempCanvas.getContext('2d');    
     tCtx.textAlign = "center"; tCtx.textBaseline = "middle"; tCtx.font = `${fontSize}px '${customFont}', sans-serif`;
     tCtx.save(); tCtx.translate(x, y); tCtx.transform(1, 0, -0.10, 1, 0, 0); 
 
@@ -6733,11 +6833,13 @@ function drawCustomBeautifulNick(ctx, text, w, h, customX, customY, customScale,
     grad.addColorStop(1, style.grad[2]);
     tCtx.fillStyle = grad; tCtx.fillText(text, 0, 0);
     
-    tCtx.globalCompositeOperation = "source-atop"; 
-    tCtx.lineWidth = fontSize * 0.06; 
-    tCtx.strokeStyle = style.isClassic ? "#fcff00" : style.inner; 
-    tCtx.lineJoin = "round"; 
-    tCtx.strokeText(text, 0, 0);
+    if (style.inner) {
+        tCtx.globalCompositeOperation = "source-atop"; 
+        tCtx.lineWidth = fontSize * 0.06; 
+        tCtx.strokeStyle = style.isClassic ? "#fcff00" : style.inner; 
+        tCtx.lineJoin = "round"; 
+        tCtx.strokeText(text, 0, 0);
+    }
     tCtx.restore();
 
     txCtx.drawImage(tempCanvas, 0, 0);
@@ -6892,7 +6994,7 @@ function startAnimation() {
 function renderLoop() {
    animText.scale = animText.targetScale;
    animText.alpha = animText.targetAlpha;
-   
+
    window.layerState.offers.forEach(o => {
        o.anim.x = o.target.x;
        o.anim.y = o.target.y;
@@ -6901,10 +7003,16 @@ function renderLoop() {
        o.anim.scale = o.target.scale;
        o.anim.alpha = o.target.alpha;
    });
-   
+
    drawScene();
-   
+
    animReq = null;
+   window.renderThrottle = false; 
+
+   if (window.pendingRenderCache) {
+       window.pendingRenderCache = false;
+       window.requestRender();
+   }
 }
 
 function drawScene() {
@@ -7945,6 +8053,9 @@ function drawStars(ctx, starImg, w, h, opacity = 1.0, forExport = false) {
     ctx.restore();
 }
 
+window._sharedTextCanvas = document.createElement('canvas');
+window._sharedTempCanvas = document.createElement('canvas');
+
 function drawBeautifulNick(ctx, text, w, h) {
     let baseFontSize = Math.floor(h * 0.12); 
     if (baseFontSize < 30) baseFontSize = 30;
@@ -7966,11 +8077,20 @@ function drawBeautifulNick(ctx, text, w, h) {
 
     let style = TEXT_STYLES[window.layerState.textStyleIndex || 0];
 
-    let textCanvas = document.createElement('canvas'); textCanvas.width = w; textCanvas.height = h; let txCtx = textCanvas.getContext('2d');
+    let textCanvas = window._sharedTextCanvas; 
+    textCanvas.width = w; textCanvas.height = h; 
+
+    let txCtx = textCanvas.getContext('2d'); 
+
+    let ls = (window.layerState.mainTextLetterSpacing || 0) + "px";
+    if ('letterSpacing' in txCtx) txCtx.letterSpacing = ls;
+
     txCtx.textAlign = "center"; txCtx.textBaseline = "middle"; txCtx.font = `${fontSize}px '${window.layerState.textFont}', sans-serif`;
     txCtx.lineJoin = "round"; txCtx.lineCap = "round";
 
-    txCtx.save(); txCtx.translate(x, y); txCtx.transform(1, 0, -0.10, 1, 0, 0); 
+    let skewVal = window.layerState.mainTextItalic ? -0.18 : -0.05;
+
+    txCtx.save(); txCtx.translate(x, y); txCtx.transform(1, 0, skewVal, 1, 0, 0);
     
     if (style.isClassic) {
         txCtx.lineWidth = fontSize * 0.18; txCtx.strokeStyle = "#ffffff"; for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
@@ -7980,18 +8100,15 @@ function drawBeautifulNick(ctx, text, w, h) {
         if (style.outer2) {
             txCtx.lineWidth = fontSize * 0.18; txCtx.strokeStyle = style.outer2; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
-            
             txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
-            
             txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
         } else if (style.outer) {
+            txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.shadow; 
+            txCtx.strokeText(text, 0, shadowDepth);
             txCtx.lineWidth = fontSize * 0.12; txCtx.strokeStyle = style.outer; 
-            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
-            
-            txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
-            for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
+            txCtx.strokeText(text, 0, 0);
         } else {
             txCtx.lineWidth = fontSize * 0.0154; txCtx.strokeStyle = style.shadow; 
             for (let i = shadowDepth; i >= 0; i--) txCtx.strokeText(text, 0, i);
@@ -8000,9 +8117,12 @@ function drawBeautifulNick(ctx, text, w, h) {
     
     txCtx.restore();
 
-    let tempCanvas = document.createElement('canvas'); tempCanvas.width = w; tempCanvas.height = h; let tCtx = tempCanvas.getContext('2d');
+    let tempCanvas = window._sharedTempCanvas; 
+    tempCanvas.width = w; tempCanvas.height = h; 
+    let tCtx = tempCanvas.getContext('2d');    
+    if ('letterSpacing' in tCtx) tCtx.letterSpacing = ls;
     tCtx.textAlign = "center"; tCtx.textBaseline = "middle"; tCtx.font = `${fontSize}px '${window.layerState.textFont}', sans-serif`;
-    tCtx.save(); tCtx.translate(x, y); tCtx.transform(1, 0, -0.10, 1, 0, 0); 
+    tCtx.save(); tCtx.translate(x, y); tCtx.transform(1, 0, skewVal, 1, 0, 0);
 
     let grad = tCtx.createLinearGradient(0, -fontSize * 0.4, 0, fontSize * 0.4);
     grad.addColorStop(0, style.grad[0]); 
@@ -8010,11 +8130,13 @@ function drawBeautifulNick(ctx, text, w, h) {
     grad.addColorStop(1, style.grad[2]);
     tCtx.fillStyle = grad; tCtx.fillText(text, 0, 0);
     
-    tCtx.globalCompositeOperation = "source-atop"; 
-    tCtx.lineWidth = fontSize * 0.06; 
-    tCtx.strokeStyle = style.isClassic ? "#fcff00" : style.inner; 
-    tCtx.lineJoin = "round"; 
-    tCtx.strokeText(text, 0, 0);
+    if (style.inner) {
+        tCtx.globalCompositeOperation = "source-atop"; 
+        tCtx.lineWidth = fontSize * 0.06; 
+        tCtx.strokeStyle = style.isClassic ? "#fcff00" : style.inner; 
+        tCtx.lineJoin = "round"; 
+        tCtx.strokeText(text, 0, 0);
+    }
     tCtx.restore();
 
     txCtx.drawImage(tempCanvas, 0, 0);
@@ -8666,11 +8788,11 @@ document.getElementById('wizard-next-btn3-bp-style3').onclick = async () => {
     transitionStep(document.getElementById('wizard-step3-bp-style3'), targetStep4, document.getElementById('prog-step3'), document.getElementById('prog-step4'), document.getElementById('prog-line3'));
 };
 
-  const bpPriceInput = document.getElementById('wizard-bp-price');
+const bpPriceInput = document.getElementById('wizard-bp-price');
   const bpPlusPriceInput = document.getElementById('wizard-bpplus-price');
   const bpNextBtn3 = document.getElementById('wizard-next-btn3-bp');
 
-  function checkStep3BPReady() {
+  window.checkStep3BPReady = function() {
     bpPriceInput.value = bpPriceInput.value.replace(/[^0-9]/g, '');
     bpPlusPriceInput.value = bpPlusPriceInput.value.replace(/[^0-9]/g, '');
 
@@ -8681,8 +8803,8 @@ document.getElementById('wizard-next-btn3-bp-style3').onclick = async () => {
     }
   }
 
-  bpPriceInput.addEventListener('input', checkStep3BPReady);
-  bpPlusPriceInput.addEventListener('input', checkStep3BPReady);
+  bpPriceInput.addEventListener('input', window.checkStep3BPReady);
+  bpPlusPriceInput.addEventListener('input', window.checkStep3BPReady);
 
   document.getElementById('wizard-next-btn3-bp').onclick = async () => {
     window.triggerHaptic();
@@ -8876,187 +8998,51 @@ document.getElementById('dl-btn-actual-download').onclick = (e) => {
         try {
             if (!persistentCanvas || persistentCanvas.width === 0) throw new Error("Холст пуст");
 
-            let isNonApple = document.body.classList.contains('os-non-apple');
+            let tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+            if (!tgUserId) {
+                throw new Error("Не удалось получить Ваш Telegram ID. Откройте сервис через бота.");
+            }
 
             let smallC = document.createElement('canvas');
             let ratio = persistentCanvas.height / persistentCanvas.width;
-            smallC.width = Math.min(persistentCanvas.width, isNonApple ? 2048 : persistentCanvas.width);
+            // Делаем ресайз под лимиты Telegram, чтобы файл не был слишком огромным
+            smallC.width = Math.min(persistentCanvas.width, 2048);
             smallC.height = Math.round(smallC.width * ratio);
             let sCtx = smallC.getContext('2d');
             sCtx.imageSmoothingEnabled = true;
             sCtx.imageSmoothingQuality = 'high';
             sCtx.drawImage(persistentCanvas, 0, 0, smallC.width, smallC.height);
 
-            if (isNonApple) {
-                try {
-                     let dataUrl = smallC.toDataURL('image/jpeg', 0.90);
-                    let base64Image = dataUrl.split(',')[1]; 
+            let dataUrl = smallC.toDataURL('image/jpeg', 0.90);
+            let base64Image = dataUrl.split(',')[1]; 
 
-                    const formData = new FormData();
-                    formData.append('image', base64Image);
-
-                    const response = await fetch(`https://snapi.vl5955074.workers.dev/`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        const viewerHtml = `
-                        <!DOCTYPE html>
-                        <html lang="ru">
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-                            <title>Сохранение работы</title>
-                            <style>
-                                body {
-                                    background-color: #131415;
-                                    color: #ffffff;
-                                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                                    display: flex;
-                                    flex-direction: column;
-                                    align-items: center;
-                                    justify-content: center;
-                                    margin: 0;
-                                    padding: 20px;
-                                    min-height: 100vh;
-                                    box-sizing: border-box;
-                                }
-                                img {
-                                    max-width: 100%;
-                                    max-height: 65vh;
-                                    border-radius: 12px;
-                                    margin-bottom: 24px;
-                                    object-fit: contain;
-                                    -webkit-touch-callout: default !important;
-                                    user-select: auto !important;
-                                }
-                                .instruction {
-                                    background: #131415;
-                                    padding: 20px;
-                                    text-align: center;
-                                    max-width: 320px;
-                                }
-                                .instruction p {
-                                    color: #b0c2d5;
-                                    font-size: 14px;
-                                    line-height: 1.4;
-                                    margin: 0 0 8px 0;
-                                    font-weight: 600;
-                                }
-                                .instruction span {
-                                    color: #b0c2d5;
-                                    font-size: 14px;
-                                    line-height: 1.3;
-                                    display: block;
-                                }
-                            </style>
-                        </head>
-                        <body>
-                            <img src="${data.data.url}" alt="Result">
-                            <div class="instruction">
-                                <p>👆 Зажмите картинку пальцем</p>
-                                <span>В появившемся меню выберите пункт «Загрузить». После успешной загрузки закройте окно, нажав на крестик сверху.</span>
-                            </div>
-                        </body>
-                        </html>
-                        `;
-
-                        let w = null;
-                        try { w = window.open('', '_blank'); } catch(e) {}
-
-                        if (w) {
-                            w.document.write(viewerHtml);
-                            w.document.close();
-                        } else {
-                            try {
-                                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
-                                    window.Telegram.WebApp.openLink(data.data.url);
-                                } else {
-                                    window.location.href = data.data.url;
-                                }
-                            } catch(e) {}
-
-                            setTimeout(() => {
-                                alert("У Вас открылся браузер, скачайте картинку там!\n\nЕсли картинка не открылась, пожалуйста, включите встроенный браузер в настройках Telegram (Настройки → Настройки чатов → Встроенный браузер).");
-                            }, 1500);
-                        }
-                    } else {
-                        alert("Ошибка ImgBB: " + data.error.message);
-                    }
-                } catch (err) {
-                    alert("Ошибка при отправке: " + err.message);
-                } finally {
-                    btn.classList.remove('is-loading');
-                    btn.style.pointerEvents = '';
-                }
+            const response = await fetch('https://api.snapi.online/send-result?v=123', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    image: base64Image,
+                    chat_id: tgUserId
+                }),
+                mode: 'cors',
+                redirect: 'follow'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                window.Telegram.WebApp.showAlert("✅ Готовая работа успешно отправлена Вам в личные сообщения бота!");
+                window.closeDownloadOverlay();
             } else {
-                smallC.toBlob((blob) => {
-                    try {
-                        if (!blob) throw new Error("Не удалось создать Blob");
-                        const file = new File([blob], 'result.png', { type: 'image/png' });
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            navigator.share({ files: [file] }).catch(() => {});
-                        } else {
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.download = 'result.png';
-                            a.href = url;
-                            a.click();
-                            setTimeout(() => URL.revokeObjectURL(url), 3000);
-                        }
-                    } catch (e) {
-                        alert("Ошибка скачивания: " + e.message);
-                    } finally {
-                        btn.classList.remove('is-loading');
-                        btn.style.pointerEvents = '';
-                    }
-                }, 'image/png');
+                alert("Ошибка отправки: " + data.error);
             }
         } catch(err) {
-            alert("Ошибка подготовки изображения: " + err.message);
+            alert("Ошибка: " + err.message);
+        } finally {
             btn.classList.remove('is-loading');
             btn.style.pointerEvents = '';
         }
     }, 200);
 };
-
-function androidFallback(canvas, blob) {
-    alert("androidFallback вызван, размер blob: " + blob.size);
-    try {
-        alert("шаг 1 - создаём File");
-        const file = new File([blob], 'result.jpg', { type: 'image/jpeg' });
-        alert("шаг 2 - проверяем canShare, navigator.canShare: " + typeof navigator.canShare);
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            alert("шаг 3 - canShare доступен, вызываем share");
-            navigator.share({ files: [file] }).catch((err) => {
-                alert("Share ошибка: " + err.message);
-                androidFallback2(blob);
-            });
-            return;
-        }
-        alert("шаг 3 - canShare недоступен");
-    } catch(e) {
-        alert("catch в androidFallback: " + e.message);
-    }
-    alert("Идём в androidFallback2");
-    androidFallback2(blob);
-}
-
-function androidFallback2(blob) {
-    try {
-        const url = URL.createObjectURL(blob);
-        const w = window.open(url, '_blank');
-        if (!w) {
-            alert("Не удалось открыть. Сделайте скриншот экрана.");
-        }
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
-    } catch(e) {
-        alert("catch: " + e.message);
-    }
-}
   window.updateSavedCount();
 })();
 
@@ -9234,6 +9220,10 @@ async function generateBrawlPassTest() {
     window.bpForegroundImage.src = c.toDataURL('image/png');
 }
 
+window._sharedMeasureC = document.createElement('canvas');
+window._sharedStrokeC = document.createElement('canvas');
+window._sharedFillC = document.createElement('canvas');
+
 function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
     const bpStyle = TEXT_STYLES[window.layerState.textStyleIndex !== undefined ? window.layerState.textStyleIndex : 9];
     const bpText = (nick || "SNAPI").trim().substring(0, 16);
@@ -9253,8 +9243,13 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
     }
     const BP_MAX_TEXT_WIDTH = line2 ? WIDTH * 0.30 : WIDTH * 0.38;
 
-    const measureC = document.createElement('canvas');
+    let ls = (window.layerState.mainTextLetterSpacing || 0) + "px";
+    let skewVal = window.layerState.mainTextItalic ? -0.15 : -0.03;
+
+    const measureC = window._sharedMeasureC;
     const mCtx = measureC.getContext('2d');
+
+    if ('letterSpacing' in mCtx) mCtx.letterSpacing = ls;
     
     let scaleMult = HEIGHT / 675;
     let maxAllowedFontSize = 145 * scaleMult;
@@ -9325,9 +9320,10 @@ let y1, y2;
         ? [{ text: line1, yOffset: y1 - blockCenterY }, { text: line2, yOffset: y2 - blockCenterY }] 
         : [{ text: line1, yOffset: 0 }];
 
-    const strokeC = document.createElement('canvas');
+    const strokeC = window._sharedStrokeC;
     strokeC.width = WIDTH; strokeC.height = HEIGHT;
     const sCtx = strokeC.getContext('2d');
+    if ('letterSpacing' in sCtx) sCtx.letterSpacing = ls;
     sCtx.textAlign = "center"; sCtx.textBaseline = "middle"; sCtx.lineJoin = "round"; sCtx.lineCap = "round";
     sCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
 
@@ -9340,7 +9336,7 @@ let y1, y2;
                 sCtx.translate(bpTextX, blockCenterY + offsetPx);
                 sCtx.scale(tScale, tScale); 
                 sCtx.translate(0, yOffset);
-                sCtx.transform(1, 0, -0.07, 1, 0, 0);
+                sCtx.transform(1, 0, skewVal, 1, 0, 0);
                 sCtx.rotate(-0.02);
                 sCtx.strokeText(text, 0, i);
                 sCtx.restore();
@@ -9358,16 +9354,39 @@ let y1, y2;
             drawStrokeLayer(bpFontSize * 0.12, bpStyle.outer);  
             drawStrokeLayer(bpFontSize * 0.0154, bpStyle.shadow); 
         } else if (bpStyle.outer) {
-            drawStrokeLayer(bpFontSize * 0.12, bpStyle.outer);
-            drawStrokeLayer(bpFontSize * 0.0154, bpStyle.shadow);
-        } else {
+            sCtx.lineWidth = bpFontSize * 0.12;
+            sCtx.strokeStyle = bpStyle.shadow;
+            lines.forEach(({ text, yOffset }) => {
+                sCtx.save();
+                sCtx.translate(bpTextX, blockCenterY + offsetPx);
+                sCtx.scale(tScale, tScale);
+                sCtx.translate(0, yOffset);
+                sCtx.transform(1, 0, skewVal, 1, 0, 0);
+                sCtx.rotate(-0.02);
+                sCtx.strokeText(text, 0, bpShadowDepth);
+                sCtx.restore();
+            });
+            
+            sCtx.strokeStyle = bpStyle.outer;
+            lines.forEach(({ text, yOffset }) => {
+                sCtx.save();
+                sCtx.translate(bpTextX, blockCenterY + offsetPx);
+                sCtx.scale(tScale, tScale);
+                sCtx.translate(0, yOffset);
+                sCtx.transform(1, 0, skewVal, 1, 0, 0);
+                sCtx.rotate(-0.02);
+                sCtx.strokeText(text, 0, 0);
+                sCtx.restore();
+            });
+        } else {
             drawStrokeLayer(bpFontSize * 0.0154, bpStyle.shadow);
         }
     }
 
-    const fillC = document.createElement('canvas');
+    const fillC = window._sharedFillC;
     fillC.width = WIDTH; fillC.height = HEIGHT;
     const fCtx = fillC.getContext('2d');
+    if ('letterSpacing' in fCtx) fCtx.letterSpacing = ls;
     fCtx.textAlign = "center"; fCtx.textBaseline = "middle"; fCtx.lineJoin = "round"; fCtx.lineCap = "round";
     fCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
 
@@ -9375,23 +9394,25 @@ let y1, y2;
         fCtx.save();
         fCtx.translate(bpTextX, blockCenterY + offsetPx);
         fCtx.scale(tScale, tScale);           
-        fCtx.translate(0, yOffset);
-        fCtx.transform(1, 0, -0.07, 1, 0, 0);
+        fCtx.translate(0, yOffset);
+        fCtx.transform(1, 0, skewVal, 1, 0, 0);
         fCtx.rotate(-0.02);
         
         let bpGrad = fCtx.createLinearGradient(0, -bpFontSize * 0.4, 0, bpFontSize * 0.4);
-        bpGrad.addColorStop(0, bpStyle.grad[0]);
-        bpGrad.addColorStop(bpStyle.isClassic ? 0.48 : 0.52, bpStyle.grad[1] || bpStyle.grad[0]);
-        bpGrad.addColorStop(1, bpStyle.grad[2] || bpStyle.grad[0]);
-        fCtx.fillStyle = bpGrad;
-        fCtx.fillText(text, 0, 0);
-        
-        fCtx.globalCompositeOperation = "source-atop";
-        fCtx.lineWidth = bpFontSize * 0.06;
-        fCtx.strokeStyle = bpStyle.isClassic ? "#fcff00" : (bpStyle.inner || '#ffffff');
-        fCtx.strokeText(text, 0, 0);
-        fCtx.restore();
-    });
+        bpGrad.addColorStop(0, bpStyle.grad[0]);
+        bpGrad.addColorStop(bpStyle.isClassic ? 0.48 : 0.52, bpStyle.grad[1] || bpStyle.grad[0]);
+        bpGrad.addColorStop(1, bpStyle.grad[2] || bpStyle.grad[0]);
+        fCtx.fillStyle = bpGrad;
+        fCtx.fillText(text, 0, 0);
+        
+        if (bpStyle.inner) {
+            fCtx.globalCompositeOperation = "source-atop";
+            fCtx.lineWidth = bpFontSize * 0.06;
+            fCtx.strokeStyle = bpStyle.isClassic ? "#fcff00" : bpStyle.inner;
+            fCtx.strokeText(text, 0, 0);
+        }
+        fCtx.restore();
+    });
 
     ctx.save();
     ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
@@ -9615,6 +9636,179 @@ function initSparks() {
     }
 }
 
+window.initAvatarSparks = function() {
+    const container = document.getElementById('avatar-sparks-container');
+    if (!container) return;
+    
+    container.innerHTML = ''; 
+    
+    const numSparks = 12; 
+    const numLines = 20;  
+    const radius = 37;    
+    
+    const svgPath = "M10.3072 7.21992C10.9493 5.61924 11.2704 4.81889 11.7919 4.70797C11.9291 4.6788 12.0708 4.6788 12.208 4.70797C12.7295 4.81889 13.0506 5.61924 13.6927 7.21992C14.0578 8.1302 14.2404 8.58535 14.582 8.89491C14.6778 8.98174 14.7818 9.05907 14.8926 9.12582C15.2874 9.3638 15.7803 9.40794 16.7661 9.49623C18.4348 9.64568 19.2692 9.7204 19.524 10.1961C19.5768 10.2947 19.6127 10.4014 19.6302 10.5118C19.7146 11.0448 19.1012 11.6028 17.8744 12.719L17.5338 13.0289C16.9602 13.5507 16.6735 13.8116 16.5076 14.1372C16.4081 14.3325 16.3414 14.5429 16.3101 14.7598C16.258 15.1215 16.342 15.5 16.5099 16.257L16.5699 16.5275C16.8711 17.885 17.0217 18.5638 16.8337 18.8974C16.6649 19.1971 16.3538 19.389 16.0102 19.4054C15.6277 19.4236 15.0887 18.9844 14.0107 18.106C13.3005 17.5273 12.9454 17.238 12.5512 17.1249C12.191 17.0216 11.8089 17.0216 11.4487 17.1249C11.0545 17.238 10.6994 17.5273 9.98917 18.106C8.91119 18.9844 8.37221 19.4236 7.98968 19.4054C7.64609 19.389 7.33504 19.1971 7.16617 18.8974C6.97818 18.5638 7.12878 17.885 7.42997 16.5275L7.48998 16.257C7.65794 15.5 7.74191 15.1215 7.6898 14.7598C7.65854 14.5429 7.59182 14.3325 7.49232 14.1372C7.32645 13.8116 7.03968 13.5507 6.46613 13.0289L6.12546 12.719C4.89867 11.6028 4.28527 11.0448 4.36975 10.5118C4.38724 10.4014 4.42312 10.2947 4.47589 10.1961C4.73069 9.7204 5.56507 9.64568 7.23384 9.49623C8.21962 9.40794 8.71251 9.3638 9.10735 9.12582C9.2181 9.05907 9.32211 8.98174 9.41793 8.89491C9.75954 8.58535 9.94211 8.1302 10.3072 7.21992Z";
+    const colorsSVG = ['%2388cdfb', '%23c861ff', '%23d9a5ff', '%23ffcc00'];
+    const colorsCSS = ['#88cdfb', '#c861ff', '#d9a5ff', '#ffcc00'];
+
+    for (let i = 0; i < numSparks; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'avatar-spark';
+        
+        const baseAngle = i * (Math.PI * 2 / numSparks);
+        const angle = baseAngle + (Math.random() * 0.4 - 0.2); 
+        
+        const startX = Math.cos(angle) * (radius - 5);
+        const startY = Math.sin(angle) * (radius - 5);
+        const travelDist = 35 + Math.random() * 45; 
+        const endX = startX + Math.cos(angle) * travelDist;
+        const endY = startY + Math.sin(angle) * travelDist;
+        
+        const rotation = (Math.random() - 0.5) * 360; 
+        const duration = 2 + Math.random() * 2.5;
+        const size = 10 + Math.random() * 8; 
+        
+        const color = colorsSVG[Math.floor(Math.random() * colorsSVG.length)];
+        const svgStr = `data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg"><path d="${svgPath}"/></svg>`;
+        
+        spark.style.backgroundImage = `url('${svgStr}')`;
+        spark.style.width = `${size}px`;
+        spark.style.height = `${size}px`;
+        spark.style.setProperty('--sx', `${startX}px`);
+        spark.style.setProperty('--sy', `${startY}px`);
+        spark.style.setProperty('--ex', `${endX}px`);
+        spark.style.setProperty('--ey', `${endY}px`);
+        spark.style.setProperty('--rot', `${rotation}deg`);
+        spark.style.setProperty('--duration', `${duration}s`);
+        spark.style.animationDelay = `${-(Math.random() * duration)}s`;
+        
+        spark.dataset.origEx = endX;
+        spark.dataset.origEy = endY;
+        spark.dataset.origDuration = duration;
+        spark.dataset.isBg = 'true';
+        
+        container.appendChild(spark);
+    }
+
+    for (let i = 0; i < numLines; i++) {
+        const line = document.createElement('div');
+        line.className = 'avatar-line';
+        
+        const baseAngle = i * (360 / numLines);
+        const angle = baseAngle + (Math.random() * 10 - 5); 
+        
+        const length = 15 + Math.random() * 30; 
+        const thickness = 1 + Math.random() * 1.5; 
+        const duration = 0.3 + Math.random() * 0.5; 
+        const endRadius = 80 + Math.random() * 60;
+        const color = colorsCSS[Math.floor(Math.random() * colorsCSS.length)];
+        
+        line.style.setProperty('--rot', `${angle}deg`);
+        line.style.setProperty('--startRadius', `${radius}px`); 
+        line.style.setProperty('--endRadius', `${endRadius}px`); 
+        line.style.setProperty('--length', `${length}px`);
+        line.style.setProperty('--thickness', `${thickness}px`);
+        line.style.setProperty('--color', color);
+        line.style.setProperty('--duration', `${duration}s`);
+        line.style.animationDelay = `${-(Math.random() * duration)}s`;
+        
+        line.dataset.origEndRadius = endRadius;
+        line.dataset.origDuration = duration;
+        line.dataset.isBg = 'true';
+
+        container.appendChild(line);
+    }
+};
+
+window.boostAvatar = function() {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('light'); 
+    } else if (navigator.vibrate) {
+        navigator.vibrate(50);
+    }
+    
+    const zone = document.getElementById('avatar-interactive-zone');
+    if (zone) {
+        zone.style.transform = 'scale(0.9)';
+        setTimeout(() => zone.style.transform = 'scale(1)', 150);
+    }
+
+    const container = document.getElementById('avatar-sparks-container');
+    if (!container) return;
+
+    const bgElements = container.querySelectorAll('[data-is-bg="true"]');
+    bgElements.forEach(el => {
+        const fastDuration = parseFloat(el.dataset.origDuration) / 3.5;
+        el.style.setProperty('--duration', `${fastDuration}s`);
+        
+        if (el.classList.contains('avatar-spark')) {
+            el.style.setProperty('--ex', `${parseFloat(el.dataset.origEx) * 3}px`);
+            el.style.setProperty('--ey', `${parseFloat(el.dataset.origEy) * 3}px`);
+        } else if (el.classList.contains('avatar-line')) {
+            el.style.setProperty('--endRadius', `${parseFloat(el.dataset.origEndRadius) * 3}px`);
+        }
+    });
+
+    setTimeout(() => {
+        bgElements.forEach(el => {
+            el.style.setProperty('--duration', `${el.dataset.origDuration}s`);
+            if (el.classList.contains('avatar-spark')) {
+                el.style.setProperty('--ex', `${el.dataset.origEx}px`);
+                el.style.setProperty('--ey', `${el.dataset.origEy}px`);
+            } else if (el.classList.contains('avatar-line')) {
+                el.style.setProperty('--endRadius', `${el.dataset.origEndRadius}px`);
+            }
+        });
+    }, 600);
+
+
+    const numBurst = 14; 
+    const radius = 37;
+    const svgPath = "M10.3072 7.21992C10.9493 5.61924 11.2704 4.81889 11.7919 4.70797C11.9291 4.6788 12.0708 4.6788 12.208 4.70797C12.7295 4.81889 13.0506 5.61924 13.6927 7.21992C14.0578 8.1302 14.2404 8.58535 14.582 8.89491C14.6778 8.98174 14.7818 9.05907 14.8926 9.12582C15.2874 9.3638 15.7803 9.40794 16.7661 9.49623C18.4348 9.64568 19.2692 9.7204 19.524 10.1961C19.5768 10.2947 19.6127 10.4014 19.6302 10.5118C19.7146 11.0448 19.1012 11.6028 17.8744 12.719L17.5338 13.0289C16.9602 13.5507 16.6735 13.8116 16.5076 14.1372C16.4081 14.3325 16.3414 14.5429 16.3101 14.7598C16.258 15.1215 16.342 15.5 16.5099 16.257L16.5699 16.5275C16.8711 17.885 17.0217 18.5638 16.8337 18.8974C16.6649 19.1971 16.3538 19.389 16.0102 19.4054C15.6277 19.4236 15.0887 18.9844 14.0107 18.106C13.3005 17.5273 12.9454 17.238 12.5512 17.1249C12.191 17.0216 11.8089 17.0216 11.4487 17.1249C11.0545 17.238 10.6994 17.5273 9.98917 18.106C8.91119 18.9844 8.37221 19.4236 7.98968 19.4054C7.64609 19.389 7.33504 19.1971 7.16617 18.8974C6.97818 18.5638 7.12878 17.885 7.42997 16.5275L7.48998 16.257C7.65794 15.5 7.74191 15.1215 7.6898 14.7598C7.65854 14.5429 7.59182 14.3325 7.49232 14.1372C7.32645 13.8116 7.03968 13.5507 6.46613 13.0289L6.12546 12.719C4.89867 11.6028 4.28527 11.0448 4.36975 10.5118C4.38724 10.4014 4.42312 10.2947 4.47589 10.1961C4.73069 9.7204 5.56507 9.64568 7.23384 9.49623C8.21962 9.40794 8.71251 9.3638 9.10735 9.12582C9.2181 9.05907 9.32211 8.98174 9.41793 8.89491C9.75954 8.58535 9.94211 8.1302 10.3072 7.21992Z";
+    const colorsSVG = ['%2388cdfb', '%23c861ff', '%23d9a5ff', '%23ffcc00'];
+
+    for (let i = 0; i < numBurst; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'avatar-spark';
+        
+        const baseAngle = i * (Math.PI * 2 / numBurst);
+        const angle = baseAngle + (Math.random() * 0.4 - 0.2);
+        
+        const startX = Math.cos(angle) * (radius - 5);
+        const startY = Math.sin(angle) * (radius - 5);
+        
+        const travelDist = 100 + Math.random() * 60; 
+        const endX = startX + Math.cos(angle) * travelDist;
+        const endY = startY + Math.sin(angle) * travelDist;
+        
+        const rotation = (Math.random() - 0.5) * 720; 
+        const duration = 0.3 + Math.random() * 0.3; 
+        const size = 12 + Math.random() * 8;
+        
+        const color = colorsSVG[Math.floor(Math.random() * colorsSVG.length)];
+        const svgStr = `data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="${color}" xmlns="http://www.w3.org/2000/svg"><path d="${svgPath}"/></svg>`;
+        
+        spark.style.backgroundImage = `url('${svgStr}')`;
+        spark.style.width = `${size}px`;
+        spark.style.height = `${size}px`;
+        spark.style.setProperty('--sx', `${startX}px`);
+        spark.style.setProperty('--sy', `${startY}px`);
+        spark.style.setProperty('--ex', `${endX}px`);
+        spark.style.setProperty('--ey', `${endY}px`);
+        spark.style.setProperty('--rot', `${rotation}deg`);
+        spark.style.setProperty('--duration', `${duration}s`);
+        
+        container.appendChild(spark);
+        
+        setTimeout(() => {
+            if (spark.parentNode) spark.remove();
+        }, duration * 1000);
+    }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initAvatarSparks();
+});
+
 document.addEventListener('DOMContentLoaded', initSparks);
 window.addEventListener('resize', () => {
     clearTimeout(window.sparkResizeTimer);
@@ -9626,9 +9820,9 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 }
 
 window.promoBgStars = [
-    { x: 81, y: 10, s: 0.1, o: 1 },
-    { x: 96, y: 10, s: 0.05, o: 1 },
-    { x: 89, y: 0, s: 0.2, o: 1 },
+    { x: 56, y: 86, s: 0.15, o: 1 },
+    { x: 67, y: 88, s: 0.05, o: 1 },
+    { x: 49, y: 65, s: 0.1, o: 1 },
 ];
 window.activePromoBgStarIndex = 0;
 
@@ -9693,7 +9887,7 @@ window.updateActivePromoStar = function(param, value) {
 setTimeout(() => { window.renderPromoBgStars(); }, 150);
 
 
-const TARGET_DATE_STRING = "2026-05-07T11:00:00+03:00"; 
+const TARGET_DATE_STRING = "2026-05-16T11:00:00+03:00"; 
 
 
 window.initPromoTimer = function() {
@@ -9791,7 +9985,7 @@ window.initPromoTimer = function() {
             const subtitleEl = contentContainer.querySelector('.promo-subtitle');
             
             if (subtitleEl) {
-                swapTextWithFlip(subtitleEl, subtitleEl.innerText, "Новый сезон уже вышел!");
+                swapTextWithFlip(subtitleEl, subtitleEl.innerText, "Новый сезон вышел!");
             }
             
             const oldTimerText = timerEl.innerText;
@@ -9950,6 +10144,56 @@ document.addEventListener("DOMContentLoaded", () => {
             imgEl.classList.add('smooth-anim');
         }, 1500);
     });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const titleEl = document.getElementById('snapi-app-title');
+    if (!titleEl) return;
+
+    let dotsInterval;
+    let isOfflineMode = !navigator.onLine; 
+
+    function changeTextWithAnim(newText, startDots) {
+        titleEl.classList.remove('text-fly-in');
+        titleEl.classList.add('text-fly-out');
+        
+        setTimeout(() => {
+            titleEl.innerText = newText;
+            
+            titleEl.classList.remove('text-fly-out');
+            titleEl.classList.add('text-fly-in');
+            
+            clearInterval(dotsInterval);
+            if (startDots) {
+                let dotsCount = 0;
+                dotsInterval = setInterval(() => {
+                    dotsCount = (dotsCount + 1) % 4; 
+                    titleEl.innerText = 'Соединение' + '.'.repeat(dotsCount);
+                }, 400);
+            }
+        }, 300); 
+    }
+
+    function checkNetwork() {
+        const isCurrentlyOffline = !navigator.onLine;
+        
+        if (isCurrentlyOffline && !isOfflineMode) {
+            isOfflineMode = true;
+            changeTextWithAnim('Соединение', true);
+        } else if (!isCurrentlyOffline && isOfflineMode) {
+            isOfflineMode = false;
+            changeTextWithAnim('Snapi', false);
+        }
+    }
+
+    window.addEventListener('online', checkNetwork);
+    window.addEventListener('offline', checkNetwork);
+
+    setInterval(checkNetwork, 1500);
+
+    if (isOfflineMode) {
+        changeTextWithAnim('Соединение', true);
+    }
 });
 
 </script>
