@@ -7,7 +7,7 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.1";
+  const APP_VERSION = "v2.4.1(1)";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
@@ -130,9 +130,9 @@
     border-radius: 12px !important; 
   }
 
-  *, *::before, *::after {
+*, *::before, *::after {
     box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent; 
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important; 
   }
 
   ::-webkit-scrollbar {
@@ -685,6 +685,10 @@
     letter-spacing: 0.5px;
     width: 100%;
     font-weight: 200; 
+  }
+
+  body.os-non-apple .ios-section-title {
+    font-weight: 400 !important;
   }
 
   @keyframes shimmerBg {
@@ -1525,7 +1529,7 @@
   
   .fankit-rec-title {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--tg-theme-subtitle-text-color, #8E8E93);
     text-transform: uppercase;
     margin-bottom: 10px;
@@ -2473,6 +2477,28 @@ body:not(.os-non-apple) .saved-works-icon {
     animation: flyInBlurLeft 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
+  body.os-not-ios .ios-layer-row,
+  body.os-not-ios .cat-card,
+  body.os-not-ios .ios-font-grid {
+    border-bottom-color: transparent !important;
+  }
+
+  body.os-not-ios .ios-divider {
+    background-color: transparent !important;
+  }
+
+  body.os-not-ios .sp-row::after,
+  body.os-not-ios #transactions-container .ios-layer-row::after {
+    background-color: transparent !important;
+  }
+
+  .cat-card, 
+  .ios-layer-row, 
+  .ios-menu-item, 
+  .sp-row {
+    background-clip: padding-box !important;
+  }
+
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -2841,7 +2867,7 @@ body:not(.os-non-apple) .saved-works-icon {
 
   <div id="wizard-step1" class="wizard-step active">
     <div class="ios-wizard-title" id="wizard-title-step1">Создание акции</div>
-    <div class="ios-wizard-subtitle">Фон. Выберите один из готовых цветов<br>или загрузите свой готовый фон.</div>
+    <div class="ios-wizard-subtitle">Фон. Выберите подходящий вариант.</div>
     
     <div class="ios-color-presets" id="wizard-color-presets">
        <div class="ios-color-btn-wrap" data-color="green"><div class="ios-color-btn" style="background: linear-gradient(135deg, #5ee568 49.5%, #168625 50.5%)"></div></div>
@@ -3162,13 +3188,13 @@ body:not(.os-non-apple) .saved-works-icon {
 
 <div id="download-overlay">
   <div class="dl-title">Сохраните работу</div>
-  <div class="dl-subtitle">Вы можете скачать работу<br>на своё устройство и так же сохранить<br>проект работы для<br>дальнейших преобразований.</div>
-  
+  <div class="dl-subtitle">Скачивайте готовую работу на устройство и сохраняйте проект для дальнейшего редактирования.</div>
+    
   <img id="dl-preview-img" class="dl-preview" src="">
   
   <div class="dl-buttons-container">
      <div class="save-btn-wrapper" id="save-btn-wrapper">
-       <button class="ios-btn-secondary" id="dl-btn-save-project">
+       <button class="ios-btn-secondary" id="dl-btn-save-project" onclick="alert('Данная функция пока недоступна!');">
           <div class="btn-crossfade-wrap">
             <span class="btn-text-layer btn-text-default">
               Сохранить проект 
@@ -3362,6 +3388,10 @@ if (window.Telegram && window.Telegram.WebApp) {
     
     if (isDesktop) {
         document.body.classList.add('os-desktop');
+    }
+
+    if (!isIOS) {
+        document.body.classList.add('os-not-ios');
     }
 
     let isApple = isIOS || tgPlatform === 'macos' || /mac|ipad|iphone|ipod/i.test(navigator.userAgent);
@@ -4275,6 +4305,7 @@ let stagedFiles = [];
 let persistentCanvas = null;
 let persistentCtx = null;
 let cachedTextCanvas = null;
+let cachedCustomTextCanvas = null;
 let animReq = null;
 let animText = { scale: 1, alpha: 1, targetScale: 1, targetAlpha: 1 };
 
@@ -5277,8 +5308,8 @@ if (window.layerState.isBrawlPassMode) {
 
         if (!window.layerState.customTexts) window.layerState.customTexts = [];
 
-        html += `<div class="ios-layer-row" style="${window.layerState.customTexts.length === 0 ? 'border-bottom:none;' : ''}">
-                    <button class="ios-pill-btn" style="background:#00ff591f; flex-grow:1; color: #16a34a;" onclick="addCustomText()">+ Добавить текст (${window.layerState.customTexts.length}/3)</button>
+            html += `<div class="ios-layer-row" style="${window.layerState.customTexts.length === 0 ? 'border-bottom:none;' : ''}">
+                    <button class="ios-pill-btn" style="background:#00ff591f; flex-grow:1; color: #16a34a;" onclick="addCustomText()">+ Добавить текст (${window.layerState.customTexts.length}/6)</button>
                  </div>`;
 
         window.layerState.customTexts.forEach((ct, idx) => {
@@ -5816,8 +5847,18 @@ window.downloadCosmeticLayer = (layerName) => {
                 drawWatermarks(ctx, window.layerState.textValue, w, h, window.layerState.watermarksOpacity !== undefined ? window.layerState.watermarksOpacity : 0.8, false);
             }
             
-            if (window.layerState.textVisible && window.layerState.textValue) {
+        if (window.layerState.textVisible && window.layerState.textValue) {
                 drawBeautifulNick(ctx, window.layerState.textValue, w, h);
+            }
+            
+            if (!window.layerState.isBrawlPassMode && window.layerState.customTexts && window.layerState.customTexts.length > 0) {
+                window.layerState.customTexts.forEach(ct => {
+                    if (ct.text.trim() !== '') {
+                        let f = ct.font || window.layerState.textFont || 'Font16103';
+                        let s = ct.styleIndex !== undefined ? ct.styleIndex : (window.layerState.textStyleIndex || 0);
+                        drawCustomBeautifulNick(ctx, ct.text, w, h, ct.x, ct.y, ct.scale, f, s);
+                    }
+                });
             }
         } else {
             if (rawBgImage) {
@@ -5860,6 +5901,15 @@ window.downloadTextLayer = () => {
     let ctx = tempC.getContext('2d');
     if (window.layerState.textValue && window.layerState.textVisible) {
         drawBeautifulNick(ctx, window.layerState.textValue, tempC.width, tempC.height);
+    }
+    if (!window.layerState.isBrawlPassMode && window.layerState.customTexts && window.layerState.customTexts.length > 0) {
+        window.layerState.customTexts.forEach(ct => {
+            if (ct.text.trim() !== '') {
+                let f = ct.font || window.layerState.textFont || 'Font16103';
+                let s = ct.styleIndex !== undefined ? ct.styleIndex : (window.layerState.textStyleIndex || 0);
+                drawCustomBeautifulNick(ctx, ct.text, tempC.width, tempC.height, ct.x, ct.y, ct.scale, f, s);
+            }
+        });
     }
     downloadCanvas(tempC, 'text_layer.png');
 };
@@ -6017,15 +6067,18 @@ function autoReplacePrice(ctx, w, h) {
   const imgData = ctx.getImageData(0, 0, w, h);
   const d = imgData.data;
 
-  let isWide = (w / h) > 0.85; 
-  let seedX = isWide ? Math.floor(w * 0.8) : Math.floor(w * 0.5);
-  let seedY = h - 1;
-  
-  while (seedY > 0) {
-    let i = (seedY * w + seedX) * 4;
-    if (d[i+3] > 200 && (d[i] > 60 || d[i+1] > 60 || d[i+2] > 60)) { seedY = Math.max(0, seedY - 15); break; }
-    seedY--;
+let isWide = (w / h) > 0.85; 
+let seedX = isWide ? Math.floor(w * 0.8) : Math.floor(w * 0.5);
+let seedY = h - 1;
+
+while (seedY > 0) {
+  let i = (seedY * w + seedX) * 4;
+  if (d[i+3] > 200 && (d[i] > 60 || d[i+1] > 60 || d[i+2] > 60)) { 
+    seedY = Math.max(0, seedY - 15); 
+    break; 
   }
+  seedY--;
+}
 
   let colors = {};
   for(let y = seedY - 20; y <= seedY + 20; y++) {
@@ -6067,7 +6120,7 @@ function isBg(x, y) {
     let i = (y*w + x)*4;
     if (d[i+3] < 128) return false;
     if (d[i] < 70 && d[i+1] < 70 && d[i+2] < 70) return false;
-    return Math.abs(d[i]-bgR) < 30 && Math.abs(d[i+1]-bgG) < 30 && Math.abs(d[i+2]-bgB) < 30;
+    return Math.abs(d[i]-bgR) < 45 && Math.abs(d[i+1]-bgG) < 45 && Math.abs(d[i+2]-bgB) < 45;
   }
 
   let isBgMask = new Uint8Array(w * h);
@@ -6110,22 +6163,25 @@ function isBg(x, y) {
   let outsideMask = new Uint8Array(w * h);
   let outStackX = []; let outStackY = [];
 
-  for(let x = minBoxX; x <= maxBoxX; x++) {
-    if (!isBgMask[minBoxY*w + x]) { outStackX.push(x); outStackY.push(minBoxY); outsideMask[minBoxY*w + x] = 1; }
-    if (!isBgMask[maxBoxY*w + x]) { outStackX.push(x); outStackY.push(maxBoxY); outsideMask[maxBoxY*w + x] = 1; }
-  }
-  for(let y = minBoxY; y <= maxBoxY; y++) {
-    if (!isBgMask[y*w + minBoxX]) { outStackX.push(minBoxX); outStackY.push(y); outsideMask[y*w + minBoxX] = 1; }
-    if (!isBgMask[y*w + maxBoxX]) { outStackX.push(maxBoxX); outStackY.push(y); outsideMask[y*w + maxBoxX] = 1; }
-  }
+    const expand = 5;
+    for(let x = Math.max(0, minBoxX - expand); x <= Math.min(w-1, maxBoxX + expand); x++) {
+        let y1 = Math.max(0, minBoxY - expand), y2 = Math.min(h-1, maxBoxY + expand);
+        if (!isBgMask[y1*w + x] && !outsideMask[y1*w + x]) { outStackX.push(x); outStackY.push(y1); outsideMask[y1*w + x] = 1; }
+        if (!isBgMask[y2*w + x] && !outsideMask[y2*w + x]) { outStackX.push(x); outStackY.push(y2); outsideMask[y2*w + x] = 1; }
+    }
+    for(let y = Math.max(0, minBoxY - expand); y <= Math.min(h-1, maxBoxY + expand); y++) {
+        let x1 = Math.max(0, minBoxX - expand), x2 = Math.min(w-1, maxBoxX + expand);
+        if (!isBgMask[y*w + x1] && !outsideMask[y*w + x1]) { outStackX.push(x1); outStackY.push(y); outsideMask[y*w + x1] = 1; }
+        if (!isBgMask[y*w + x2] && !outsideMask[y*w + x2]) { outStackX.push(x2); outStackY.push(y); outsideMask[y*w + x2] = 1; }
+    }
 
   let outHead = 0;
   while (outHead < outStackX.length) {
     let cx = outStackX[outHead]; let cy = outStackY[outHead]; outHead++;
-    if (cx+1 <= maxBoxX && !outsideMask[cy*w + cx+1] && !isBgMask[cy*w + cx+1]) { outsideMask[cy*w + cx+1] = 1; outStackX.push(cx+1); outStackY.push(cy); }
-    if (cx-1 >= minBoxX && !outsideMask[cy*w + cx-1] && !isBgMask[cy*w + cx-1]) { outsideMask[cy*w + cx-1] = 1; outStackX.push(cx-1); outStackY.push(cy); }
-    if (cy+1 <= maxBoxY && !outsideMask[(cy+1)*w + cx] && !isBgMask[(cy+1)*w + cx]) { outsideMask[(cy+1)*w + cx] = 1; outStackX.push(cx); outStackY.push(cy+1); }
-    if (cy-1 >= minBoxY && !outsideMask[(cy-1)*w + cx] && !isBgMask[(cy-1)*w + cx]) { outsideMask[(cy-1)*w + cx] = 1; outStackX.push(cx); outStackY.push(cy-1); }
+    if (cx+1 <= maxBoxX+expand && !outsideMask[cy*w + cx+1] && !isBgMask[cy*w + cx+1]) {outsideMask[cy*w + cx+1] = 1; outStackX.push(cx+1); outStackY.push(cy); }
+    if (cx-1 >= minBoxX-expand && !outsideMask[cy*w + cx-1] && !isBgMask[cy*w + cx-1]) {outsideMask[cy*w + cx-1] = 1; outStackX.push(cx-1); outStackY.push(cy); }
+    if (cy+1 <= maxBoxY+expand && !outsideMask[(cy+1)*w + cx] && !isBgMask[(cy+1)*w + cx]) {outsideMask[(cy+1)*w + cx] = 1; outStackX.push(cx); outStackY.push(cy+1); }
+    if (cy-1 >= minBoxY-expand && !outsideMask[(cy-1)*w + cx] && !isBgMask[(cy-1)*w + cx]) {outsideMask[(cy-1)*w + cx] = 1; outStackX.push(cx); outStackY.push(cy-1); }
   }
 
   for(let y = minBoxY; y <= maxBoxY; y++) {
@@ -6172,7 +6228,7 @@ function drawPriceText(ctx, w, h, textStr, info) {
   let numStr = textStr.trim(); 
   let symStr = isNumber ? " ₽" : ""; 
   let mainColor = isFree ? "#3bf83b" : "#fff";
-  let fontNum = `normal ${fontSize}px 'Lilita One', 'Arial Black', Impact, sans-serif`;
+  let fontNum = `normal ${fontSize}px 'LilitaOneRus', 'Arial Black', Impact, sans-serif`;
   let fontSym = `normal ${Math.max(fontSize - 4, 16)}px 'Rockwell', serif`;
 
   ctx.font = fontNum; let wNum = ctx.measureText(numStr).width;
@@ -6741,12 +6797,12 @@ function setupPersistentCanvas() {
 
 window.addCustomText = () => {
     if (!window.layerState.customTexts) window.layerState.customTexts = [];
-    if (window.layerState.customTexts.length >= 3) {
-        alert('Максимум 3 дополнительных текста!');
+    if (window.layerState.customTexts.length >= 6) {
+        alert('Максимум 6 дополнительных текстов!');
         return;
     }
     window.layerState.customTexts.push({ 
-        text: 'TEXT', 
+        text: 'TEXT',
         x: 50, 
         y: 50, 
         scale: 1,
@@ -6860,6 +6916,11 @@ window.updateCachedTextCanvas = () => {
     cachedTextCanvas.width = persistentCanvas.width; 
     cachedTextCanvas.height = persistentCanvas.height;
     let ctx = cachedTextCanvas.getContext('2d');
+
+    cachedCustomTextCanvas = document.createElement('canvas');
+    cachedCustomTextCanvas.width = persistentCanvas.width;
+    cachedCustomTextCanvas.height = persistentCanvas.height;
+    let customCtx = cachedCustomTextCanvas.getContext('2d');
     
     if (window.layerState.isBrawlPassMode && window.layerState.bpStyleIndex !== 2 && window.layerState.bpStyleIndex !== 3) {
         drawBPNickText(ctx, window.layerState.textValue || "SNAPI", persistentCanvas.width, persistentCanvas.height);
@@ -6871,7 +6932,7 @@ window.updateCachedTextCanvas = () => {
                 if (ct.text.trim() !== '') {
                     let f = ct.font || window.layerState.textFont || 'Font16103';
                     let s = ct.styleIndex !== undefined ? ct.styleIndex : (window.layerState.textStyleIndex || 0);
-                    drawCustomBeautifulNick(ctx, ct.text, persistentCanvas.width, persistentCanvas.height, ct.x, ct.y, ct.scale, f, s);
+                    drawCustomBeautifulNick(customCtx, ct.text, persistentCanvas.width, persistentCanvas.height, ct.x, ct.y, ct.scale, f, s);
                 }
             });
         }
@@ -7963,6 +8024,14 @@ let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
         persistentCtx.drawImage(cachedTextCanvas, 0, 0);
         persistentCtx.restore();
     }
+
+    if (cachedCustomTextCanvas) {
+        persistentCtx.save();
+        persistentCtx.imageSmoothingEnabled = true;
+        persistentCtx.imageSmoothingQuality = 'high';
+        persistentCtx.drawImage(cachedCustomTextCanvas, 0, 0);
+        persistentCtx.restore();
+    }
 }
 
 function drawFallbackRays(ctx, w, h, opacity = 1.0) {
@@ -8240,13 +8309,22 @@ function drawBeautifulNick(ctx, text, w, h) {
           if (radio) radio.classList.remove('checked');
       }
 
-      let varBtnNext = document.getElementById('bp-variant-btn-next');
+    let varBtnNext = document.getElementById('bp-variant-btn-next');
       if (varBtnNext) varBtnNext.classList.remove('show');
 
       uploadMode = null;
       selectedColor = null;
       uploadedBaseImg.removeAttribute('src');
       uploadedReadyBaseImg.removeAttribute('src');
+      rawBgImage = null;
+
+      if (animReq) {
+          cancelAnimationFrame(animReq);
+          animReq = null;
+      }
+      window.renderThrottle = false;
+      window.pendingRenderCache = false;
+
       wizardColorWraps.forEach(w => w.classList.remove('selected'));
 
       document.querySelectorAll('.fankit-item, .fankit-rec-item').forEach(el => el.classList.remove('selected'));
@@ -8719,6 +8797,7 @@ wizardNextBtn3.onclick = async () => {
       wizardNextBtn3.innerHTML = `<svg class="loading-spinner" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="10"></circle></svg>`;
       
       setTimeout(async () => {
+          await document.fonts.ready; 
           window.layerState.isBrawlPassMode = false;
           let nick = wizardNickInput.value.trim().substring(0, 16) || "Snapi";
           window.layerState.textValue = nick;
