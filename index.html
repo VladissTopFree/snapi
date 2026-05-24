@@ -7,12 +7,12 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.1(1)";
+  const APP_VERSION = "v2.4.1(2)";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
   const SHOW_PROMO_BANNER = false; 
-  const REQUIRE_TELEGRAM_APP = true; 
+  const REQUIRE_TELEGRAM_APP = false; 
 
   window.isNewUser = localStorage.getItem('Snapi_visited') === null;
 
@@ -2499,6 +2499,17 @@ body:not(.os-non-apple) .saved-works-icon {
     background-clip: padding-box !important;
   }
 
+body.os-desktop #wizard-step3 {
+  transition: background-color 0.2s, border 0.2s;
+  border: 2px solid transparent;
+}
+
+body.os-desktop #wizard-step3.dragover {
+  background-color: rgba(0, 160, 255, 0.05) !important;
+  border: 2px dashed var(--tg-theme-button-color);
+  border-radius: 24px;
+}
+
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -2915,7 +2926,7 @@ body:not(.os-non-apple) .saved-works-icon {
 
   <div id="wizard-step3" class="wizard-step">
     <div class="ios-wizard-title">Создание акции</div>
-    <div class="ios-wizard-subtitle">Скриншот. Загрузите скриншоты из игры<br>что бы система смогла их вырезать<br>и вставить на Ваш фон.</div>
+    <div class="ios-wizard-subtitle">Скриншот. Загрузите скриншоты из игры<br>что бы система смогла их вырезать<br>и вставить на Ваш фон. Или перетащите их со своего устройства сюда.</div>
     
     <div class="ios-info-plate">
         <svg class="ios-info-icon" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
@@ -4398,9 +4409,47 @@ function handleFilesAdded(files) {
 }
 
 fileInput.onchange = (e) => { 
-    if (e.target.files.length > 0) handleFilesAdded(e.target.files); 
-    e.target.value = ''; 
+  if (e.target.files.length > 0) handleFilesAdded(e.target.files); 
+  e.target.value = ''; 
 };
+
+const dropZone = document.getElementById('wizard-step3');
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+  dropZone.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, false);
+});
+
+['dragenter', 'dragover'].forEach(eventName => {
+  dropZone.addEventListener(eventName, () => {
+    if (document.body.classList.contains('os-desktop')) {
+      dropZone.classList.add('dragover');
+    }
+  }, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+  dropZone.addEventListener(eventName, () => {
+    dropZone.classList.remove('dragover');
+  }, false);
+});
+
+dropZone.addEventListener('drop', (e) => {
+  if (!document.body.classList.contains('os-desktop')) return;
+
+  let dt = e.dataTransfer;
+  let files = dt.files;
+
+  if (files && files.length > 0) {
+    let imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    
+    if (imageFiles.length > 0) {
+      handleFilesAdded(imageFiles);
+    }
+  }
+}, false);
 
 document.getElementById('file-add-screens').onchange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -6068,7 +6117,7 @@ function autoReplacePrice(ctx, w, h) {
   const d = imgData.data;
 
 let isWide = (w / h) > 0.85; 
-let seedX = isWide ? Math.floor(w * 0.8) : Math.floor(w * 0.5);
+let seedX = isWide ? Math.floor(w * 0.65) : Math.floor(w * 0.5);
 let seedY = h - 1;
 
 while (seedY > 0) {
@@ -6117,10 +6166,14 @@ while (seedY > 0) {
 
 function isBg(x, y) {
     if (x<0 || x>=w || y<0 || y>=h) return false;
+    
+    if (seedY - y > h * 0.28) return false; 
+    
     let i = (y*w + x)*4;
     if (d[i+3] < 128) return false;
     if (d[i] < 70 && d[i+1] < 70 && d[i+2] < 70) return false;
-    return Math.abs(d[i]-bgR) < 45 && Math.abs(d[i+1]-bgG) < 45 && Math.abs(d[i+2]-bgB) < 45;
+    
+    return Math.abs(d[i]-bgR) < 25 && Math.abs(d[i+1]-bgG) < 25 && Math.abs(d[i+2]-bgB) < 25;
   }
 
   let isBgMask = new Uint8Array(w * h);
