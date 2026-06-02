@@ -7,12 +7,12 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.1(2)";
+  const APP_VERSION = "v2.4.2";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
-  const SHOW_PROMO_BANNER = false; 
-  const REQUIRE_TELEGRAM_APP = true; 
+  const SHOW_PROMO_BANNER = true; 
+  const REQUIRE_TELEGRAM_APP = false; 
 
   window.isNewUser = localStorage.getItem('Snapi_visited') === null;
 
@@ -33,6 +33,29 @@
 
   const BP_SEASON_CONFIG = {
       50: {
+          lineColor: '#00fff0', 
+          gradientLeft: ['#6aff0055', '#6aff0055'], 
+          gradientRight: ['#0037ff50', '#0037ff50'],
+          style2Brawlers: { // yes
+              brawler2: { x: 1029, y: 23, scale: 0.27, scaleX: 1, scaleY: 1, rot: 0}, // Верхний
+              brawler1: { x: 917, y: 399, scale: 0.36, scaleX: 1, scaleY: 1, rot: 0, flipH: true }// Нижний
+        
+
+          },
+          style1Brawlers: { // yes
+              brawler2: { x: 484, y: 512, scale: 0.55, flipH: false }, // Нижний (x: 1200*0.42-30)
+              brawler1: { x: 703, y: 517, scale: 0.49, flipH: false }  // Верхний (x: 1200*0.58-30)
+          },
+          dopBrawler: { x: 569, y: 96, scale: 0.88, scaleX: 0.86, scaleY: 1, rot: 0 },
+          dopBrawler1: { x: 392, y: 76, scale: 0.89, scaleX: 1.37, scaleY: 1, rot: 0, flipH: true },
+          dopText: { x: 237, y: 678, scale: 0.16, rot: 0 },
+
+        style4Brawlers: {
+        brawlerL: { x: 885, y: 611, scale: 400, flipH: false },
+        brawlerR: { x: 1133, y: 580, scale: 450, flipH: false }
+        }
+      },
+      49: {
           lineColor: '#b2beff', 
           gradientLeft: ['#90c4c486', '#90c4c486'], 
           gradientRight: ['#7084f4', '#7084f4'],
@@ -48,9 +71,13 @@
           },
           dopBrawler: { x: 476, y: 16, scale: 1, scaleX: 1, scaleY: 1, rot: 0 },
           dopBrawler1: { x: 566, y: 182, scale: 0.75, scaleX: 1.24, scaleY: 1, rot: 0, flipH: true },
-          dopText: { x: 237, y: 678, scale: 0.16, rot: 0 }
+          dopText: { x: 237, y: 678, scale: 0.16, rot: 0 },
+                  style4Brawlers: {
+            brawlerL: { x: 855, y: 628, scale: 490, flipH: false },
+            brawlerR: { x: 1109, y: 583, scale: 415, flipH: false }
+        }
       },
-      49: {
+      48: {
           lineColor: '#ffa800', 
           gradientLeft: ['#ff5e00', '#ff5e00'], 
           gradientRight: ['#7b00d9', '#7b00d9'],
@@ -64,24 +91,12 @@
           },
           dopBrawler: { x: 492, y: 64, scale: 0.81, scaleX: 1.16, scaleY: 1.07, rot: 0 },
           dopBrawler1: { x: 618, y: 93, scale: 0.76, scaleX: 1, scaleY: 1.07, rot: 0, flipH: true },
-          dopText: { x: 237, y: 678, scale: 0.16, rot: 0 }      
+          dopText: { x: 237, y: 678, scale: 0.16, rot: 0 },
+                  style4Brawlers: {
+            brawlerL: { x: 855, y: 592, scale: 430, flipH: false },
+            brawlerR: { x: 1112, y: 588, scale: 350, flipH: false }
+        }    
         },
-      48: {
-          lineColor: '#ff3700', 
-          gradientLeft: ['#c33b15da', '#c33b15da'], 
-          gradientRight: ['#006effcc', '#006effcc'],
-          style2Brawlers: { // yes
-              brawler1: { x: 1013, y: 276, scale: 0.39, scaleX: 1, scaleY: 1, rot: 0, flipH: true }, 
-              brawler2: { x: 1057, y: -24, scale: 0.32, scaleX: 1, scaleY: 1, rot: 0 } 
-          },
-          style1Brawlers: { // yes
-              brawler2: { x: 688, y: 511, scale: 0.53, flipH: false }, // Нижний (x: 1200*0.42-30)
-              brawler1: { x: 485, y: 511, scale: 0.64, flipH: true }  // Верхний (x: 1200*0.58-30)
-          },
-          dopBrawler: { x: 674, y: -1, scale: 1.07, scaleX: 0.53, scaleY: 1, rot: 0 },
-          dopBrawler1: { x: 613, y: -40, scale: 1, scaleX: 0.72, scaleY: 1, rot: 0, flipH: true },
-          dopText: { x: 237, y: 678, scale: 0.16, rot: 0 }      
-        }
   };
 
 </script>
@@ -174,7 +189,8 @@
   body:not(.os-desktop) #bp-variant-overlay,
   body:not(.os-desktop) #ios-dashboard,
   body:not(.os-desktop) #saved-projects-overlay,
-  body:not(.os-desktop) #settings-overlay {
+  body:not(.os-desktop) #settings-overlay,
+  body:not(.os-desktop) #size-overlay {
     --app-top-padding: 108px;
     --app-top-padding-sm: 114px;
   }
@@ -684,7 +700,7 @@
     margin-left: 14px;
     letter-spacing: 0.5px;
     width: 100%;
-    font-weight: 200; 
+    font-weight: 300; 
   }
 
   body.os-non-apple .ios-section-title {
@@ -1438,11 +1454,11 @@
     opacity: 1;
   }
 
-    .fankit-sheet {
+  .fankit-sheet {
     background: var(--tg-theme-secondary-bg-color, #F2F2F7);
     width: 100%;
     max-height: 91vh;
-    border-radius: 16px 16px 0 0;
+    border-radius: 21px 21px 0 0;
     padding: 0 0 40px 0; 
     display: flex;
     flex-direction: column;
@@ -1451,19 +1467,33 @@
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     
-    overflow-x: hidden; 
+    overflow-x: clip;
+    padding-right: 0;
+
   }
+
+    #fankit-sheet {
+        height: 86%; 
+    }
+
+    body.os-non-apple #fankit-sheet {
+        height: 71%;
+    }
+
+    body.os-android #fankit-sheet {
+        height: 86%;
+    }
 
   #fankit-overlay.show .fankit-sheet {
     transform: translateY(0);
   }
 
   .fankit-drag-pill {
-    width: 46px; 
-    height: 6px;
-    background: var(--tg-theme-subtitle-text-color);
+    width: 36px; 
+    height: 8px;
+    background: var(--tg-theme-subtitle-text-color, #8E8E93);
     border-radius: 6px;
-    margin: 6px auto 20px auto;
+    margin: 8px auto 20px auto;
   }
 
   .fankit-title {
@@ -1506,30 +1536,31 @@
   }
 
     .fankit-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); 
-    gap: 8px;
-    overflow-y: auto;
-    
-    overflow-x: hidden; 
-    touch-action: pan-y; 
-    
-    -webkit-overflow-scrolling: touch;
-    padding: 5px 20px 20px 20px; 
-    height: 100%;
-    box-sizing: border-box;
-  }
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 8px;
+        overflow-y: auto;
+        overflow-x: hidden; 
+        touch-action: pan-y; 
+        -webkit-overflow-scrolling: touch;
+        padding: 5px 12px 20px 12px; 
+        height: 100%;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: clip;
+    }
 
   .fankit-recommended-wrapper {
     background: var(--tg-theme-section-bg-color, #ffffff);
     border-radius: 16px;
-    padding: 12px;
+    padding: 12px 8px;
     margin: 0 20px 10px 20px;
   }
   
   .fankit-rec-title {
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 300;
     color: var(--tg-theme-subtitle-text-color, #8E8E93);
     text-transform: uppercase;
     margin-bottom: 10px;
@@ -2001,349 +2032,172 @@
       top: -1px; 
   }
 
-.promo-banner {
-    position: relative;
-    width: 100%;     
-    height: 116px;    
-    min-height: 116px; 
-    flex-shrink: 0;    
-    background: linear-gradient(to right, #d39eff 0%, #c885ff 100%);    
-    border-radius: 24px;
-    margin: 0 auto 24px auto; 
-    
-    -webkit-clip-path: inset(-500px -200px 0 -200px round 0 0 24px 24px);
-    clip-path: inset(-500px -200px 0 -200px round 0 0 24px 24px);
-    
-    display: flex;
-    flex-direction: column;
-    
-    justify-content: center; 
-    
-    padding: 0 20px; 
-    box-sizing: border-box;
-    
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    
-    --b2-x: -146px; --b2-y: -46px; --b2-s: 1.36; 
-    --b1-x: -7px; --b1-y: -4px;  --b1-s: 0.86;  
-    --star-x: 41px; --star-y: -1px; --star-s: 0.86; 
-    --txt-x: 0px; --txt-y: 0px; 
-  }
-  
-  .promo-banner:active {
-    transform: scale(0.97);
-    opacity: 0.9;
-    transition: all 0.1s ease;
-  }
-
-.promo-custom-star {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    transform-origin: center;
-    opacity: 1;
-  }
-  
-body.os-non-apple .promo-banner {
-    border-radius: 16px !important;
-    -webkit-clip-path: inset(-500px -200px 0 -200px round 0 0 16px 16px) !important;
-    clip-path: inset(-500px -200px 0 -200px round 0 0 16px 16px) !important;
-  }
-  
-  .promo-brawler-left {
-    position: absolute;
-    bottom: calc(12px + var(--b2-y));
-    right: calc(136px + var(--b2-x)); 
-    height: 121px; 
-    z-index: 2;
-    pointer-events: none;
-    transform: scale(var(--b2-s));
-    transform-origin: bottom right;
-  }
-  
-  .promo-brawler-right {
-    display: none;
-    position: absolute;
-    bottom: calc(-12px + var(--b1-y));
-    right: calc(-36px + var(--b1-x));
-    height: 131px; 
-    z-index: 1;
-    pointer-events: none;
-    transform: scale(var(--b1-s));
-    transform-origin: bottom right;
-  }
-  
-  .promo-badge {
-    position: absolute;
-    right: calc(60px + var(--star-x));
-    top: 53%;
-    transform: translateY(-50%) scale(var(--star-s));
-    margin-top: var(--star-y);
-    width: 60px;
-    height: 60px;
-    z-index: 3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .badge-bg {
-    position: absolute;
-    width: 140%; 
-    height: 140%;
-    top: -20%;
-    left: -20%;
-    z-index: -1;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
-  }
-  
-  .promo-badge span {
-    font-family: 'LilitaOneRus', 'Arial Black', sans-serif;
-    color: #924000;
-    font-size: 31px;
-    z-index: 1;
-    margin-top: -2px;
-  }
-  
-.promo-content {
-    position: relative;
-    z-index: 4;
-    display: flex;
-    flex-direction: column;
-    gap: 0px;
-    max-width: 180px; 
-    margin: 0;
-  }
-  
-.promo-subtitle {
-    color: rgb(255, 255, 255);
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1.2;
-    white-space: normal;
-    word-wrap: break-word; 
-  }
-  
-.promo-title {
-    font-family: ui-rounded, 'SF Pro Rounded', 'ArialRoundedOld', 'Arial Rounded MT Bold', sans-serif;
-    font-weight: 800; 
-    font-size: 28px;
-    
-    -webkit-text-stroke: 0px transparent; 
-    
-    background: #ffef9e;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    line-height: 1.1;
-
-    margin: 6px 0;
-  }
-
-  body.os-non-apple .promo-title {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 900 !important;
-    -webkit-text-stroke: 0px transparent;
-  }
-  
-  .promo-action {
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  
-.promo-action svg {
-  width: 6px;
-  height: 10px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  
-  margin-top: 2px; 
-  animation: arrowBounce 1.2s ease-in-out infinite; 
-}
-
-@keyframes arrowBounce {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(4px); 
-  }
-}
-
-  .promo-badge-glow {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: var(--badge-glow-size, 106px);
-    height: var(--badge-glow-size, 106px);
-    background: var(--badge-glow-color, #caefffde);
-    filter: blur(var(--badge-glow-blur, 30px));
-    opacity: var(--badge-glow-opacity, 0.8);
-    border-radius: 50%;
-    z-index: -2; 
-    pointer-events: none;
-  }
-
-  @keyframes timeUpdateBlur {
-    0% { filter: blur(4px); opacity: 0.5; }
-    100% { filter: blur(0px); opacity: 1; }
-  }
-  .timer-tick {
-    animation: timeUpdateBlur 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    display: inline-block; 
-  }
-
-  .promo-title span {
-    background: #ffef9e;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
-  }
-
-  .timer-part {
-    position: relative;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .timer-colon, .digit-old, .digit-new {
-    background: linear-gradient(180deg, #ffef9e 0%, #ffb82c 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
-  }
-
-  .timer-colon {
-    margin: 0; 
-    position: relative;
-    top: -2px; 
-  }
-
-  .digit-old {
-    position: absolute;
-    animation: digitOut 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  .digit-new {
-    animation: digitIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  @keyframes digitOut {
-    0% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0px); }
-    100% { transform: translateY(-70%) scale(0.6); opacity: 0; filter: blur(2px); }
-  }
-
-  @keyframes digitIn {
-    0% { transform: translateY(15%) scale(0.9); opacity: 0; filter: blur(5px); }
-    100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0px); }
-  }
-
-  @keyframes contentBlurSwap {
-    0% { filter: blur(0px); opacity: 1; transform: scale(1); }
-    50% { filter: blur(10px); opacity: 0; transform: scale(0.95); }
-    100% { filter: blur(0px); opacity: 1; transform: scale(1); }
-  }
-  
-  .promo-content.swapping {
-    animation: contentBlurSwap 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-.promo-desc {
-    color: #ffe47a; 
-    font-size: 12px; 
-    font-weight: 500;
-    line-height: 1.35; 
-    margin: 8px 0 10px 0; 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    max-width: 100%; 
-  }
-
-  .promo-hidden {
-    display: none !important;
-  }
-
-  @media (max-width: 380px) {
-    .promo-content {
-      max-width: 160px; 
-    }
-    .promo-subtitle {
-      font-size: 11px; 
-    }
-    .promo-desc {
-      font-size: 11px;
-    }
-    .promo-action {
-      font-size: 12px;
-    }
-  }
-
-.promo-text-glow {
+.promo-bg-arrows {
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 3;
+  right: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: -12px;
+  padding-right: 20px;
+  z-index: 0; 
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+  .promo-content {
+    position: relative; 
+    z-index: 2;         
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .promo-icon-wrapper {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+.promo-bg-arrows svg {
+    width: 120px;
+    height: 120px;
+    margin-left: -50px; 
+  }
+
+  .promo-bg-arrows svg:first-child {
+  margin-left: 0;
+}
+
+@keyframes blurFadeOutTimer {
+  0% { filter: blur(0px); opacity: 1; transform: scale(1); }
+  100% { filter: blur(8px); opacity: 0; transform: scale(0.95); }
+}
+
+.blur-fade-out {
+  animation: blurFadeOutTimer 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
   pointer-events: none;
 }
 
-.promo-text-glow::before {
-  content: "";
-  position: absolute;
-  top: 25px;      
-  bottom: 25px;   
-  left: 30px; 
-  width: 256px; 
-  background: #d39eff; 
-  filter: blur(26px); 
-  opacity: 0.76;
-  border-radius: 50%; 
-}
+.promo-action svg {
+    width: 15px;  
+    height: 15px;
+    fill: currentColor; 
+    stroke: none; 
+    margin-top: 2px;
+    margin-left: -3px;
+  }
 
-.flip-wrapper {
+
+.promo-banner {
   position: relative;
-  display: inline-block;
-}
-.flip-old {
-  position: absolute;
-  left: 0;
-  top: 0;
-  animation: digitOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-.flip-new {
-  display: inline-block;
-  animation: digitIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-
-.promo-banner.is-loading {
-  background: var(--tg-theme-section-bg-color, #ffffff) !important; 
-  pointer-events: none !important; 
-}
-
-.promo-banner > * {
-  transition: opacity 0.4s ease-in-out;
+  width: 100%;
+  height: 91px; 
+  min-height: 86px;
+  background: #edba2e;
+  border-radius: 21px;
+  margin: 0 auto 24px auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  
+  -webkit-tap-highlight-color: transparent; 
+  user-select: none; 
+  -webkit-user-select: none;
+  transition: transform 0.1s ease, opacity 0.1s ease; 
 }
 
-.promo-banner.is-loading > * {
-  opacity: 0 !important;
+.promo-banner:active {
+  transform: scale(0.95);
+  opacity: 0.8;
 }
 
-@keyframes bannerFadeIn {
-  from { opacity: 0; transform: translateY(-8px) scale(0.98); filter: blur(4px); }
-  to   { opacity: 1; transform: translateY(0)   scale(1);    filter: blur(0px); }
+.promo-bp-icon {
+  height: 75%; 
+  width: auto;
+  object-fit: contain;
+  
+  pointer-events: none; 
+  user-select: none;
+  -webkit-user-drag: none; 
 }
 
-.promo-banner.banner-ready {
-  animation: bannerFadeIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+.promo-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
+.promo-subtitle {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.promo-action {
+    color: #ffee00;
+    font-size: 21px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.promo-icon-wrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.promo-bp-icon {
+    height: 75%; 
+    width: auto;
+    object-fit: contain;
+}
+
+.promo-timer-box {
+  display: inline-flex;
+  align-items: center;
+  background: #ff691843;
+  color: #ffe8dc;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: -apple-system, sans-serif;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 4px;
+  width: fit-content;
+  
+  max-height: 30px; 
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#promo-timer {
+  margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.promo-timer-box.hidden-smooth {
+  max-height: 0;
+  margin-top: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.timer-part { display: inline-flex; align-items: center; }
   .sub-options-wrap {
     display: grid;
     grid-template-rows: 0fr;
@@ -2510,6 +2364,24 @@ body.os-desktop #wizard-step3.dragover {
   border-radius: 24px;
 }
 
+.size-preset-card:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+.size-preset-card.selected {
+  border-color: var(--tg-theme-button-color, #3390ec) !important;
+}
+#custom-w-wrap.focused, #custom-h-wrap.focused {
+  border-color: var(--tg-theme-button-color, #3390ec);
+}
+
+body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
+    background: transparent !important;
+    color: var(--tg-theme-button-color) !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
+
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -2517,14 +2389,62 @@ body.os-desktop #wizard-step3.dragover {
 <div id="ios-dashboard">
   <div class="ios-container">
 
-    <div style="display: flex; align-items: center; justify-content: flex-start; margin-left: 8px; margin-bottom: 6px; overflow: hidden;">
-      
-      <img src="AnimatedSticker-ezgif.com-gif-maker-2.gif" alt="" draggable="false" style="width: 28px; height: 28px; margin-right: 6px; object-fit: contain; margin-bottom: 3px; user-select: none; -webkit-user-drag: none;">
-      
-      <span id="snapi-app-title" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 800; color: var(--tg-theme-link-color, #3390ec); letter-spacing: 0.5px; display: inline-block;">
-        Snapi
-      </span>
-    </div>
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; overflow: hidden;">
+  <div style="display: flex; align-items: center; margin-left: 8px;">
+    <img src="AnimatedSticker-ezgif.com-gif-maker-2.gif" alt="" draggable="false" style="width: 28px; height: 28px; margin-right: 6px; object-fit: contain; margin-bottom: 3px; user-select: none; -webkit-user-drag: none;">
+    <span id="snapi-app-title" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 800; color: var(--tg-theme-link-color, #3390ec); letter-spacing: 0.5px; display: inline-block;">
+      Snapi
+    </span>
+  </div>
+<div onclick="openSettings()" class="settings-header-btn" style="display: flex; align-items: center; gap: 5px; background: color-mix(in srgb, var(--tg-theme-destructive-text-color) 12%, transparent); border-radius: 8px; padding: 5px 6px 5px 6px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s, transform 0.15s; flex-shrink: 0;">
+
+    <svg width="14" height="14" viewBox="0 0 512 512" fill="var(--tg-theme-destructive-text-color)" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)"
+        fill="var(--tg-theme-destructive-text-color)" stroke="none">
+        <path d="M2310 5104 c-89 -39 -124 -101 -139 -249 -6 -60 -14 -131 -17 -157
+        l-6 -47 -51 -11 c-29 -6 -92 -22 -141 -36 -73 -22 -90 -24 -97 -13 -5 8 -48
+        68 -96 133 -104 141 -133 161 -233 161 -64 0 -67 -1 -242 -103 -121 -70 -189
+        -116 -213 -144 -66 -78 -62 -152 22 -335 l61 -132 -105 -104 -104 -105 -132
+        61 c-183 84 -257 88 -335 22 -28 -24 -74 -92 -144 -213 -102 -175 -103 -178
+        -103 -242 0 -100 20 -129 161 -233 65 -48 125 -91 133 -96 11 -7 9 -24 -13
+        -97 -14 -49 -30 -112 -36 -141 l-11 -51 -47 -6 c-26 -3 -96 -11 -157 -17 -149
+        -15 -212 -50 -249 -141 -23 -54 -23 -442 0 -496 37 -91 100 -126 249 -141 61
+        -6 131 -14 157 -17 l47 -6 11 -51 c6 -29 22 -92 36 -140 14 -49 24 -90 22 -91
+        -1 -2 -60 -44 -130 -94 -154 -112 -173 -138 -173 -237 l0 -70 98 -170 c54 -93
+        115 -187 135 -207 77 -80 159 -78 349 9 l131 61 105 -105 104 -104 -60 -132
+        c-87 -191 -89 -272 -9 -349 20 -20 114 -81 207 -135 168 -97 171 -98 235 -98
+        100 0 129 20 233 161 48 65 91 125 96 133 7 11 24 9 97 -13 49 -14 113 -31
+        142 -37 28 -6 52 -14 52 -19 0 -4 7 -74 16 -155 16 -157 30 -198 81 -247 55
+        -53 84 -58 313 -58 229 0 258 5 313 58 48 45 64 89 76 207 6 61 14 131 17 157
+        l6 47 51 11 c29 6 92 22 141 36 73 22 90 24 97 13 5 -8 48 -68 96 -133 104
+        -141 133 -161 233 -161 64 0 68 2 230 95 242 139 276 177 268 294 -3 48 -17
+        89 -65 193 l-61 131 105 105 104 104 132 -60 c191 -87 272 -89 349 -9 20 20
+        81 114 135 207 97 168 98 171 98 235 0 100 -20 129 -161 233 -65 48 -125 91
+        -133 96 -11 7 -9 24 13 97 14 49 31 113 37 141 6 29 14 53 19 53 4 0 74 7 155
+        16 157 16 198 30 247 81 53 55 58 84 58 313 0 229 -5 258 -58 313 -48 51 -88
+        64 -247 81 -82 9 -153 16 -157 16 -3 0 -11 24 -17 53 -6 28 -23 92 -37 140
+        -14 49 -24 90 -22 91 1 2 58 42 126 91 129 92 151 116 172 179 25 77 11 119
+        -99 309 -130 224 -165 257 -274 257 -42 0 -79 -12 -195 -64 l-142 -64 -104
+        105 -103 105 60 132 c89 192 89 272 4 354 -18 17 -108 75 -202 129 -168 97
+        -171 98 -235 98 -100 0 -129 -20 -233 -161 -48 -65 -91 -125 -96 -133 -7 -11
+        -24 -9 -97 13 -49 14 -112 30 -141 36 l-51 11 -6 47 c-3 26 -11 97 -17 157
+        -15 149 -50 212 -141 249 -53 23 -446 22 -498 0z m502 -1073 c294 -51 557
+        -184 776 -395 129 -125 214 -237 291 -386 82 -160 151 -365 151 -452 l0 -28
+        -489 0 -489 0 -30 53 c-43 75 -94 130 -162 176 -87 58 -160 82 -269 90 l-93 6
+        -240 415 c-132 228 -242 420 -245 427 -8 20 232 89 372 106 96 12 321 6 427
+        -12z m-923 -734 l241 -419 -34 -61 c-19 -34 -42 -89 -50 -122 -18 -67 -20
+        -189 -6 -252 11 -45 48 -132 75 -173 17 -25 14 -30 -225 -445 -134 -231 -246
+        -424 -250 -428 -10 -12 -180 152 -252 241 -333 418 -413 1012 -201 1506 45
+        106 130 248 201 338 72 89 242 253 252 241 4 -4 116 -196 249 -426z m2141
+        -974 c0 -40 -34 -175 -66 -263 -79 -220 -204 -411 -381 -581 -205 -196 -460
+        -329 -740 -386 -126 -25 -444 -25 -563 0 -128 28 -272 76 -267 90 3 7 113 199
+        245 427 l240 415 93 6 c189 13 340 106 431 267 l30 52 489 0 489 0 0 -27z"/>
+        </g>
+    </svg>
+
+  <span style="font-size: 10px; font-weight: 600; color: var(--tg-theme-destructive-text-color);">Настройки</span>
+</div>
+</div>
 
     <div class="ios-card ios-profile" style="flex-direction: column; justify-content: center; padding: 20px; overflow: hidden; position: relative;">
       
@@ -2543,45 +2463,44 @@ body.os-desktop #wizard-step3.dragover {
       </div>
     </div>
 
-<div class="promo-banner is-loading" id="main-promo" onclick="window.openBPFromPromo()">
-<div id="promo-bg-stars-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99;"></div>
-      <img src="BP/brawler_s51_2.png" class="promo-brawler-left" alt="">
-      <img src="BP/brawler_s51_1.png" class="promo-brawler-right" alt="">
+<div class="promo-banner" id="main-promo" onclick="window.openBPFromPromo()">
+<div class="promo-bg-arrows">
+    <svg viewBox="0 0 512 512">
+      <g transform="translate(0,512) scale(0.1,-0.1)" fill="#ffffff" stroke="none">
+        <path d="M1519 4852 c-123 -32 -234 -128 -292 -250 -30 -64 -32 -73 -32 -187 0 -207 -71 -120 859 -1053 l801 -802 -811 -813 c-758 -760 -812 -816 -838 -875 -38 -88 -51 -177 -36 -260 45 -262 303 -432 555 -367 126 33 106 15 1124 1029 530 529 983 987 1007 1019 114 153 114 381 0 534 -24 32 -473 486 -997 1010 -1015 1012 -984 984 -1116 1018 -73 19 -141 18 -224 -3z"/>
+      </g>
+    </svg>
+    <svg viewBox="0 0 512 512">
+      <g transform="translate(0,512) scale(0.1,-0.1)" fill="#ffffff" stroke="none">
+        <path d="M1519 4852 c-123 -32 -234 -128 -292 -250 -30 -64 -32 -73 -32 -187 0 -207 -71 -120 859 -1053 l801 -802 -811 -813 c-758 -760 -812 -816 -838 -875 -38 -88 -51 -177 -36 -260 45 -262 303 -432 555 -367 126 33 106 15 1124 1029 530 529 983 987 1007 1019 114 153 114 381 0 534 -24 32 -473 486 -997 1010 -1015 1012 -984 984 -1116 1018 -73 19 -141 18 -224 -3z"/>
+      </g>
+    </svg>
+    <svg viewBox="0 0 512 512">
+      <g transform="translate(0,512) scale(0.1,-0.1)" fill="#ffffff" stroke="none">
+        <path d="M1519 4852 c-123 -32 -234 -128 -292 -250 -30 -64 -32 -73 -32 -187 0 -207 -71 -120 859 -1053 l801 -802 -811 -813 c-758 -760 -812 -816 -838 -875 -38 -88 -51 -177 -36 -260 45 -262 303 -432 555 -367 126 33 106 15 1124 1029 530 529 983 987 1007 1019 114 153 114 381 0 534 -24 32 -473 486 -997 1010 -1015 1012 -984 984 -1116 1018 -73 19 -141 18 -224 -3z"/>
+      </g>
+    </svg>
+  </div>
 
-    <div class="promo-text-glow"></div>
-
-      <div class="promo-badge">
-        <div class="promo-badge-glow"></div>
-        
-        <svg class="badge-bg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="star-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#ffef9e"/>
-              <stop offset="100%" stop-color="#ffb82c"/>
-            </linearGradient>
-          </defs>
-
-          <path d="M 50 12 L 60.33 25.05 L 76.87 23.13 L 74.95 39.67 L 88 50 L 74.95 60.33 L 76.87 76.87 L 60.33 74.95 L 50 88 L 39.67 74.95 L 23.13 76.87 L 25.05 60.33 L 12 50 L 25.05 39.67 L 23.13 23.13 L 39.67 25.05 Z" 
-                fill="#cd6a2e" stroke="#cd6a2e" stroke-width="24" stroke-linejoin="round"/>
-          
-          <path d="M 50 12 L 60.33 25.05 L 76.87 23.13 L 74.95 39.67 L 88 50 L 74.95 60.33 L 76.87 76.87 L 60.33 74.95 L 50 88 L 39.67 74.95 L 23.13 76.87 L 25.05 60.33 L 12 50 L 25.05 39.67 L 23.13 23.13 L 39.67 25.05 Z" 
-                fill="#fff0c7" stroke="#fff0c7" stroke-width="14" stroke-linejoin="round"/>
-          
-          <path d="M 50 12 L 60.33 25.05 L 76.87 23.13 L 74.95 39.67 L 88 50 L 74.95 60.33 L 76.87 76.87 L 60.33 74.95 L 50 88 L 39.67 74.95 L 23.13 76.87 L 25.05 60.33 L 12 50 L 25.05 39.67 L 23.13 23.13 L 39.67 25.05 Z" 
-                fill="url(#star-grad)" stroke="url(#star-grad)" stroke-width="6" stroke-linejoin="round"/>
-        </svg>
-        <span>51</span>
-      </div>
-      
-      <div class="promo-content">
-        <div class="promo-subtitle">Новый сезон скоро выйдет!</div>
-        <div class="promo-title" id="promo-timer"></div>        
-        <div class="promo-action">
-          Пора оформить 
-          <svg viewBox="0 0 8 14"><path d="M1 1l6 6-6 6"></path></svg>
-        </div>
-      </div>
+<div class="promo-content">
+    <div class="promo-subtitle">Новый 51 сезон</div>
+    <div class="promo-timer-box" id="promo-timer-container">
+      через <span id="promo-timer">00:00:00</span>
     </div>
+    <div class="promo-action">
+      Оформить 
+      <svg viewBox="0 0 512 512">
+        <g transform="translate(0,512) scale(0.1,-0.1)" fill="currentColor" stroke="none">
+          <path d="M1519 4852 c-123 -32 -234 -128 -292 -250 -30 -64 -32 -73 -32 -187 0 -207 -71 -120 859 -1053 l801 -802 -811 -813 c-758 -760 -812 -816 -838 -875 -38 -88 -51 -177 -36 -260 45 -262 303 -432 555 -367 126 33 106 15 1124 1029 530 529 983 987 1007 1019 114 153 114 381 0 534 -24 32 -473 486 -997 1010 -1015 1012 -984 984 -1116 1018 -73 19 -141 18 -224 -3z"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  
+  <div class="promo-icon-wrapper">
+    <img src="BP/bp_icon_brawl_pass.png" class="promo-bp-icon" alt="" draggable="false">
+  </div>
+</div>
 
     <div class="ios-section-title" style="margin-top: 0;">ПУНКТ УПРАВЛЕНИЯ</div>
     
@@ -2599,22 +2518,6 @@ body.os-desktop #wizard-step3.dragover {
       <div class="ios-menu-value" id="saved-count-val">0</div>
       <div class="ios-chevron">
         <svg viewBox="0 0 8 14" width="8" height="14"><path d="M1 1l6 6-6 6" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </div>
-
-    <div class="ios-card-group">
-      <div class="ios-menu-item" onclick="openSettings()">
-        <div class="ios-icon-box" style="background: linear-gradient(180deg, #e06861 0%, #de4c3e 100%);">
-          <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet">
-             <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" fill="white" stroke="none">
-               <path d="M1644 5106 c-240 -55 -425 -231 -490 -467 -14 -49 -18 -96 -16 -199 2 -183 -21 -261 -104 -344 -84 -83 -160 -106 -349 -103 -158 2 -211 -9 -325 -69 -295 -154 -424 -497 -303 -804 43 -108 95 -177 217 -289 91 -84 133 -184 123 -298 -8 -99 -51 -177 -144 -260 -130 -117 -198 -230 -229 -384 -42 -209 21 -415 176 -570 81 -82 148 -124 250 -160 55 -19 93 -24 245 -28 168 -6 184 -8 237 -33 73 -34 142 -103 176 -176 26 -54 27 -65 28 -222 0 -176 8 -224 54 -325 130 -289 492 -445 790 -341 109 38 173 81 289 197 126 126 176 151 301 151 119 0 178 -27 275 -126 111 -113 160 -151 246 -190 100 -45 167 -60 274 -60 297 1 544 194 621 487 12 43 17 109 18 217 1 145 3 159 27 211 37 79 90 133 167 171 66 33 68 33 247 38 161 5 188 9 253 32 136 49 243 134 324 257 71 108 98 204 98 344 0 208 -54 332 -216 492 -55 55 -108 112 -117 126 -31 51 -50 139 -45 210 8 103 40 158 167 285 162 163 211 274 211 479 0 192 -52 319 -184 450 -143 143 -266 190 -486 187 -158 -1 -219 12 -297 64 -60 41 -118 120 -138 188 -10 32 -14 93 -14 189 1 162 -10 218 -68 336 -53 109 -169 224 -283 280 -277 135 -575 72 -788 -167 -47 -53 -79 -79 -130 -104 -61 -30 -74 -33 -162 -33 -132 0 -185 25 -301 145 -104 107 -186 162 -293 196 -100 32 -242 40 -332 20z m1136 -1572 c298 -62 581 -292 699 -571 65 -151 76 -211 76 -403 0 -153 -3 -185 -23 -255 -50 -173 -138 -322 -261 -446 -89 -89 -172 -147 -287 -201 -146 -68 -214 -82 -414 -82 -153 -1 -185 2 -255 22 -105 30 -264 108 -345 170 -424 322 -522 920 -221 1355 97 140 235 259 386 332 202 98 420 125 645 79z"/>
-             </g>
-           </svg>
-        </div>
-        <div class="ios-menu-text">Настройки</div>
-        <div class="ios-chevron">
-          <svg viewBox="0 0 8 14" width="8" height="14"><path d="M1 1l6 6-6 6" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
       </div>
     </div>
 
@@ -2688,7 +2591,7 @@ body.os-desktop #wizard-step3.dragover {
         </div>
         
         <div class="cat-card" id="bp-main-card" onclick="selectCategory('bp')" style="border-bottom-color: transparent; transition: border-bottom-color 0.3s ease;">            
-            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_bp2_1.png", "demo_png/demo_png_bp2_2.png", "demo_png/demo_png_bp2_3.png"]' style="width: 140px; height: 78px; border-radius: 6px; margin-right: 14px; position: relative;">
+            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_bp2_1.png", "demo_png/demo_png_dop_bp4_3.png", "demo_png/demo_png_osnBP4_2.png"]' style="width: 140px; height: 78px; border-radius: 6px; margin-right: 14px; position: relative;">
                 <img src="demo_png/demo_png_bp2_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                 <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
             </div>
@@ -2704,7 +2607,7 @@ body.os-desktop #wizard-step3.dragover {
                     <div class="cat-radio" id="bp-sub-radio-normal" style="margin-top: 10px;">
                         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
-                    <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP1_1.png", "demo_png/demo_png_bp2_1.png", "demo_png/demo_png_osnBP3_1.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                    <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP1_1.png", "demo_png/demo_png_bp2_2.png", "demo_png/demo_png_osnBP4_1.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
                         <img src="demo_png/demo_png_osnBP1_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                         <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
                     </div>
@@ -2718,7 +2621,7 @@ body.os-desktop #wizard-step3.dragover {
                     <div class="cat-radio" id="bp-sub-radio-additional" style="margin-top: 10px;">
                         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
-                    <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dop_bp4_1.png", "demo_png/demo_png_bp2_2.png", "demo_png/demo_png_dop_bp4_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                    <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dop_bp4_1.png", "demo_png/demo_png_dopBP_bp2_2.png", "demo_png/demo_png_dopBP_bp3_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
                         <img src="demo_png/demo_png_dop_bp4_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                         <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
                     </div>
@@ -2783,6 +2686,20 @@ body.os-desktop #wizard-step3.dragover {
                 <div class="cat-info" style="justify-content: center; min-height: 78px;">
                     <div class="cat-name">Стиль #3</div>
                     <div class="cat-desc">Включает в себя BP, BP+, Pro Pass и детали для улучшения работы.</div>
+                </div>
+        </div>
+
+        <div class="cat-card" onclick="selectBPStyle(4)">
+            <div class="cat-radio" id="bp-radio-4">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+                <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP4_1.png", "demo_png/demo_png_osnBP4_2.png", "demo_png/demo_png_osnBP4_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                    <img src="demo_png/demo_png_osnBP4_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+                    <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
+                </div>
+                <div class="cat-info" style="justify-content: center; min-height: 78px;">
+                    <div class="cat-name" style="display: flex; align-items: center; gap: 6px;">Стиль #4 <span style="display: inline-flex; align-items: center; justify-content: center; background: var(--tg-theme-button-color); color: #ffffff; font-size: 11px; font-weight: 500; padding: 3px 5px 2px 5px; border-radius: 6px; line-height: 1; flex-shrink: 0;">НОВОЕ</span></div>
+                    <div class="cat-desc">Включает в себя BP, BP+, Pro Pass, кристаллы, пины и детали для улучшения работы.</div>
                 </div>
         </div>
 
@@ -2985,8 +2902,8 @@ body.os-desktop #wizard-step3.dragover {
                 <img src="demo_png50s.png" class="cat-img loaded" style="object-fit: cover;">
             </div>
             <div class="cat-info" style="justify-content: flex-start; align-items: flex-start; text-align: left;">
-                <div class="cat-name" style="width: 100%;">50 сезон</div>
-                <div class="cat-desc">Текущий сезон Brawl Pass.<br>Вышел 7 мая.</div>
+                <div class="cat-name" style="width: 100%;">51 сезон</div>
+                <div class="cat-desc">Будущий сезон Brawl Pass.<br>Выйдет 4 июня.</div>
             </div>
          </div>
          
@@ -2998,8 +2915,8 @@ body.os-desktop #wizard-step3.dragover {
                 <img src="demo_png49s.png" class="cat-img loaded" style="object-fit: cover;">
             </div>
             <div class="cat-info" style="justify-content: flex-start; align-items: flex-start; text-align: left;">
-                <div class="cat-name" style="width: 100%;">49 сезон</div>
-                <div class="cat-desc">Прошлый сезон Brawl Pass.<br>Вышел 2 апреля.</div>
+                <div class="cat-name" style="width: 100%;">50 сезон</div>
+                <div class="cat-desc">Текущий сезон Brawl Pass.<br>Вышел 7 мая.</div>
             </div>
          </div>
 
@@ -3011,8 +2928,8 @@ body.os-desktop #wizard-step3.dragover {
                 <img src="demo_png48s.png" class="cat-img loaded" style="object-fit: cover;">
             </div>
             <div class="cat-info" style="justify-content: flex-start; align-items: flex-start; text-align: left;">
-                <div class="cat-name" style="width: 100%;">48 сезон</div>
-                <div class="cat-desc">Старый сезон Brawl Pass.<br>Вышел 5 марта.</div>
+                <div class="cat-name" style="width: 100%;">49 сезон</div>
+                <div class="cat-desc">Прошлый сезон Brawl Pass.<br>Вышел 2 апреля.</div>
             </div>
          </div>
 
@@ -3143,9 +3060,23 @@ body.os-desktop #wizard-step3.dragover {
             else btn.classList.remove('show');
         }
     };
-    
-    setTimeout(window.checkBPStyle2Ready, 50);
+    
+window.checkBPStyle4Ready = function() {
+        let allFilled = true;
+        for (let i = 0; i <= 10; i++) {
+            let el = document.getElementById('ws4-p' + i);
+            if (!el || el.value.trim() === '') { allFilled = false; break; }
+        }
+        let btn = document.getElementById('wizard-next-btn3-bp-style4');
+        if (btn) {
+            if (allFilled) btn.classList.add('show');
+            else btn.classList.remove('show');
+        }
+    };
+
+    setTimeout(window.checkBPStyle2Ready, 50);
     setTimeout(window.checkBPStyle3Ready, 50);
+    setTimeout(window.checkBPStyle4Ready, 50);
 </script>
 
 <div id="wizard-step3-bp-style3" class="wizard-step" style="height: 100%; padding-bottom: 100px;">
@@ -3172,6 +3103,74 @@ body.os-desktop #wizard-step3.dragover {
     </div>
     
     <button id="wizard-next-btn3-bp-style3" class="ios-action-btn ios-btn-next">Далее</button>
+</div>
+
+<div id="wizard-step3-bp-style4" class="wizard-step" style="height: 100%; padding-bottom: 100px;">
+    <div class="ios-wizard-title">Создание Brawl Pass</div>
+    <div class="ios-wizard-subtitle" style="margin-bottom: 4px;">Цены. Укажите нужные значения.</div>
+
+    <div style="width: 100%; max-width: 440px; margin-top: 15px; flex-grow: 1; overflow-y: auto; padding-bottom: 40px; -webkit-overflow-scrolling: touch;">
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 20px;">
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">30 gems</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p0" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">80 gems</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p1" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">170 gems</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p2" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">360 gems</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p3" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">950 gems</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p4" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">2000 gems</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p5" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">Матчерино (спайк)</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p9" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">Матчерино (менди)</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p10" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">Brawl Pass</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p6" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">Brawl Pass+</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p7" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+            <div style="position: relative; width: 100%; grid-column: span 2; background: var(--tg-theme-section-bg-color, #ffffff); border-radius: 14px; padding: 24px 12px 10px 12px; box-sizing: border-box;">
+                <div style="position: absolute; top: 8px; right: 12px; font-size: 13px; color: var(--tg-theme-text-color, #000); pointer-events: none; font-weight: 500;">Pro Pass</div>
+                <input type="text" inputmode="numeric" maxlength="4" id="ws4-p8" placeholder="Введите цену..." style="width: 100%; background: transparent; border: none; font-size: 17px; text-align: left; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); if(this.value>9999)this.value='9999'; window.checkBPStyle4Ready();">
+            </div>
+
+        </div>
+    </div>
+
+    <button id="wizard-next-btn3-bp-style4" class="ios-action-btn ios-btn-next">Далее</button>
 </div>
 
 <div id="wizard-step3-bp-dop" class="wizard-step" style="height: 100%; padding-bottom: 100px;">
@@ -3349,6 +3348,86 @@ body.os-desktop #wizard-step3.dragover {
         <canvas id="main-text-canvas"></canvas>
     </div>
 </div>
+
+<div id="size-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: var(--tg-viewport-stable-height, 100vh); background: var(--tg-theme-secondary-bg-color, #F2F2F7); z-index: 300; flex-direction: column; box-sizing: border-box; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+  <div style="max-width: 440px; margin: 0 auto; width: 100%; padding: var(--app-top-padding) 20px 120px 20px; box-sizing: border-box;">
+
+    <div style="font-size: 32px; font-weight: 700; color: var(--tg-theme-text-color, #000); margin-bottom: 8px;">Размер работы</div>
+    <div style="font-size: 15px; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-bottom: 28px; line-height: 1.35;">Выберите подходящий размер работы или настройте его сами, а сервис сам адаптирует под Вашу работу.</div>
+
+    <div style="font-size: 13px; color: var(--tg-theme-text-color, #000); margin-bottom: 10px;">Произвольные размеры</div>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 28px;">
+      <div style="flex: 1; position: relative; background: var(--tg-theme-section-bg-color, #fff); border-radius: 14px; padding: 22px 14px 10px 14px; box-sizing: border-box; border: 1.5px solid transparent; transition: border-color 0.2s;" id="custom-w-wrap">
+        <div style="position: absolute; top: 7px; right: 12px; font-size: 11px; color: var(--tg-theme-text-color, #000); font-weight: 500; pointer-events: none;">Ширина</div>
+        <input type="text" inputmode="numeric" id="size-custom-w" maxlength="5" placeholder="Введите ширину..." style="width: 100%; background: transparent; border: none; font-size: 15px; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); window.onCustomSizeInput();">
+      </div>
+      <div style="font-size: 18px; color: var(--tg-theme-subtitle-text-color, #8E8E93); font-weight: 500; flex-shrink: 0;">×</div>
+      <div style="flex: 1; position: relative; background: var(--tg-theme-section-bg-color, #fff); border-radius: 14px; padding: 22px 14px 10px 14px; box-sizing: border-box; border: 1.5px solid transparent; transition: border-color 0.2s;" id="custom-h-wrap">
+        <div style="position: absolute; top: 7px; right: 12px; font-size: 11px; color: var(--tg-theme-text-color, #000); font-weight: 500; pointer-events: none;">Высота</div>
+        <input type="text" inputmode="numeric" id="size-custom-h" maxlength="5" placeholder="Введите высоту..." style="width: 100%; background: transparent; border: none; font-size: 15px; color: var(--tg-theme-text-color, #000); outline: none; padding: 0;" oninput="this.value=this.value.replace(/[^0-9]/g,''); window.onCustomSizeInput();">
+      </div>
+    </div>
+
+    <div style="font-size: 13px; color: var(--tg-theme-text-color, #000); margin-bottom: 14px;">Заготовленные размеры</div>
+    <div style="background: var(--tg-theme-section-bg-color, #fff); border-radius: 20px; padding: 0 20px; margin-bottom: 28px;" id="size-presets-grid">
+
+      <div class="size-preset-row" data-w="1280" data-h="720" onclick="window.selectSizeRow(this, 1280, 720)" style="display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 0.5px solid color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent); cursor: pointer; -webkit-tap-highlight-color: transparent;">
+        <div class="size-radio" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--tg-theme-section-separator-color, #C7C7CC); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-sizing: border-box;">
+            <svg class="size-radio-dot" viewBox="0 0 24 24" width="14" height="14" style="transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"><polyline points="20 6 9 17 4 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: #2ca3d4; display: flex; align-items: center; justify-content: center;">
+          <img src="telegram_size.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+          <div style="display:none; align-items:center; justify-content:center; width:100%; height:100%;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.68 7.92c-.12.56-.46.7-.92.44l-2.56-1.88-1.24 1.2c-.14.14-.26.26-.52.26l.18-2.6 4.72-4.26c.2-.18-.04-.28-.32-.1L7.9 14.6 5.38 13.8c-.56-.18-.58-.56.12-.82l8.9-3.42c.46-.18.86.1.72.84h.02z"/></svg>
+          </div>
+        </div>
+        <div style="font-size: 17px; font-weight: 400; color: var(--tg-theme-text-color, #000); flex-grow: 1;">Telegram</div>
+        <div style="font-size: 13px; font-weight: 600; color: #16a34a; background: #00ff591f; padding: 4px 10px; border-radius: 10px; flex-shrink: 0; white-space: nowrap;">1280 × 720</div>
+      </div>
+
+      <div class="size-preset-row" data-w="1280" data-h="960" onclick="window.selectSizeRow(this, 1280, 960)" style="display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 0.5px solid color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent); cursor: pointer; -webkit-tap-highlight-color: transparent;">
+        <div class="size-radio" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--tg-theme-section-separator-color, #C7C7CC); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-sizing: border-box;">
+            <svg class="size-radio-dot" viewBox="0 0 24 24" width="14" height="14" style="transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"><polyline points="20 6 9 17 4 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: #2563eb; display: flex; align-items: center; justify-content: center;">
+          <img src="playerok_size.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+          <div style="display:none; align-items:center; justify-content:center; width:100%; height:100%;">
+            <span style="color:#fff; font-size:18px; font-weight:900; font-family:-apple-system,sans-serif;">PI</span>
+          </div>
+        </div>
+        <div style="font-size: 17px; font-weight: 400; color: var(--tg-theme-text-color, #000); flex-grow: 1;">Playerok</div>
+        <div style="font-size: 13px; font-weight: 600; color: #16a34a; background: #00ff591f; padding: 4px 10px; border-radius: 10px; flex-shrink: 0; white-space: nowrap;">1280 × 960</div>
+      </div>
+
+      <div class="size-preset-row" data-w="1620" data-h="1080" onclick="window.selectSizeRow(this, 1620, 1080)" style="display: flex; align-items: center; gap: 14px; padding: 14px 0; cursor: pointer; -webkit-tap-highlight-color: transparent;">
+        <div class="size-radio" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--tg-theme-section-separator-color, #C7C7CC); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-sizing: border-box;">
+            <svg class="size-radio-dot" viewBox="0 0 24 24" width="14" height="14" style="transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"><polyline points="20 6 9 17 4 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: #111; display: flex; align-items: center; justify-content: center;">
+          <img src="yoomarket_size.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+          <div style="display:none; align-items:center; justify-content:center; width:100%; height:100%;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11L10 22L19.5 10H13L13 2Z" fill="#00e676" stroke="#00e676" stroke-width="0.5"/></svg>
+          </div>
+        </div>
+        <div style="font-size: 17px; font-weight: 400; color: var(--tg-theme-text-color, #000); flex-grow: 1;">Yoomarket</div>
+        <div style="font-size: 13px; font-weight: 600; color: #16a34a; background: #00ff591f; padding: 4px 10px; border-radius: 10px; flex-shrink: 0; white-space: nowrap;">1620 × 1080</div>
+      </div>
+
+    </div>
+
+    <div id="my-sizes-label" style="font-size: 13px; color: var(--tg-theme-text-color, #000); margin-bottom: 14px; display: none; transition: opacity 0.35s ease, filter 0.35s ease, transform 0.35s ease; opacity: 0; filter: blur(6px); transform: scale(0.97);">Мои размеры</div>
+    <div id="custom-presets-list" style="background: var(--tg-theme-section-bg-color, #fff); border-radius: 20px; padding: 0 20px; margin-bottom: 16px; display: none;"></div>
+
+    <div id="add-custom-preset-btn" onclick="window.addCustomPreset()" style="display: flex; align-items: center; justify-content: center; background: #01a2ff1f; border-radius: 100px; padding: 16px 20px; cursor: pointer; -webkit-tap-highlight-color: transparent; margin-top: 8px; transition: opacity 0.15s, transform 0.15s;" ontouchstart="this.style.opacity='0.7'; this.style.transform='scale(0.97)';" ontouchend="this.style.opacity='1'; this.style.transform='scale(1)';">
+    <span style="color: #01a2ff; font-size: 17px; font-weight: 500;">+ Добавить шаблон размера</span>
+    </div>
+
+  </div>
+
+  <div class="bottom-fade-container">
+    <button id="size-generate-btn" class="ios-action-btn" style="margin: 0 auto; display: none;" onclick="window.onSizeGenerateClick()">Сгенерировать</button>
+  </div>
+</div>
 <script>
 window.triggerHaptic = function() {
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
@@ -3420,7 +3499,7 @@ if (window.Telegram && window.Telegram.WebApp) {
         });
         
         document.body.addEventListener('pointerdown', function(e) {
-            let target = e.target.closest('.ios-menu-item, .sp-row, .cat-card');
+            let target = e.target.closest('.ios-menu-item, .sp-row, .cat-card, .settings-header-btn');
             if (!target) return;
             
             let rect = target.getBoundingClientRect();
@@ -3895,8 +3974,9 @@ window.selectBPStyle = function(styleId) {
     selectedBPStyle = styleId;
     window.triggerHaptic();
 
-    for (let i = 1; i <= 3; i++) {
-        document.getElementById(`bp-radio-${i}`).classList.remove('checked');
+    for (let i = 1; i <= 4; i++) {
+        let el = document.getElementById(`bp-radio-${i}`);
+        if (el) el.classList.remove('checked');
     }
     document.getElementById(`bp-radio-${styleId}`).classList.add('checked');
     document.getElementById('bp-style-btn-next').classList.add('show');
@@ -4039,13 +4119,13 @@ document.getElementById('bp-variant-btn-next').addEventListener('click', functio
     wizardMode = 'bp'; 
     
     window.layerState.bpStyleIndex = 'dop';
-    window.layerState.bpVariantIndex = selectedBPVariant;
+    window.layerState.bpVariantIndex = selectedBPVariant;
 
     let variantBadge = "dop #1";
     if (selectedBPVariant === 2) variantBadge = "dop #2";
     if (selectedBPVariant === 3) variantBadge = "dop #3";
     if (selectedBPVariant === 4) variantBadge = "dop #4";
-    let bpTitleHtml = `Создание Brawl <span style="white-space: nowrap;">Pass <span class="bp-style-badge">${variantBadge}</span></span>`;
+    let bpTitleHtml = `Создание Brawl <span style="white-space: nowrap;">Pass <span class="bp-style-badge">${variantBadge}</span></span>`;
 
     let labelEl = document.getElementById('wizard-dop-price-label');
     if (labelEl) {
@@ -4110,6 +4190,9 @@ document.getElementById('bp-style-btn-next').addEventListener('click', function(
     
     let step3bpStyle3 = document.querySelector('#wizard-step3-bp-style3 .ios-wizard-title');
     if(step3bpStyle3) step3bpStyle3.innerHTML = bpTitleHtml;
+
+    let step3bpStyle4 = document.querySelector('#wizard-step3-bp-style4 .ios-wizard-title');
+    if(step3bpStyle4) step3bpStyle4.innerHTML = bpTitleHtml;
     
     let step4bp = document.querySelector('#wizard-step4-bp .ios-wizard-title');
     if(step4bp) step4bp.innerHTML = bpTitleHtml;
@@ -4226,7 +4309,7 @@ const FONT_OPTIONS = [
 ];
 
 const TEXT_STYLES = [
-    { isClassic: true, grad: ['#ffba00', '#fcff00', '#ffba00'] },
+    { isClassic: true, grad: ['#ffba00', '#fcff00', '#ffba00'], inner: '#fcff00' },
     { grad: ['#ff9600', '#ffde00', '#ff9600'], inner: '#ffde00', shadow: '#000000', outer: '#000000' },
     { grad: ['#d90646', '#ff2a6b', '#d90646'], inner: '#ff2a6b', shadow: '#000000', outer: '#000000' },
     { grad: ['#ff9600', '#ffde00', '#ff9600'], inner: '#ffde00', shadow: '#3e1900', outer: null },
@@ -4797,7 +4880,7 @@ window.rebuildStyle1Background = () => {
 
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(WIDTH, -20); ctx.lineTo(startX, -20); ctx.lineTo(WIDTH * 0.34, HEIGHT * 0.50); ctx.lineTo(WIDTH * 0.37, HEIGHT * 0.46); ctx.lineTo(endX, HEIGHT + 20); ctx.lineTo(WIDTH, HEIGHT + 20); ctx.closePath();
+        ctx.moveTo(WIDTH, 0); ctx.lineTo(startX, 0); ctx.lineTo(WIDTH * 0.34, HEIGHT * 0.50); ctx.lineTo(WIDTH * 0.37, HEIGHT * 0.46); ctx.lineTo(endX, HEIGHT + 20); ctx.lineTo(WIDTH, HEIGHT + 20); ctx.closePath();
         ctx.clip();
         let grad2 = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT * 0.2);
         grad2.addColorStop(0, window.layerState.tempGradR0 || config.gradientRight[0]); 
@@ -4845,8 +4928,16 @@ window.rebuildStyle1Background = () => {
         ctx.drawImage(globalAssets.bpStar, WIDTH / 2 - sw / 2, starY - starH, sw, starH);
     }
 
-    if (globalAssets.bpPanelL) ctx.drawImage(globalAssets.bpPanelL, 14, 50, WIDTH * 0.28, HEIGHT - 210);
-    if (globalAssets.bpPanelR) ctx.drawImage(globalAssets.bpPanelR, WIDTH - 14 - WIDTH * 0.32, 50, WIDTH * 0.32, HEIGHT - 210);
+    if (globalAssets.bpPanelL) {
+        let ph = HEIGHT - 210;
+        let pw = globalAssets.bpPanelL.width * (ph / globalAssets.bpPanelL.height);
+        ctx.drawImage(globalAssets.bpPanelL, 14, 50, pw, ph);
+    }
+    if (globalAssets.bpPanelR) {
+        let ph = HEIGHT - 210;
+        let pw = globalAssets.bpPanelR.width * (ph / globalAssets.bpPanelR.height);
+        ctx.drawImage(globalAssets.bpPanelR, WIDTH - 14 - pw, 50, pw, ph);
+    }
     
     window.bpForegroundImage.src = c.toDataURL('image/png');
     window.bpForegroundImage.onload = () => {
@@ -5102,6 +5193,99 @@ if (window.layerState.isBrawlPassMode) {
                     <input type="range" class="ios-slider" min="-400" max="400" step="1" value="${txtY}" oninput="document.getElementById('v3-txty').innerText=this.value; updateBrawlerParams('s3TextY', this.value)">
                 </div>`;
             }
+
+} else if (window.layerState.bpStyleIndex === 4) {
+    const labels4 = ["30 gems","80 gems","170 gems","360 gems","950 gems","2000 gems","Brawl Pass","Brawl Pass+","Pro Pass","Матчерино (спайк)","Матчерино (менди)"];
+    for (let i = 0; i <= 10; i++) {
+        let val = (window.layerState.style4Prices && window.layerState.style4Prices[i]) ? window.layerState.style4Prices[i] : "";
+        html += `
+        <div class="ios-layer-row" ${i===10 && !window.ENABLE_TEMP_EDITOR ? 'style="border-bottom:none;"' : ''}>
+            <div class="ios-layer-name" style="font-size:15px;">${labels4[i]}</div>
+            <div class="ios-layer-action-text">значение</div>
+            <input type="text" inputmode="numeric" pattern="[0-9]*" class="ios-price-input" value="${val}" maxlength="4" oninput="updateS4PriceLayer(${i}, this)" style="width:65px;">
+        </div>`;
+    }
+
+    if (window.ENABLE_TEMP_EDITOR) {
+        const season4 = window.layerState.bpSeason || 50;
+        const s4Conf = (BP_SEASON_CONFIG[season4] && BP_SEASON_CONFIG[season4].style4Brawlers)
+            ? BP_SEASON_CONFIG[season4].style4Brawlers
+            : BP_SEASON_CONFIG[50].style4Brawlers;
+
+        const rX = window.layerState.s4BrawlerR_x     !== undefined ? window.layerState.s4BrawlerR_x     : s4Conf.brawlerR.x;
+        const rY = window.layerState.s4BrawlerR_y     !== undefined ? window.layerState.s4BrawlerR_y     : s4Conf.brawlerR.y;
+        const rS = window.layerState.s4BrawlerR_scale !== undefined ? window.layerState.s4BrawlerR_scale : s4Conf.brawlerR.scale;
+        const rF = window.layerState.s4BrawlerR_flip  !== undefined ? window.layerState.s4BrawlerR_flip  : s4Conf.brawlerR.flipH;
+        const lX = window.layerState.s4BrawlerL_x     !== undefined ? window.layerState.s4BrawlerL_x     : s4Conf.brawlerL.x;
+        const lY = window.layerState.s4BrawlerL_y     !== undefined ? window.layerState.s4BrawlerL_y     : s4Conf.brawlerL.y;
+        const lS = window.layerState.s4BrawlerL_scale !== undefined ? window.layerState.s4BrawlerL_scale : s4Conf.brawlerL.scale;
+        const lF = window.layerState.s4BrawlerL_flip  !== undefined ? window.layerState.s4BrawlerL_flip  : s4Conf.brawlerL.flipH;
+
+        html += `
+        <div class="ios-section-title" style="margin-left:0; margin-top:15px;">РЕДАКТОР ПЕРСОНАЖЕЙ (СТИЛЬ 4) — Сезон ${season4}</div>
+        
+        <div class="ios-layer-row"><div class="ios-layer-name" style="font-size:14px;">Правый X</div>
+            <div id="v-s4r-x" style="margin-right:10px;color:#8E8E93;width:40px;text-align:right;">${rX}</div>
+            <input type="range" class="ios-slider" min="0" max="1280" step="1" value="${rX}" oninput="document.getElementById('v-s4r-x').innerText=this.value; window.layerState.s4BrawlerR_x=parseFloat(this.value); startAnimation();">
+        </div>
+        <div class="ios-layer-row"><div class="ios-layer-name" style="font-size:14px;">Правый Y</div>
+            <div id="v-s4r-y" style="margin-right:10px;color:#8E8E93;width:40px;text-align:right;">${rY}</div>
+            <input type="range" class="ios-slider" min="0" max="720" step="1" value="${rY}" oninput="document.getElementById('v-s4r-y').innerText=this.value; window.layerState.s4BrawlerR_y=parseFloat(this.value); startAnimation();">
+        </div>
+        <div class="ios-layer-row"><div class="ios-layer-name" style="font-size:14px;">Правый Размер</div>
+            <div id="v-s4r-s" style="margin-right:10px;color:#8E8E93;width:40px;text-align:right;">${rS}</div>
+            <input type="range" class="ios-slider" min="50" max="800" step="5" value="${rS}" oninput="document.getElementById('v-s4r-s').innerText=this.value; window.layerState.s4BrawlerR_scale=parseFloat(this.value); startAnimation();">
+        </div>
+        <div class="ios-layer-row"><div class="ios-layer-name" style="font-size:14px;">Правый Отразить</div>
+            <button class="ios-pill-btn" onclick="window.layerState.s4BrawlerR_flip=!window.layerState.s4BrawlerR_flip; renderLayerPanel(); startAnimation();">${rF ? 'ДА' : 'НЕТ'}</button>
+        </div>
+
+        <div class="ios-layer-row"><div class="ios-layer-name" style="font-size:14px;">Левый X</div>
+            <div id="v-s4l-x" style="margin-right:10px;color:#8E8E93;width:40px;text-align:right;">${lX}</div>
+            <input type="range" class="ios-slider" min="0" max="1280" step="1" value="${lX}" oninput="document.getElementById('v-s4l-x').innerText=this.value; window.layerState.s4BrawlerL_x=parseFloat(this.value); startAnimation();">
+        </div>
+        <div class="ios-layer-row"><div class="ios-layer-name" style="font-size:14px;">Левый Y</div>
+            <div id="v-s4l-y" style="margin-right:10px;color:#8E8E93;width:40px;text-align:right;">${lY}</div>
+            <input type="range" class="ios-slider" min="0" max="720" step="1" value="${lY}" oninput="document.getElementById('v-s4l-y').innerText=this.value; window.layerState.s4BrawlerL_y=parseFloat(this.value); startAnimation();">
+        </div>
+        <div class="ios-layer-row"><div class="ios-layer-name" style="font-size:14px;">Левый Размер</div>
+            <div id="v-s4l-s" style="margin-right:10px;color:#8E8E93;width:40px;text-align:right;">${lS}</div>
+            <input type="range" class="ios-slider" min="50" max="800" step="5" value="${lS}" oninput="document.getElementById('v-s4l-s').innerText=this.value; window.layerState.s4BrawlerL_scale=parseFloat(this.value); startAnimation();">
+        </div>
+        <div class="ios-layer-row" style="border-bottom:none;"><div class="ios-layer-name" style="font-size:14px;">Левый Отразить</div>
+            <button class="ios-pill-btn" onclick="window.layerState.s4BrawlerL_flip=!window.layerState.s4BrawlerL_flip; renderLayerPanel(); startAnimation();">${lF ? 'ДА' : 'НЕТ'}</button>
+        </div>
+
+        <div class="ios-section-title" style="margin-left:0; margin-top:15px;">РЕДАКТОР ОСНОВНОГО ТЕКСТА (СТИЛЬ 4)</div>
+
+        <div class="ios-layer-row">
+            <div class="ios-layer-name" style="font-size:14px;">Сдвиг X</div>
+            <div id="v-s4t-x" style="margin-right:10px;color:#8E8E93;width:40px;text-align:right;">${window.layerState.s4TextX || 0}</div>
+            <input type="range" class="ios-slider" min="-400" max="400" step="1" value="${window.layerState.s4TextX || 0}" oninput="document.getElementById('v-s4t-x').innerText=this.value; window.layerState.s4TextX=parseFloat(this.value); startAnimation();">
+        </div>
+        <div class="ios-layer-row">
+            <div class="ios-layer-name" style="font-size:14px;">Сдвиг Y</div>
+            <div id="v-s4t-y" style="margin-right:10px;color:#8E8E93;width:40px;text-align:right;">${window.layerState.s4TextY || 0}</div>
+            <input type="range" class="ios-slider" min="-1000" max="1000" step="1" value="${window.layerState.s4TextY || 0}" oninput="document.getElementById('v-s4t-y').innerText=this.value; window.layerState.s4TextY=parseFloat(this.value); startAnimation();">
+        </div>
+        <div class="ios-layer-row" style="border-bottom:none;">
+            <div class="ios-layer-name" style="font-size:14px;">Размер</div>
+            <div id="v-s4t-s" style="margin-right:10px;color:#8E8E93;width:40px;text-align:right;">${window.layerState.s4TextScale || 1}</div>
+            <input type="range" class="ios-slider" min="0.1" max="3" step="0.05" value="${window.layerState.s4TextScale || 1}" oninput="document.getElementById('v-s4t-s').innerText=this.value; window.layerState.s4TextScale=parseFloat(this.value); startAnimation();">
+        </div>
+        
+        <div class="ios-layer-row" style="border-bottom:none; padding-top:8px;">
+            <button class="ios-pill-btn" style="background:#00ff591f;color:#16a34a;flex-grow:1;" 
+                onclick="
+                    let arr = window.layerState.customWatermarks || [];
+                    let code = 'window.layerState.customWatermarks = ' + JSON.stringify(arr, null, 2) + ';';
+                    navigator.clipboard.writeText(code).then(() => alert('✅ Код скопирован! Вставь в openBPStyle4Editor после setupPersistentCanvas()'));
+                ">
+                📋 Скопировать код ников
+            </button>
+        </div>`;
+    }
+
             } else {
             if (window.layerState.bpStyleIndex === 'dop') {
                 let panelLabel = "Brawl Pass";
@@ -5576,7 +5760,18 @@ if (window.layerState.isBrawlPassMode) {
             </div>
         `;
 
-        if (window.layerState.isGeneratedBg || window.layerState.isReadyBg || window.layerState.bpStyleIndex === 'dop') {
+        if (window.layerState.isGeneratedBg || window.layerState.isReadyBg || window.layerState.bpStyleIndex === 'dop' || window.layerState.bpStyleIndex === 4) {
+            let dopBg4EyeClass = window.layerState.dopBg4Visible !== false ? '' : 'hidden';
+            html += `
+                <div class="ios-layer-row">
+                    <div class="ios-icon-btn ios-eye-icon ${dopBg4EyeClass}" onclick="toggleCosmeticLayer('dopBg4')">
+                        ${getEyeSVG(window.layerState.dopBg4Visible !== false)}
+                    </div>
+                    <div class="ios-layer-name">Детализация</div>
+                    <div class="ios-layer-action-text">прозрачность</div>
+                    <input type="range" class="ios-slider" min="0" max="1" step="0.05" value="${window.layerState.dopBg4Opacity !== undefined ? window.layerState.dopBg4Opacity : 1}" oninput="changeOpacity('dopBg4', this.value)">
+                </div>
+            `;
             let pointsEyeClass = window.layerState.pointsVisible !== false ? '' : 'hidden';
             let currentPointsOpacity = window.layerState.pointsOpacity !== undefined ? window.layerState.pointsOpacity : 1;
             html += `
@@ -5608,56 +5803,102 @@ if (window.layerState.isBrawlPassMode) {
 
     if (window.ENABLE_TEMP_EDITOR) {
         if (!window.layerState.customWatermarks) {
-            if (!window.layerState.isBrawlPassMode) { 
+            if (!window.layerState.isBrawlPassMode) {
                 window.layerState.customWatermarks = [
-                    { x: 50, y: 130, scale: 0.74, skewX: -10, align: "left" },
-                    { x: 25, y: 310, scale: 0.25, skewX: -10, align: "left" },
-                    { x: 38, y: 633, scale: 1.10, skewX: -10, align: "left" },
-                    { x: 1152, y: 158, scale: 0.80, skewX: -10, align: "right" },
-                    { x: 1176, y: 324, scale: 1.60, skewX: -10, align: "right" },
-                    { x: 1164, y: 612, scale: 0.70, skewX: -10, align: "right" }
+                    { x: 49, y: 79, scale: 0.35, skewX: -10, align: "center" },
+                    { x: 58, y: 233, scale: 0.54, skewX: -10, align: "center" },
+                    { x: 125, y: 347, scale: 0.23, skewX: -10, align: "center" },
+                    { x: 131, y: 719, scale: 1.1, skewX: -10, align: "center" },
+                    { x: 178, y: 488, scale: 0.44, skewX: -10, align: "center" },
+                    { x: 74, y: 600, scale: 0.14, skewX: -10, align: "center" },
+                    { x: 1248, y: 9, scale: 0.88, skewX: -10, align: "center" },
+                    { x: 1120, y: 159, scale: 0.28, skewX: -10, align: "center" },
+                    { x: 1247, y: 306, scale: 0.5, skewX: -10, align: "center" },
+                    { x: 1092, y: 405, scale: 0.17, skewX: -10, align: "center" },
+                    { x: 1230, y: 512, scale: 0.61, skewX: -10, align: "center" },
+                    { x: 1071, y: 675, scale: 0.79, skewX: -10, align: "center" }
                 ];
-            } else if (window.layerState.bpStyleIndex === 3) { 
+            } else if (window.layerState.bpStyleIndex === 4) {
                 window.layerState.customWatermarks = [
-                    {x: 1019, y: 601, scale: 0.3, skewX: -12}, {x: 1037, y: 657, scale: 0.75, skewX: -12},
-                    {x: 1173, y: 541, scale: 0.57, skewX: -12}, {x: -114, y: 687, scale: 0.93, skewX: -12},
-                    {x: 167, y: 666, scale: 0.26, skewX: -12}, {x: 23, y: 610, scale: 0.45, skewX: -12},
-                    {x: -158, y: 125, scale: 0.54, skewX: -12}, {x: 332, y: -27, scale: 0.72, skewX: -12},
-                    {x: 887, y: 7, scale: 0.39, skewX: -12}, {x: 1242, y: 476, scale: 0.21, skewX: -12}
+                    { x: 514, y: -31, scale: 0.74, skewX: -12 },
+                    { x: 71,  y: 17,  scale: 0.25, skewX: -12 },
+                    { x: 19,  y: 146, scale: 0.12, skewX: -12 },
+                    { x: 664, y: 82,  scale: 0.25, skewX: -12 },
+                    { x: 587, y: 598, scale: 0.33, skewX: -12 },
+                    { x: 421, y: 699, scale: 0.72, skewX: -12 },
                 ];
-            } else { 
+            } else if (window.layerState.bpStyleIndex === 3) {
                 window.layerState.customWatermarks = [
-                    { x: 514, y: -31, scale: 0.74, skewX: -12 }, { x: 71, y: 17, scale: 0.25, skewX: -12 },
-                    { x: 19, y: 146, scale: 0.12, skewX: -12 }, { x: 664, y: 82, scale: 0.25, skewX: -12 },
-                    { x: 587, y: 598, scale: 0.33, skewX: -12 }, { x: 421, y: 699, scale: 0.72, skewX: -12 },
-                    { x: 734, y: 262, scale: 0.1, skewX: -12 }, { x: 76, y: 602, scale: 0.38, skewX: -12 },
-                    { x: -92, y: 695, scale: 0.87, skewX: -12 }, { x: -52, y: 386, scale: 0.24, skewX: -12 },
-                    { x: 852, y: 189, scale: 0.22, skewX: -12 }, { x: 1237, y: 306, scale: 0.39, skewX: -12 },
-                    { x: 957, y: -21, scale: 0.5, skewX: -12 }, { x: 791, y: 558, scale: 0.21, skewX: -12 },
-                    { x: 878, y: 357, scale: 0.36, skewX: -12 }, { x: 1131, y: 391, scale: 0.13, skewX: -12 }
+                    {x: 1019, y: 601, scale: 0.3,  skewX: -12},
+                    {x: 1037, y: 657, scale: 0.75, skewX: -12},
+                    {x: 1173, y: 541, scale: 0.57, skewX: -12},
+                    {x: -114, y: 687, scale: 0.93, skewX: -12},
+                    {x: 167,  y: 666, scale: 0.26, skewX: -12},
+                    {x: 23,   y: 610, scale: 0.45, skewX: -12},
+                    {x: -158, y: 125, scale: 0.54, skewX: -12},
+                    {x: 332,  y: -27, scale: 0.72, skewX: -12},
+                    {x: 887,  y: 7,   scale: 0.39, skewX: -12},
+                    {x: 1242, y: 476, scale: 0.21, skewX: -12}
+                ];
+            } else {
+                window.layerState.customWatermarks = [
+                    { x: 514, y: -31, scale: 0.74, skewX: -12 },
+                    { x: 71,  y: 17,  scale: 0.25, skewX: -12 },
+                    { x: 19,  y: 146, scale: 0.12, skewX: -12 },
+                    { x: 664, y: 82,  scale: 0.25, skewX: -12 },
+                    { x: 587, y: 598, scale: 0.33, skewX: -12 },
+                    { x: 421, y: 699, scale: 0.72, skewX: -12 },
+                    { x: 734, y: 262, scale: 0.1,  skewX: -12 },
+                    { x: 76,  y: 602, scale: 0.38, skewX: -12 },
+                    { x: -92, y: 695, scale: 0.87, skewX: -12 },
+                    { x: -52, y: 386, scale: 0.24, skewX: -12 },
+                    { x: 852, y: 189, scale: 0.22, skewX: -12 },
+                    { x: 1237,y: 306, scale: 0.39, skewX: -12 },
+                    { x: 957, y: -21, scale: 0.5,  skewX: -12 },
+                    { x: 791, y: 558, scale: 0.21, skewX: -12 },
+                    { x: 878, y: 357, scale: 0.36, skewX: -12 },
+                    { x: 1131,y: 391, scale: 0.13, skewX: -12 }
                 ];
             }
         }
+
         window.layerState.activeWmIndex = window.layerState.activeWmIndex || 0;
         if (window.layerState.activeWmIndex >= window.layerState.customWatermarks.length) {
             window.layerState.activeWmIndex = Math.max(0, window.layerState.customWatermarks.length - 1);
         }
-        
+
         let activeWm = window.layerState.customWatermarks[window.layerState.activeWmIndex];
-        
+
         html += `<div class="ios-section-title" style="margin-left: 0; margin-top: 15px;">РЕДАКТОР МАЛЕНЬКИХ НИКОВ</div>`;
         html += `<div class="ios-layer-group ${animCls}">`;
-        
+
         html += `
             <div class="ios-layer-row">
                 <div class="ios-layer-name" style="font-size:14px;">Выбрать ник</div>
-                <select onchange="window.layerState.activeWmIndex = parseInt(this.value); renderLayerPanel();" style="background:var(--tg-theme-secondary-bg-color, #F2F2F7); border:none; border-radius:8px; padding:6px; outline:none; color:var(--tg-theme-text-color, #000); max-width: 120px;">
-                    ${window.layerState.customWatermarks.map((_, i) => `<option value="${i}" ${i === window.layerState.activeWmIndex ? 'selected' : ''}>Ник #${i+1}</option>`).join('')}
+                <select onchange="window.layerState.activeWmIndex = parseInt(this.value); renderLayerPanel();" 
+                    style="background:var(--tg-theme-secondary-bg-color, #F2F2F7); border:none; border-radius:8px; padding:6px; outline:none; color:var(--tg-theme-text-color, #000); max-width: 120px;">
+                    ${window.layerState.customWatermarks.map((_, i) => 
+                        `<option value="${i}" ${i === window.layerState.activeWmIndex ? 'selected' : ''}>Ник #${i+1}</option>`
+                    ).join('')}
                 </select>
             </div>
             <div class="ios-layer-row">
-                <button class="ios-pill-btn" style="background:#00ff591f; flex-grow:1; margin-right:8px;" onclick="window.layerState.customWatermarks.push({x:600, y:300, scale:0.5, skewX:-10, align:'center'}); window.layerState.activeWmIndex = window.layerState.customWatermarks.length-1; renderLayerPanel(); startAnimation();">+ Добавить</button>
-                <button class="ios-pill-btn" style="background:#FF3B30; flex-grow:1;" onclick="if(window.layerState.customWatermarks.length>0){ window.layerState.customWatermarks.splice(window.layerState.activeWmIndex, 1); window.layerState.activeWmIndex=Math.max(0, window.layerState.activeWmIndex-1); renderLayerPanel(); startAnimation(); }">- Удалить</button>
+                <button class="ios-pill-btn" style="background:#00ff591f; flex-grow:1; margin-right:8px; color:#16a34a;" 
+                    onclick="window.layerState.customWatermarks.push({x:600, y:300, scale:0.5, skewX:-10}); 
+                            window.layerState.activeWmIndex = window.layerState.customWatermarks.length-1; 
+                            renderLayerPanel(); 
+                            startAnimation();">
+                    + Добавить
+                </button>
+                <button class="ios-pill-btn" style="background: color-mix(in srgb, var(--tg-theme-destructive-text-color) 10%, transparent); color: var(--tg-theme-destructive-text-color); flex-grow:1;" 
+                    onclick="if(window.layerState.customWatermarks.length > 0){ 
+                                window.layerState.customWatermarks.splice(window.layerState.activeWmIndex, 1); 
+                                window.layerState.activeWmIndex = Math.max(0, window.layerState.activeWmIndex-1); 
+                                renderLayerPanel(); 
+                                startAnimation(); 
+                            }">
+                    - Удалить
+                </button>
             </div>
         `;
 
@@ -5666,20 +5907,30 @@ if (window.layerState.isBrawlPassMode) {
             <div class="ios-layer-row">
                 <div class="ios-layer-name" style="font-size:14px;">Размер</div>
                 <div id="v-wm-s" style="margin-right:10px; color:#8E8E93; font-size:14px; width:35px; text-align:right;">${activeWm.scale}</div>
-                <input type="range" class="ios-slider" min="0.05" max="3.0" step="0.01" value="${activeWm.scale}" oninput="document.getElementById('v-wm-s').innerText=this.value; window.layerState.customWatermarks[window.layerState.activeWmIndex].scale = parseFloat(this.value); startAnimation();">
+                <input type="range" class="ios-slider" min="0.05" max="3.0" step="0.01" value="${activeWm.scale}" 
+                    oninput="document.getElementById('v-wm-s').innerText=this.value; 
+                            window.layerState.customWatermarks[window.layerState.activeWmIndex].scale = parseFloat(this.value); 
+                            startAnimation();">
             </div>
             <div class="ios-layer-row">
                 <div class="ios-layer-name" style="font-size:14px;">Позиция X</div>
                 <div id="v-wm-x" style="margin-right:10px; color:#8E8E93; font-size:14px; width:35px; text-align:right;">${activeWm.x}</div>
-                <input type="range" class="ios-slider" min="-200" max="2500" step="1" value="${activeWm.x}" oninput="document.getElementById('v-wm-x').innerText=this.value; window.layerState.customWatermarks[window.layerState.activeWmIndex].x = parseFloat(this.value); startAnimation();">
+                <input type="range" class="ios-slider" min="-200" max="1500" step="1" value="${activeWm.x}" 
+                    oninput="document.getElementById('v-wm-x').innerText=this.value; 
+                            window.layerState.customWatermarks[window.layerState.activeWmIndex].x = parseFloat(this.value); 
+                            startAnimation();">
             </div>
             <div class="ios-layer-row" style="border-bottom:none;">
                 <div class="ios-layer-name" style="font-size:14px;">Позиция Y</div>
                 <div id="v-wm-y" style="margin-right:10px; color:#8E8E93; font-size:14px; width:35px; text-align:right;">${activeWm.y}</div>
-                <input type="range" class="ios-slider" min="-200" max="1500" step="1" value="${activeWm.y}" oninput="document.getElementById('v-wm-y').innerText=this.value; window.layerState.customWatermarks[window.layerState.activeWmIndex].y = parseFloat(this.value); startAnimation();">
+                <input type="range" class="ios-slider" min="-200" max="1500" step="1" value="${activeWm.y}" 
+                    oninput="document.getElementById('v-wm-y').innerText=this.value; 
+                            window.layerState.customWatermarks[window.layerState.activeWmIndex].y = parseFloat(this.value); 
+                            startAnimation();">
             </div>
             `;
         }
+
         html += `</div>`;
     }
 
@@ -6836,10 +7087,12 @@ function setupPersistentCanvas() {
     document.body.appendChild(hdBtnWrap);
     
     let scale = getHDScale();
-    
+        
     if (window.layerState.isBrawlPassMode) {
-        persistentCanvas.width = 1280 * scale;
-        persistentCanvas.height = 720 * scale;
+        const outW = window.layerState.outputW || 1280;
+        const outH = window.layerState.outputH || 720;
+        persistentCanvas.width = outW;
+        persistentCanvas.height = outH;
     } else {
         persistentCanvas.width = rawBgImage.width * scale;
         persistentCanvas.height = rawBgImage.height * scale;
@@ -6975,7 +7228,7 @@ window.updateCachedTextCanvas = () => {
     cachedCustomTextCanvas.height = persistentCanvas.height;
     let customCtx = cachedCustomTextCanvas.getContext('2d');
     
-    if (window.layerState.isBrawlPassMode && window.layerState.bpStyleIndex !== 2 && window.layerState.bpStyleIndex !== 3) {
+    if (window.layerState.isBrawlPassMode && window.layerState.bpStyleIndex !== 2 && window.layerState.bpStyleIndex !== 3 && window.layerState.bpStyleIndex !== 4) {
         drawBPNickText(ctx, window.layerState.textValue || "SNAPI", persistentCanvas.width, persistentCanvas.height);
     } else {
         drawBeautifulNick(ctx, window.layerState.textValue, persistentCanvas.width, persistentCanvas.height);
@@ -7147,7 +7400,8 @@ function drawScene() {
             const ctx = persistentCtx;
             const W = persistentCanvas.width;
             const H = persistentCanvas.height;
-            const s = W / 1280; 
+            const s = Math.min(W / 1280, H / 720);
+ 
 
             let currentSeason = window.layerState.bpSeason || 50;
             let s2Config = (BP_SEASON_CONFIG[currentSeason] && BP_SEASON_CONFIG[currentSeason].style2Brawlers) 
@@ -7223,28 +7477,28 @@ function drawScene() {
                 ctx.restore();
             }
 
-            if (rawBgImage && C.backgrounds && C.backgrounds.length >= 2) {
-                const drawMaskedBg = (bg, isTop) => {
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.moveTo(809*s, 0); ctx.lineTo(W, 0); ctx.lineTo(W, H); ctx.lineTo(750*s, H);
-                    ctx.closePath();
-                    ctx.clip();
+            if (rawBgImage) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(809*s, 0); ctx.lineTo(W, 0); ctx.lineTo(W, H); ctx.lineTo(750*s, H);
+                ctx.closePath();
+                ctx.clip();
+                ctx.drawImage(rawBgImage, 0, 0, W, H);
 
-                    ctx.beginPath();
-                    if (isTop) ctx.rect(0, 0, W, H/2 - 8*s); 
-                    else ctx.rect(0, H/2 + 8*s, W, H/2);    
-                    ctx.clip();
+                const vigL = ctx.createLinearGradient(750*s, 0, 900*s, 0);
+                vigL.addColorStop(0, 'rgba(0,0,0,0.55)');
+                vigL.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = vigL;
+                ctx.fillRect(750*s, 0, 150*s, H);
 
-                    ctx.translate(bg.x * s, bg.y * s);
-                    if (bg.skewX) ctx.transform(1, 0, Math.tan(bg.skewX * Math.PI / 180), 1, 0, 0);
-                    ctx.scale(bg.scale, bg.scale);
-                    ctx.drawImage(rawBgImage, 0, 0, W, H);
-                    ctx.restore();
-                };
+                const vigT = ctx.createLinearGradient(0, 0, 0, H * 0.22);
+                vigT.addColorStop(0, 'rgba(0,0,0,0.45)');
+                vigT.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = vigT;
+                ctx.fillRect(750*s, 0, W, H * 0.22);
 
-                drawMaskedBg(C.backgrounds[0], true);  
-                drawMaskedBg(C.backgrounds[1], false); 
+
+                ctx.restore();
             }
 
             if (window.layerState.detailsS2Visible !== false && globalAssets.style2Details) {
@@ -7345,21 +7599,15 @@ function drawScene() {
             let lineW = 16*s; let lineH = H * 1.5;
             let lineX = W * 0.58 + 6*s; let lineY = -H * 0.25;
             let lineCx = lineX + lineW/2; let cy = lineY + lineH/2;
-
-            ctx.save();
-            ctx.shadowBlur = 35 * s; ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.fillStyle = "white";
-            ctx.translate(lineCx, cy); ctx.translate(27*s, 2*s); ctx.rotate(7 * Math.PI / 180);
-            ctx.fillRect(-lineW/2, -lineH/2, lineW, lineH);
-            ctx.restore();
             
             ctx.save();
-            ctx.shadowBlur = 35 * s; ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.fillStyle = "white";
-            ctx.fillRect((742 + 40)*s, H/2 - 8*s, W, 16*s);
+            ctx.fillStyle = "white";
+            ctx.fillRect((740 + 40)*s, H/2 - 8*s, W, 16*s);
             ctx.restore();
 
             ctx.save();
             ctx.fillStyle = "white";
-            ctx.translate(lineCx, cy); ctx.translate(27*s, 2*s); ctx.rotate(7 * Math.PI / 180);
+            ctx.translate(lineCx, cy); ctx.translate(17*s, 2*s); ctx.rotate(5 * Math.PI / 180);
             ctx.fillRect(-lineW/2, -lineH/2, lineW, lineH);
             ctx.restore();
 
@@ -7405,12 +7653,12 @@ function drawScene() {
                 }
 
                 ctx.shadowColor = "white"; ctx.shadowBlur = 0; 
-                ctx.shadowOffsetX = 3 * s / baseScale; 
-                ctx.shadowOffsetY = -6 * s / baseScale;
+                ctx.shadowOffsetX = 0.5 * s / baseScale; 
+                ctx.shadowOffsetY = -1 * s / baseScale;
                 ctx.drawImage(img, 0, 0, targetW, targetH);
 
-                ctx.shadowOffsetX = 2 * s / baseScale; 
-                ctx.shadowOffsetY = -4 * s / baseScale; 
+                ctx.shadowOffsetX = 0.8 * s / baseScale; 
+                ctx.shadowOffsetY = -1.5 * s / baseScale; 
                 ctx.drawImage(img, 0, 0, targetW, targetH);
 
                 ctx.restore();
@@ -7557,7 +7805,8 @@ function drawScene() {
             const ctx = persistentCtx;
             const W = persistentCanvas.width;
             const H = persistentCanvas.height;
-            const s = W / 1280;
+            const s = Math.min(W / 1280, H / 720);
+
 
             const offC = document.createElement('canvas');
             offC.width = W; offC.height = H;
@@ -7715,30 +7964,440 @@ function drawScene() {
             return; 
         }
 
-        else if (window.layerState.bpStyleIndex === 'dop') {
-            const ctx = persistentCtx;
-            const W = persistentCanvas.width;
-            const H = persistentCanvas.height;
-            const s = W / 1280; 
+else if (window.layerState.bpStyleIndex === 4) {
+            const ctx = persistentCtx;
+            const W = persistentCanvas.width;
+            const H = persistentCanvas.height;
+            const s = Math.min(W / 1280, H / 720);
 
-            const drawLayerImg = (img, x, y, w, h) => {
-                if (!img) return;
-                ctx.drawImage(img, x * s, y * s, w * s, h * s);
-            };
+            if (rawBgImage) {
+                ctx.drawImage(rawBgImage, 0, 0, W, H);
+            }
 
-            if (rawBgImage) {
-                drawLayerImg(rawBgImage, -7, 0, 1548, 761);
-            }
+            if (window.layerState.dopBg4Visible !== false && globalAssets.dopBg4) {
+                ctx.save();
+                ctx.globalAlpha = window.layerState.dopBg4Opacity !== undefined ? window.layerState.dopBg4Opacity : 1;
+                ctx.drawImage(globalAssets.dopBg4, 0, 0, W, H);
+                ctx.restore();
+            }
+
+            ctx.save();
+            ctx.translate(751*s, 360*s);
+            ctx.scale(1.4, 1.4);
+            ctx.globalAlpha = 0.3;
+            ctx.beginPath();
+            ctx.moveTo(-640*s, -360*s);
+            ctx.lineTo(93*s, -360*s);
+            ctx.lineTo(5*s, 17*s);
+            ctx.lineTo(53*s, -12*s);
+            ctx.lineTo(-6*s, 360*s);
+            ctx.lineTo(-640*s, 360*s);
+            ctx.closePath();
+            ctx.fillStyle = '#000000';
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(751*s, 360*s);
+            ctx.scale(1.4, 1.4);
+            ctx.globalAlpha = 0.05;
+            ctx.beginPath();
+            ctx.moveTo(93*s, -360*s);
+            ctx.lineTo(640*s, -360*s);
+            ctx.lineTo(640*s, 360*s);
+            ctx.lineTo(-6*s, 360*s);
+            ctx.lineTo(53*s, -12*s);
+            ctx.lineTo(5*s, 17*s);
+            ctx.closePath();
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.restore();
+
+            const colorMap4 = {
+                'green':  '#5ee568',
+                'blue':   '#46b3ff',
+                'orange': '#ffcc00',
+                'purple': '#c861ff',
+                'black':  '#aaaaaa'
+            };
+            const glowColor4 = (window.layerState.isGeneratedBg && window.layerState.bgColorType)
+                ? (colorMap4[window.layerState.bgColorType] || '#ffffff')
+                : '#ffffff';
+
+            const lights4 = [
+                { x: 372, y: 292, scale: 1.3, alpha: 0.5, r: 200, blur: 100, col: glowColor4 },
+                { x: 1038, y: 215, scale: 1.0, alpha: 0.2, r: 200, blur: 100, col: glowColor4 },
+                { x: 1121, y: 609, scale: 0.65, alpha: 0.8, r: 200, blur: 100, col: glowColor4 },
+                { x: 876, y: 603, scale: 0.65, alpha: 0.8, r: 200, blur: 100, col: glowColor4 }
+            ];
+            lights4.forEach(l => {
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                ctx.globalAlpha = l.alpha;
+                ctx.translate(l.x*s, l.y*s);
+                ctx.scale(l.scale, l.scale);
+                const totalR = (l.r + l.blur) * s;
+                const coreR = Math.max(0, l.r - l.blur) * s;
+                let cR = parseInt(l.col.slice(1,3),16), cG = parseInt(l.col.slice(3,5),16), cB = parseInt(l.col.slice(5,7),16);
+                let grd = ctx.createRadialGradient(0,0,coreR,0,0,totalR);
+                grd.addColorStop(0, `rgba(${cR},${cG},${cB},1)`);
+                grd.addColorStop(0.5, `rgba(${cR},${cG},${cB},0.3)`);
+                grd.addColorStop(1, `rgba(${cR},${cG},${cB},0)`);
+                ctx.beginPath();
+                ctx.arc(0,0,totalR,0,Math.PI*2);
+                ctx.fillStyle = grd;
+                ctx.fill();
+                ctx.restore();
+            });
+
+            if (window.layerState.pointsVisible !== false && globalAssets.s4Points) {
+                ctx.save();
+                ctx.globalAlpha = window.layerState.pointsOpacity !== undefined ? window.layerState.pointsOpacity : 1;
+                ctx.drawImage(globalAssets.s4Points, 0, 0, W, H);
+                ctx.restore();
+            }
+
+            if (window.layerState.starsVisible !== false && globalAssets.s4Stars) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'overlay';
+                ctx.globalAlpha = window.layerState.starsOpacity !== undefined ? window.layerState.starsOpacity : 1;
+                ctx.drawImage(globalAssets.s4Stars, 0, 0, W, H);
+                ctx.restore();
+            }
+
+            const p4 = window.layerState.style4Prices || [];
+            const fmt4 = (i) => (p4[i] !== undefined && p4[i] !== "") ? p4[i] + " ₽" : "0 ₽";
+
+            const drawS4PriceText = (txt, x, y, fontSize) => {
+                ctx.save();
+                ctx.font = `${fontSize}px 'LilitaOneRus', 'Lilita One', sans-serif`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.miterLimit = 2;
+                ctx.lineJoin = 'round';
+                const sw = fontSize * 0.18;
+                ctx.lineWidth = sw;
+                ctx.strokeStyle = '#000000';
+                ctx.strokeText(txt, x*s, y*s + sw * 0.12); 
+                ctx.strokeText(txt, x*s, y*s);
+                ctx.shadowColor = 'rgba(0,0,0,1)';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = Math.max(3, fontSize * 0.09);
+                ctx.strokeText(txt, x*s, y*s);
+                ctx.shadowColor = 'transparent';
+                ctx.shadowOffsetY = 0;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(txt, x*s, y*s);
+                ctx.restore();
+            };
+
+                const drawS4Icon = (img, cx, cy, maxW, maxH, withStroke = true) => {
+                    if (!img) return;
+                    const sc = Math.min(maxW / img.width, maxH / img.height);
+                    const dw = img.width * sc * s;
+                    const dh = img.height * sc * s;
+                    ctx.save();
+                    if (withStroke) {
+                        ctx.shadowColor = '#ffffff'; ctx.shadowBlur = 0.5;
+                        for (let a = 0; a < Math.PI*2; a += Math.PI/4) {
+                            ctx.shadowOffsetX = Math.cos(a)*5; ctx.shadowOffsetY = Math.sin(a)*5;
+                            ctx.drawImage(img, cx*s - dw/2, cy*s - dh/2, dw, dh);
+                        }
+                        ctx.shadowColor = '#000000'; ctx.shadowBlur = 0.5;
+                        for (let a = 0; a < Math.PI*2; a += Math.PI/4) {
+                            ctx.shadowOffsetX = Math.cos(a)*3; ctx.shadowOffsetY = Math.sin(a)*3;
+                            ctx.drawImage(img, cx*s - dw/2, cy*s - dh/2, dw, dh);
+                        }
+                        ctx.shadowColor = 'transparent'; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+                    }
+                    ctx.drawImage(img, cx*s - dw/2, cy*s - dh/2, dw, dh);
+                    ctx.restore();
+                };
+
+                const season4 = window.layerState.bpSeason || 50;
+                const s4Conf = (BP_SEASON_CONFIG[season4] && BP_SEASON_CONFIG[season4].style4Brawlers)
+                    ? BP_SEASON_CONFIG[season4].style4Brawlers
+                    : BP_SEASON_CONFIG[50].style4Brawlers;
+
+                const s4BR_x     = window.layerState.s4BrawlerR_x     !== undefined ? window.layerState.s4BrawlerR_x     : s4Conf.brawlerR.x;
+                const s4BR_y     = window.layerState.s4BrawlerR_y     !== undefined ? window.layerState.s4BrawlerR_y     : s4Conf.brawlerR.y;
+                const s4BR_scale = window.layerState.s4BrawlerR_scale !== undefined ? window.layerState.s4BrawlerR_scale : s4Conf.brawlerR.scale;
+                const s4BR_flip  = window.layerState.s4BrawlerR_flip  !== undefined ? window.layerState.s4BrawlerR_flip  : s4Conf.brawlerR.flipH;
+
+                const s4BL_x     = window.layerState.s4BrawlerL_x     !== undefined ? window.layerState.s4BrawlerL_x     : s4Conf.brawlerL.x;
+                const s4BL_y     = window.layerState.s4BrawlerL_y     !== undefined ? window.layerState.s4BrawlerL_y     : s4Conf.brawlerL.y;
+                const s4BL_scale = window.layerState.s4BrawlerL_scale !== undefined ? window.layerState.s4BrawlerL_scale : s4Conf.brawlerL.scale;
+                const s4BL_flip  = window.layerState.s4BrawlerL_flip  !== undefined ? window.layerState.s4BrawlerL_flip  : s4Conf.brawlerL.flipH;
+
+                if (globalAssets[`brawler_${season4}_1`] || globalAssets.s4BrawlerR) {
+                    const brawlerR = globalAssets[`brawler_${season4}_1`] || globalAssets.s4BrawlerR;
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(255,255,255,1)';
+                    ctx.shadowOffsetX = 0; ctx.shadowOffsetY = -6*s; ctx.shadowBlur = 0;
+                    const sc = Math.min(s4BR_scale / brawlerR.width, s4BR_scale / brawlerR.height);
+                    const dw = brawlerR.width * sc * s, dh = brawlerR.height * sc * s;
+                    if (s4BR_flip) {
+                        ctx.translate(s4BR_x*s, s4BR_y*s);
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(brawlerR, -dw/2, -dh/2, dw, dh);
+                    } else {
+                        ctx.drawImage(brawlerR, s4BR_x*s - dw/2, s4BR_y*s - dh/2, dw, dh);
+                    }
+                    ctx.restore();
+                }
+
+                if (globalAssets[`brawler_${season4}_2`] || globalAssets.s4BrawlerL) {
+                    const brawlerL = globalAssets[`brawler_${season4}_2`] || globalAssets.s4BrawlerL;
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(255,255,255,1)';
+                    ctx.shadowOffsetX = 0; ctx.shadowOffsetY = -6*s; ctx.shadowBlur = 0;
+                    const sc = Math.min(s4BL_scale / brawlerL.width, s4BL_scale / brawlerL.height);
+                    const dw = brawlerL.width * sc * s, dh = brawlerL.height * sc * s;
+                    if (s4BL_flip) {
+                        ctx.translate(s4BL_x*s, s4BL_y*s);
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(brawlerL, -dw/2, -dh/2, dw, dh);
+                    } else {
+                        ctx.drawImage(brawlerL, s4BL_x*s - dw/2, s4BL_y*s - dh/2, dw, dh);
+                    }
+                    ctx.restore();
+                }
+
+            if (globalAssets.s4Gems) {
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 10*s; ctx.shadowBlur = 10*s;
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 10*s; ctx.shadowBlur = 10*s;
+                const scGems = Math.min(500*1.4/globalAssets.s4Gems.width, 550*1.4/globalAssets.s4Gems.height);
+                ctx.drawImage(globalAssets.s4Gems, (380 - globalAssets.s4Gems.width*scGems/2)*s, (277 - globalAssets.s4Gems.height*scGems/2)*s, globalAssets.s4Gems.width*scGems*s, globalAssets.s4Gems.height*scGems*s);
+                ctx.restore();
+                ctx.restore();
+            }
+
+            if (window.layerState.watermarksVisible !== false) {
+                let wmText = window.layerState.textValue || "SNAPI";
+                let wmFont = window.layerState.watermarksFont || 'Font16103';
+                let wmAlpha = window.layerState.watermarksOpacity !== undefined ? window.layerState.watermarksOpacity : 0.8;
+                ctx.save();
+                ctx.globalCompositeOperation = 'overlay';
+                ctx.globalAlpha = wmAlpha;
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                let wmArray = window.layerState.customWatermarks || [];
+                wmArray.forEach(wm => {
+                    ctx.save();
+                    ctx.translate(wm.x * s, wm.y * s);
+                    if (wm.skewX) ctx.transform(1, 0, Math.tan(wm.skewX * Math.PI / 180), 1, 0, 0);
+                    ctx.font = `${56 * wm.scale * s}px '${wmFont}', sans-serif`;
+                    ctx.fillText(wmText, 0, 0);
+                    ctx.restore();
+                });
+                ctx.restore();
+            }
+
+            const gemFontSize = 34 * s;
+            drawS4PriceText(fmt4(0), 163, 234, gemFontSize); 
+            drawS4PriceText(fmt4(1), 381, 234, gemFontSize); 
+            drawS4PriceText(fmt4(2), 607, 234, gemFontSize); 
+            drawS4PriceText(fmt4(3), 142, 485, gemFontSize); 
+            drawS4PriceText(fmt4(4), 365, 485, gemFontSize); 
+            drawS4PriceText(fmt4(5), 589, 485, gemFontSize); 
+
+            const hexToRgba4 = (hex, a) => {
+                let r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+                return `rgba(${r},${g},${b},${a})`;
+            };
+            ctx.save();
+            ctx.globalAlpha = 0.4;
+            ctx.fillStyle = '#000000';
+            const pinLW = 140*1.25*s, pinLH = 50*1.25*s;
+            const pinLX = (251 - 140*1.25/2)*s, pinLY = (585 - 50*1.25/2)*s;
+            const pinRad = 25*s;
+            ctx.beginPath();
+            ctx.moveTo(pinLX+pinRad, pinLY); ctx.lineTo(pinLX+pinLW-pinRad, pinLY); ctx.arcTo(pinLX+pinLW, pinLY, pinLX+pinLW, pinLY+pinRad, pinRad);
+            ctx.lineTo(pinLX+pinLW, pinLY+pinLH-pinRad); ctx.arcTo(pinLX+pinLW, pinLY+pinLH, pinLX+pinLW-pinRad, pinLY+pinLH, pinRad);
+            ctx.lineTo(pinLX+pinRad, pinLY+pinLH); ctx.arcTo(pinLX, pinLY+pinLH, pinLX, pinLY+pinLH-pinRad, pinRad);
+            ctx.lineTo(pinLX, pinLY+pinRad); ctx.arcTo(pinLX, pinLY, pinLX+pinRad, pinLY, pinRad);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            drawS4Icon(globalAssets.s4PinLeft,  158, 587, 90*1.05, 90*1.05, false);
+            drawS4PriceText(fmt4(9), 265, 581, 28 * 1.3 * s);
+
+            ctx.save();
+            ctx.globalAlpha = 0.4;
+            ctx.fillStyle = '#000000';
+            const pinRW = 140*1.25*s, pinRH = 50*1.25*s;
+            const pinRX = (527 - 140*1.25/2)*s, pinRY = (587 - 50*1.25/2)*s;
+            ctx.beginPath();
+            ctx.moveTo(pinRX+pinRad, pinRY); ctx.lineTo(pinRX+pinRW-pinRad, pinRY); ctx.arcTo(pinRX+pinRW, pinRY, pinRX+pinRW, pinRY+pinRad, pinRad);
+            ctx.lineTo(pinRX+pinRW, pinRY+pinRH-pinRad); ctx.arcTo(pinRX+pinRW, pinRY+pinRH, pinRX+pinRW-pinRad, pinRY+pinRH, pinRad);
+            ctx.lineTo(pinRX+pinRad, pinRY+pinRH); ctx.arcTo(pinRX, pinRY+pinRH, pinRX, pinRY+pinRH-pinRad, pinRad);
+            ctx.lineTo(pinRX, pinRY+pinRad); ctx.arcTo(pinRX, pinRY, pinRX+pinRad, pinRY, pinRad);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            drawS4Icon(globalAssets.s4PinRight, 429, 586, 90*1.3,  90*1.3,  false);
+            drawS4PriceText(fmt4(10), 539, 585, 30 * 1.25 * s);
+
+            const drawS4Rect = (cx, cy, w, h, r, fillCol, rot, scl, inShadowCol, inShadowY) => {
+                ctx.save();
+                ctx.translate(cx*s, cy*s);
+                ctx.rotate(rot * Math.PI/180);
+                ctx.scale(scl, scl);
+                const rw = w*s, rh = h*s, rx = -rw/2, ry = -rh/2, rr = r*s;
+                ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.moveTo(rx-5*s+rr, ry-5*s); 
+                ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+                ctx.lineTo(rx+rw+5*s-rr, ry-5*s); ctx.arcTo(rx+rw+5*s, ry-5*s, rx+rw+5*s, ry-5*s+rr, rr+5*s);
+                ctx.lineTo(rx+rw+5*s, ry+rh+5*s-rr); ctx.arcTo(rx+rw+5*s, ry+rh+5*s, rx+rw+5*s-rr, ry+rh+5*s, rr+5*s);
+                ctx.lineTo(rx-5*s+rr, ry+rh+5*s); ctx.arcTo(rx-5*s, ry+rh+5*s, rx-5*s, ry+rh+5*s-rr, rr+5*s);
+                ctx.lineTo(rx-5*s, ry-5*s+rr); ctx.arcTo(rx-5*s, ry-5*s, rx-5*s+rr, ry-5*s, rr+5*s);
+                ctx.closePath(); ctx.fill();
+                ctx.fillStyle = '#000000';
+                ctx.beginPath();
+                ctx.moveTo(rx-3*s+rr, ry-3*s); ctx.lineTo(rx+rw+3*s-rr, ry-3*s); ctx.arcTo(rx+rw+3*s, ry-3*s, rx+rw+3*s, ry-3*s+rr, rr+3*s);
+                ctx.lineTo(rx+rw+3*s, ry+rh+3*s-rr); ctx.arcTo(rx+rw+3*s, ry+rh+3*s, rx+rw+3*s-rr, ry+rh+3*s, rr+3*s);
+                ctx.lineTo(rx-3*s+rr, ry+rh+3*s); ctx.arcTo(rx-3*s, ry+rh+3*s, rx-3*s, ry+rh+3*s-rr, rr+3*s);
+                ctx.lineTo(rx-3*s, ry-3*s+rr); ctx.arcTo(rx-3*s, ry-3*s, rx-3*s+rr, ry-3*s, rr+3*s);
+                ctx.closePath(); ctx.fill();
+                ctx.fillStyle = fillCol;
+                ctx.beginPath();
+                ctx.moveTo(rx+rr, ry); ctx.lineTo(rx+rw-rr, ry); ctx.arcTo(rx+rw, ry, rx+rw, ry+rr, rr);
+                ctx.lineTo(rx+rw, ry+rh-rr); ctx.arcTo(rx+rw, ry+rh, rx+rw-rr, ry+rh, rr);
+                ctx.lineTo(rx+rr, ry+rh); ctx.arcTo(rx, ry+rh, rx, ry+rh-rr, rr);
+                ctx.lineTo(rx, ry+rr); ctx.arcTo(rx, ry, rx+rr, ry, rr);
+                ctx.closePath(); ctx.fill();
+
+                if (inShadowCol) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(rx+rr, ry); ctx.lineTo(rx+rw-rr, ry); ctx.arcTo(rx+rw, ry, rx+rw, ry+rr, rr);
+                    ctx.lineTo(rx+rw, ry+rh-rr); ctx.arcTo(rx+rw, ry+rh, rx+rw-rr, ry+rh, rr);
+                    ctx.lineTo(rx+rr, ry+rh); ctx.arcTo(rx, ry+rh, rx, ry+rh-rr, rr);
+                    ctx.lineTo(rx, ry+rr); ctx.arcTo(rx, ry, rx+rr, ry, rr);
+                    ctx.closePath();
+                    ctx.clip();
+                    ctx.shadowColor = inShadowCol;
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = inShadowY * s;
+                    ctx.globalAlpha = 0.35;
+                    ctx.fillStyle = inShadowCol;
+                    ctx.fillRect(rx, ry, rw, rh);
+                    ctx.restore();
+                }
+
+                ctx.restore();
+            };
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.35)';
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 10*s;
+            ctx.shadowBlur = 10*s;
+            ctx.beginPath();
+            ctx.roundRect(1070*s - 180*1.3*s/2, 89*s - 60*1.3*s/2, 180*1.3*s, 60*1.3*s, 15*s);
+            ctx.fillStyle = '#fbeb4e';
+            ctx.fill();
+            ctx.restore();
+            drawS4Rect(1070, 89, 180, 60, 15, '#fbeb4e', 1, 1.3, '#f0953a', -5);
+            ctx.save();
+            ctx.translate(896*s, 89*s);
+            ctx.rotate(5 * Math.PI/180);
+            drawS4Icon(globalAssets.s4PassYellow, 0, 0, 170, 100);
+            ctx.restore();
+            drawS4PriceText(fmt4(6), 1076, 87, 36 * 1.3 * s);
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.35)';
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 10*s;
+            ctx.shadowBlur = 10*s;
+            ctx.beginPath();
+            ctx.roundRect(1071*s - 180*1.25*s/2, 210*s - 60*1.25*s/2, 180*1.25*s, 60*1.25*s, 15*s);
+            ctx.fillStyle = '#d8f7fe';
+            ctx.fill();
+            ctx.restore();
+            drawS4Rect(1071, 210, 180, 60, 15, '#d8f7fe', 1, 1.25, '#5da7d6', -5);   
+            ctx.save();
+            ctx.translate(897*s, 209*s);
+            ctx.rotate(6 * Math.PI/180);
+            drawS4Icon(globalAssets.s4PassBlue, 0, 0, 170, 100);
+            ctx.restore();
+            drawS4PriceText(fmt4(7), 1080, 208, 36 * 1.25 * s);  
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.35)';
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 10*s;
+            ctx.shadowBlur = 10*s;
+            ctx.beginPath();
+            ctx.roundRect(1019*s - 180*1.3*s/2, 328*s - 60*1.3*s/2, 180*1.3*s, 60*1.3*s, 15*s);
+            ctx.fillStyle = '#89fc4d';
+            ctx.fill();
+            ctx.restore();
+            drawS4Rect(1019, 328, 180, 60, 15, '#89fc4d', 1, 1.3, '#50a830', -5);       
+            ctx.save();
+            ctx.translate(893*s, 325*s);
+            ctx.rotate(1 * Math.PI/180);
+            drawS4Icon(globalAssets.s4PassPro, 0, 0, 140*0.9, 140*0.9);
+            ctx.restore();
+            drawS4PriceText(fmt4(8), 1026, 326, 36 * 1.3 * s);   
+
+
+            if (cachedTextCanvas && animText.alpha > 0.01) {
+                const s4tx = window.layerState.s4TextX !== undefined ? window.layerState.s4TextX : -241;
+                const s4ty = window.layerState.s4TextY !== undefined ? window.layerState.s4TextY : 485;
+                const s4ts = window.layerState.s4TextScale !== undefined ? window.layerState.s4TextScale : 0.65;
+                ctx.save();
+                ctx.globalAlpha = animText.alpha;
+                ctx.translate(W/2, H/2);
+                ctx.translate(s4tx * s, s4ty * s);
+                ctx.scale(s4ts * animText.scale, s4ts * animText.scale);
+                ctx.translate(-W/2, -H/2);
+                ctx.drawImage(cachedTextCanvas, 0, 0);
+                ctx.restore();
+            }
+
+            return;
+        }
+
+        else if (window.layerState.bpStyleIndex === 'dop') {
+            const ctx = persistentCtx;
+            const W = persistentCanvas.width;
+            const H = persistentCanvas.height;
+            const s = Math.min(W / 1280, H / 720);
+ 
+
+            const offsetX = (W - 1280 * s) / 2;
+            const offsetY = (H - 720 * s) / 2;
+            const drawLayerImg = (img, x, y, w, h) => {
+                if (!img) return;
+                ctx.drawImage(img, offsetX + x * s, offsetY + y * s, w * s, h * s);
+            };
+
+            if (rawBgImage) {
+                ctx.save();
+                ctx.drawImage(rawBgImage, 0, 0, W, H);
+                ctx.restore();
+            }
 
             ctx.save();
             ctx.globalCompositeOperation = 'overlay';
-            if (window.layerState.pointsVisible !== false) {
+            if (window.layerState.pointsVisible !== false && globalAssets.dopPoints) {
                 ctx.globalAlpha = window.layerState.pointsOpacity !== undefined ? window.layerState.pointsOpacity : 1;
-                drawLayerImg(globalAssets.dopPoints, 0, 0, 1280, 720);
+                ctx.drawImage(globalAssets.dopPoints, 0, 0, W, H);
             }
-            if (window.layerState.starsVisible !== false) {
+            if (window.layerState.starsVisible !== false && globalAssets.dopStarsEff) {
                 ctx.globalAlpha = window.layerState.starsOpacity !== undefined ? window.layerState.starsOpacity : 1;
-                drawLayerImg(globalAssets.dopStarsEff, 0, 0, 1280, 720);
+                ctx.drawImage(globalAssets.dopStarsEff, 0, 0, W, H);
             }
             ctx.restore();
 
@@ -7765,26 +8424,26 @@ function drawScene() {
                 
                 wms.forEach(wm => {
                     ctx.font = `italic 900 ${wm.h * s}px "${wmFont}", Impact, sans-serif`;
-                    ctx.fillText(wmText, wm.x * s, wm.y * s);
+                    ctx.fillText(wmText, offsetX + wm.x * s, offsetY + wm.y * s);
                 });
                 ctx.restore();
             }
 
-            drawLayerImg(globalAssets.dopStar, 561, 61, 771, 675);
+            drawLayerImg(globalAssets.dopStar, 561, 61, 771, 675);
 
-            ctx.save();
-            const cx = (599 + 609 / 2) * s;
-            const cy = (150 + 576 / 2) * s;
-            const r = Math.min(609, 576) / 2 * s;
-            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-            grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.7)');
-            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(cx, cy, r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
+            ctx.save();
+            const cx = offsetX + (599 + 609 / 2) * s;
+            const cy = offsetY + (150 + 576 / 2) * s;
+            const r = Math.min(609, 576) / 2 * s;
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.7)');
+            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
 
             let season = window.layerState.bpSeason || 50;
             let brawler;
@@ -7809,7 +8468,7 @@ function drawScene() {
 
                 ctx.save();
                 
-                ctx.translate(b2x * s, b2y * s); 
+                ctx.translate(offsetX + b2x * s, offsetY + b2y * s); 
                 if (b2rot) ctx.rotate(b2rot * Math.PI / 180);
             
                 ctx.scale(b2s * b2sx, b2s * b2sy);
@@ -7829,8 +8488,8 @@ function drawScene() {
                 ctx.restore();
             }
 
-            drawLayerImg(globalAssets.dopPanelL, 82, 21, 546, 649);
-            
+            drawLayerImg(globalAssets.dopPanelL, 82, 21, 546, 649);
+            
             let pricePlateX = 158;
             let pricePlateY = 589;
             let pricePlateW = 350;
@@ -7853,9 +8512,9 @@ function drawScene() {
             let textBoxHeight = window.layerState.bpVariantIndex === 2 ? 114 : 124; 
 
             drawPriceText(ctx, W, H, pText, {
-                textX: textXPos * s, 
-                textY: textYPos * s, 
-                boxHeight: textBoxHeight * s 
+                textX: offsetX + textXPos * s,
+                textY: offsetY + textYPos * s,
+                boxHeight: textBoxHeight * s
             });
 
             if (window.layerState.bpVariantIndex === 4 && globalAssets.style2Text) {
@@ -7877,7 +8536,7 @@ function drawScene() {
 
             return; 
 
-        }
+        }
 
         else {
             if (window.layerState.luchVisible && globalAssets.luchImg) {
@@ -7936,8 +8595,8 @@ function drawScene() {
                 persistentCtx.shadowColor = '#000';
                 persistentCtx.shadowBlur = 0;
                 
-                let strokeSize = 12 * (w / 3840); 
-                let diag = strokeSize * 0.75;
+                let strokeSize = 6 * (w / 3840);
+                let diag = strokeSize * 0.375;
                 
                 const offsets = [
                     [strokeSize, 0], [-strokeSize, 0], [0, strokeSize], [0, -strokeSize], 
@@ -7955,8 +8614,8 @@ function drawScene() {
                 persistentCtx.restore();
             };
 
-            drawBrawlerS1(globalAssets[`brawler_${currentSeason}_2`], b2x, b2y, b2s, b2f);
             drawBrawlerS1(globalAssets[`brawler_${currentSeason}_1`], b1x, b1y, b1s, b1f);
+            drawBrawlerS1(globalAssets[`brawler_${currentSeason}_2`], b2x, b2y, b2s, b2f);
 
             let priceW = w * 0.24;
             let marginX = w * 0.02;
@@ -8099,6 +8758,30 @@ function drawFallbackRays(ctx, w, h, opacity = 1.0) {
     ctx.restore();
 }
 
+function drawImageCover(ctx, img, x, y, w, h) {
+    if (!img) return;
+    const imgRatio = img.width / img.height;
+    const canvasRatio = w / h;
+    let drawW, drawH, drawX, drawY;
+    if (imgRatio > canvasRatio) {
+        drawH = h;
+        drawW = h * imgRatio;
+        drawX = x + (w - drawW) / 2;
+        drawY = y;
+    } else {
+        drawW = w;
+        drawH = w / imgRatio;
+        drawX = x;
+        drawY = y + (h - drawH) / 2;
+    }
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+    ctx.restore();
+}
+
 function drawWatermarks(ctx, text, w, h, opacity = 0.8, forExport = false) {
     ctx.save(); 
     ctx.globalCompositeOperation = forExport ? "source-over" : "overlay"; 
@@ -8108,44 +8791,76 @@ function drawWatermarks(ctx, text, w, h, opacity = 0.8, forExport = false) {
     
     let wmArray = window.layerState.customWatermarks;
     
-    if (!wmArray || wmArray.length === 0) {
-        if (!window.layerState.isBrawlPassMode) {
-            wmArray = [
-                { x: 49, y: 79, scale: 0.35, skewX: -10, align: "center" },
-                { x: 58, y: 233, scale: 0.54, skewX: -10, align: "center" },
-                { x: 125, y: 347, scale: 0.23, skewX: -10, align: "center" },
-                { x: 131, y: 719, scale: 1.1, skewX: -10, align: "center" },
-                { x: 178, y: 488, scale: 0.44, skewX: -10, align: "center" },
-                { x: 74, y: 600, scale: 0.14, skewX: -10, align: "center" },
-                { x: 1248, y: 9, scale: 0.88, skewX: -10, align: "center" },
-                { x: 1120, y: 159, scale: 0.28, skewX: -10, align: "center" },
-                { x: 1247, y: 306, scale: 0.5, skewX: -10, align: "center" },
-                { x: 1092, y: 405, scale: 0.17, skewX: -10, align: "center" },
-                { x: 1230, y: 512, scale: 0.61, skewX: -10, align: "center" },
-                { x: 1071, y: 675, scale: 0.79, skewX: -10, align: "center" }
-            ];
-            } else if (window.layerState.bpStyleIndex === 3) { 
-                wmArray = [
-                    {x: 1019, y: 601, scale: 0.3, skewX: -12}, {x: 1037, y: 657, scale: 0.75, skewX: -12},
-                    {x: 1173, y: 541, scale: 0.57, skewX: -12}, {x: -114, y: 687, scale: 0.93, skewX: -12},
-                    {x: 167, y: 666, scale: 0.26, skewX: -12}, {x: 23, y: 610, scale: 0.45, skewX: -12},
-                    {x: -158, y: 125, scale: 0.54, skewX: -12}, {x: 332, y: -27, scale: 0.72, skewX: -12},
-                    {x: 887, y: 7, scale: 0.39, skewX: -12}, {x: 1242, y: 476, scale: 0.21, skewX: -12}
-                ];
-            } else { 
-                wmArray = [
-                    { x: 514, y: -31, scale: 0.74, skewX: -12 }, { x: 71, y: 17, scale: 0.25, skewX: -12 },
-                    { x: 19, y: 146, scale: 0.12, skewX: -12 }, { x: 664, y: 82, scale: 0.25, skewX: -12 },
-                    { x: 587, y: 598, scale: 0.33, skewX: -12 }, { x: 421, y: 699, scale: 0.72, skewX: -12 },
-                    { x: 734, y: 262, scale: 0.1, skewX: -12 }, { x: 76, y: 602, scale: 0.38, skewX: -12 },
-                    { x: -92, y: 695, scale: 0.87, skewX: -12 }, { x: -52, y: 386, scale: 0.24, skewX: -12 },
-                    { x: 852, y: 189, scale: 0.22, skewX: -12 }, { x: 1237, y: 306, scale: 0.39, skewX: -12 },
-                    { x: 957, y: -21, scale: 0.5, skewX: -12 }, { x: 791, y: 558, scale: 0.21, skewX: -12 },
-                    { x: 878, y: 357, scale: 0.36, skewX: -12 }, { x: 1131, y: 391, scale: 0.13, skewX: -12 }
-                ];
-            }
-            window.layerState.customWatermarks = wmArray;
-        }
+if (!wmArray || wmArray.length === 0) {
+    if (!window.layerState.isBrawlPassMode) {
+        wmArray = [
+            { x: 49, y: 79, scale: 0.35, skewX: -10, align: "center" },
+            { x: 58, y: 233, scale: 0.54, skewX: -10, align: "center" },
+            { x: 125, y: 347, scale: 0.23, skewX: -10, align: "center" },
+            { x: 131, y: 719, scale: 1.1, skewX: -10, align: "center" },
+            { x: 178, y: 488, scale: 0.44, skewX: -10, align: "center" },
+            { x: 74, y: 600, scale: 0.14, skewX: -10, align: "center" },
+            { x: 1248, y: 9, scale: 0.88, skewX: -10, align: "center" },
+            { x: 1120, y: 159, scale: 0.28, skewX: -10, align: "center" },
+            { x: 1247, y: 306, scale: 0.5, skewX: -10, align: "center" },
+            { x: 1092, y: 405, scale: 0.17, skewX: -10, align: "center" },
+            { x: 1230, y: 512, scale: 0.61, skewX: -10, align: "center" },
+            { x: 1071, y: 675, scale: 0.79, skewX: -10, align: "center" }
+        ];
+    } else if (window.layerState.bpStyleIndex === 4) {
+        wmArray = [
+            { x: 514, y: -31, scale: 0.74, skewX: -12 },
+            { x: 71,  y: 17,  scale: 0.25, skewX: -12 },
+            { x: 19,  y: 146, scale: 0.12, skewX: -12 },
+            { x: 664, y: 82,  scale: 0.25, skewX: -12 },
+            { x: 587, y: 598, scale: 0.33, skewX: -12 },
+            { x: 421, y: 699, scale: 0.72, skewX: -12 },
+            { x: 734, y: 262, scale: 0.1,  skewX: -12 },
+            { x: 76,  y: 602, scale: 0.38, skewX: -12 },
+            { x: -92, y: 695, scale: 0.87, skewX: -12 },
+            { x: -52, y: 386, scale: 0.24, skewX: -12 },
+            { x: 852, y: 189, scale: 0.22, skewX: -12 },
+            { x: 1237,y: 306, scale: 0.39, skewX: -12 },
+            { x: 957, y: -21, scale: 0.5,  skewX: -12 },
+            { x: 791, y: 558, scale: 0.21, skewX: -12 },
+            { x: 878, y: 357, scale: 0.36, skewX: -12 },
+            { x: 1131,y: 391, scale: 0.13, skewX: -12 }
+        ];
+    } else if (window.layerState.bpStyleIndex === 3) { 
+        wmArray = [
+            {x: 1019, y: 601, scale: 0.3,  skewX: -12},
+            {x: 1037, y: 657, scale: 0.75, skewX: -12},
+            {x: 1173, y: 541, scale: 0.57, skewX: -12},
+            {x: -114, y: 687, scale: 0.93, skewX: -12},
+            {x: 167,  y: 666, scale: 0.26, skewX: -12},
+            {x: 23,   y: 610, scale: 0.45, skewX: -12},
+            {x: -158, y: 125, scale: 0.54, skewX: -12},
+            {x: 332,  y: -27, scale: 0.72, skewX: -12},
+            {x: 887,  y: 7,   scale: 0.39, skewX: -12},
+            {x: 1242, y: 476, scale: 0.21, skewX: -12}
+        ];
+    } else { 
+        wmArray = [
+            { x: 514, y: -31, scale: 0.74, skewX: -12 },
+            { x: 71,  y: 17,  scale: 0.25, skewX: -12 },
+            { x: 19,  y: 146, scale: 0.12, skewX: -12 },
+            { x: 664, y: 82,  scale: 0.25, skewX: -12 },
+            { x: 587, y: 598, scale: 0.33, skewX: -12 },
+            { x: 421, y: 699, scale: 0.72, skewX: -12 },
+            { x: 734, y: 262, scale: 0.1,  skewX: -12 },
+            { x: 76,  y: 602, scale: 0.38, skewX: -12 },
+            { x: -92, y: 695, scale: 0.87, skewX: -12 },
+            { x: -52, y: 386, scale: 0.24, skewX: -12 },
+            { x: 852, y: 189, scale: 0.22, skewX: -12 },
+            { x: 1237,y: 306, scale: 0.39, skewX: -12 },
+            { x: 957, y: -21, scale: 0.5,  skewX: -12 },
+            { x: 791, y: 558, scale: 0.21, skewX: -12 },
+            { x: 878, y: 357, scale: 0.36, skewX: -12 },
+            { x: 1131,y: 391, scale: 0.13, skewX: -12 }
+        ];
+    }
+    window.layerState.customWatermarks = wmArray;
+}
 
     let s = w / 1280;
 
@@ -8179,17 +8894,17 @@ window._sharedTextCanvas = document.createElement('canvas');
 window._sharedTempCanvas = document.createElement('canvas');
 
 function drawBeautifulNick(ctx, text, w, h) {
-    let baseFontSize = Math.floor(h * 0.12); 
+    let baseFontSize = Math.floor(h * 0.12); 
     if (baseFontSize < 30) baseFontSize = 30;
-    
-    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
-    let fontSize = Math.floor(baseFontSize * tScale);
-    if (fontSize < Math.floor(30 * tScale)) fontSize = Math.floor(30 * tScale);
+    
+    let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
+    let fontSize = Math.floor(baseFontSize * tScale);
+    if (fontSize < Math.floor(30 * tScale)) fontSize = Math.floor(30 * tScale);
 
-    let x = Math.round(w / 2); 
-    let y = window.layerState.textPosition === 'bottom' 
-        ? Math.round(h * 0.92 - (baseFontSize / 2))
-        : Math.round(h * 0.06 + (baseFontSize / 2));
+    let x = Math.round(w / 2); 
+    let y = window.layerState.textPosition === 'bottom' 
+        ? Math.round(h * 0.92 - (baseFontSize / 2))
+        : Math.round(h * 0.06 + (baseFontSize / 2));
 
     let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
     let hdScale = typeof getHDScale === 'function' ? getHDScale() : 1;
@@ -8407,23 +9122,47 @@ function drawBeautifulNick(ctx, text, w, h) {
       let bpNextBtn3 = document.getElementById('wizard-next-btn3-bp');
       if(bpNextBtn3) bpNextBtn3.classList.remove('show');
 
-      ['ws3-p0', 'ws3-p1', 'ws3-p2'].forEach(id => {
-          let el = document.getElementById(id);
-          if (el) el.value = '';
-      });
+        ['ws3-p0', 'ws3-p1', 'ws3-p2'].forEach(id => {
+            let el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        window.layerState.style3Prices = [];
+        let bpNextBtn3Style3 = document.getElementById('wizard-next-btn3-bp-style3');
+        if (bpNextBtn3Style3) bpNextBtn3Style3.classList.remove('show');
 
-      for (let i = 0; i <= 10; i++) {
-          let el = document.getElementById('ws2-p' + i);
-          if (el) el.value = '';
-      }
-      if (window.layerState) window.layerState.style2Prices = [];
-      let bpNextBtn3Style2 = document.getElementById('wizard-next-btn3-bp-style2');
-      if (bpNextBtn3Style2) bpNextBtn3Style2.classList.remove('show');
+        for (let i = 0; i <= 10; i++) {
+            let el = document.getElementById('ws4-p' + i);
+            if (el) el.value = '';
+        }
+        if (window.layerState) window.layerState.style4Prices = [];
+        let bpNextBtn3Style4 = document.getElementById('wizard-next-btn3-bp-style4');
+        if (bpNextBtn3Style4) bpNextBtn3Style4.classList.remove('show');
+    for (let i = 0; i <= 10; i++) {
+        let el = document.getElementById('ws2-p' + i);
+        if (el) el.value = '';
+    }
+    window.layerState.style2Prices = [];
+    let bpNextBtn3Style2 = document.getElementById('wizard-next-btn3-bp-style2');
+    if (bpNextBtn3Style2) bpNextBtn3Style2.classList.remove('show');
 
         window.layerState.offers = [];
       window.layerState.customTexts = []; 
       window.layerState.isBrawlPassMode = false;
       window.layerState.bpStyleIndex = null;
+
+        selectedBPStyle = null;
+        window.layerState.style4Prices = [];
+        window.layerState.style2Prices = [];
+        window.layerState.style3Prices = [];
+        window.layerState.bpPriceLeft = "999";
+        window.layerState.bpPriceRight = "9999";
+
+        for (let i = 1; i <= 4; i++) {
+            let radio = document.getElementById(`bp-radio-${i}`);
+            if (radio) radio.classList.remove('checked');
+        }
+        let bpStyleBtn = document.getElementById('bp-style-btn-next');
+        if (bpStyleBtn) bpStyleBtn.classList.remove('show');
       
       window.clearBrawlerCache();
       window.layerState.customWatermarks = null;
@@ -8480,9 +9219,9 @@ if (fankitGrid && fankitGrid.children.length === 0) {
     const recGrid = document.getElementById('fankit-rec-grid');
     
     const recBackgrounds = [
-        { src: 'bg/bg18_BP50.png', text: 'для 50 сезона BP' },
-        { src: 'bg/bg19_BP49.png', text: 'для 49 сезона BP' },
-        { src: 'bg/bg20_BP48.png', text: 'для 48 сезона BP' }
+        { src: 'bg/bg18_BP50.png', text: '51 сезон' },
+        { src: 'bg/bg19_BP49.png', text: '50 сезон' },
+        { src: 'bg/bg20_BP48.png', text: '49 сезон' }
     ];
 
     const handleFankitSelection = (itemElement, imgSrc) => {
@@ -8503,7 +9242,7 @@ if (fankitGrid && fankitGrid.children.length === 0) {
                 
                 if (window.layerState.isBrawlPassMode) {
                 if (window.layerState.isBrawlPassMode) {
-                    if (window.layerState.bpStyleIndex === 2 || window.layerState.bpStyleIndex === 3 || window.layerState.bpStyleIndex === 'dop') {
+                    if (window.layerState.bpStyleIndex === 2 || window.layerState.bpStyleIndex === 3 || window.layerState.bpStyleIndex === 'dop' || window.layerState.bpStyleIndex === 4) {
                         if (typeof startAnimation === 'function') startAnimation();
                     } else {
                         generateBrawlPassTest(); 
@@ -8829,6 +9568,13 @@ wizardNextBtn2.onclick = async () => {
         return;
     }
 
+    if (wizardMode === 'bp' && window.layerState.bpStyleIndex === 4) {
+        window.layerState.textValue = currentNick || "SNAPI";
+        let targetStep3Style4 = document.getElementById('wizard-step3-bp-style4');
+        transitionStep(step2, targetStep3Style4, document.getElementById('prog-step2'), document.getElementById('prog-step3'), document.getElementById('prog-line2'));
+        return;
+    }
+
     if (wizardMode === 'bp' && window.layerState.bpStyleIndex === 'dop') {
         window.layerState.textValue = currentNick || "SNAPI";
         let targetStep3Dop = document.getElementById('wizard-step3-bp-dop');
@@ -8918,6 +9664,17 @@ document.getElementById('wizard-next-btn3-bp-style3').onclick = async () => {
     ];
     let targetStep4 = document.getElementById('wizard-step4-bp');
     transitionStep(document.getElementById('wizard-step3-bp-style3'), targetStep4, document.getElementById('prog-step3'), document.getElementById('prog-step4'), document.getElementById('prog-line3'));
+};
+
+document.getElementById('wizard-next-btn3-bp-style4').onclick = async () => {
+    window.triggerHaptic();
+    window.layerState.style4Prices = [];
+    for (let i = 0; i <= 10; i++) {
+        let el = document.getElementById('ws4-p' + i);
+        window.layerState.style4Prices[i] = el ? (el.value || "0") : "0";
+    }
+    let targetStep4 = document.getElementById('wizard-step4-bp');
+    transitionStep(document.getElementById('wizard-step3-bp-style4'), targetStep4, document.getElementById('prog-step3'), document.getElementById('prog-step4'), document.getElementById('prog-line3'));
 };
 
 const bpPriceInput = document.getElementById('wizard-bp-price');
@@ -9031,7 +9788,6 @@ document.getElementById('wizard-next-btn4-bp').onclick = async () => {
         window.layerState.bpSeason = selectedBPSeason;
         window.layerState.bgColorType = selectedColor; 
         
-        document.getElementById('wizard-overlay').style.display = 'none';
 
         if (window.layerState.bpStyleIndex === 2) {
             if (selectedColor) {
@@ -9049,7 +9805,6 @@ document.getElementById('wizard-next-btn4-bp').onclick = async () => {
                 rawBgImage = uploadedBaseImg;
                 window.layerState.textVisible = true;
             }
-            if (typeof window.openBPTestEditor === 'function') window.openBPTestEditor();
             
         } else if (window.layerState.bpStyleIndex === 3) {
             if (selectedColor) {
@@ -9067,7 +9822,6 @@ document.getElementById('wizard-next-btn4-bp').onclick = async () => {
                 rawBgImage = uploadedBaseImg;
                 window.layerState.textVisible = true;
             }
-            if (typeof window.openBPStyle3Editor === 'function') window.openBPStyle3Editor();
 
         } else if (window.layerState.bpStyleIndex === 'dop') {
             if (selectedColor) {
@@ -9085,10 +9839,33 @@ document.getElementById('wizard-next-btn4-bp').onclick = async () => {
                 rawBgImage = uploadedBaseImg;
                 window.layerState.textVisible = true;
             }
-            if (typeof window.openBPDopEditor === 'function') window.openBPDopEditor();
 
         } else {
-            generateBrawlPassTest();
+
+                }
+
+        document.getElementById('wizard-overlay').style.display = 'none';
+
+        let si = window.layerState.bpStyleIndex;
+
+        if (si === 2) {
+            window.layerState.outputW = 1280;
+            window.layerState.outputH = 720;
+            window.openBPTestEditor();
+        } else if (si === 3) {
+            window.layerState.outputW = 1280;
+            window.layerState.outputH = 720;
+            window.openBPStyle3Editor();
+        } else if (si === 4) {
+            window._uploadMode = uploadMode;
+            window._uploadedBaseImg = uploadedBaseImg;
+            window._uploadedReadyBaseImg = uploadedReadyBaseImg;
+            window._selectedColor = selectedColor;
+            window.layerState.outputW = 1280;
+            window.layerState.outputH = 720;
+            window.openBPStyle4Editor();
+        } else {
+            window.openSizeOverlay();
         }
         
         btn.style.pointerEvents = 'auto';
@@ -9137,7 +9914,6 @@ document.getElementById('dl-btn-actual-download').onclick = (e) => {
 
             let smallC = document.createElement('canvas');
             let ratio = persistentCanvas.height / persistentCanvas.width;
-            // Делаем ресайз под лимиты Telegram, чтобы файл не был слишком огромным
             smallC.width = Math.min(persistentCanvas.width, 2048);
             smallC.height = Math.round(smallC.width * ratio);
             let sCtx = smallC.getContext('2d');
@@ -9273,7 +10049,7 @@ async function generateBrawlPassTest() {
 
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(0, -20); ctx.lineTo(startX, -20); ctx.lineTo(WIDTH * 0.34, HEIGHT * 0.50); ctx.lineTo(WIDTH * 0.37, HEIGHT * 0.46); ctx.lineTo(endX, HEIGHT + 20); ctx.lineTo(0, HEIGHT + 20); ctx.closePath();
+        ctx.moveTo(0, 0); ctx.lineTo(startX, 0); ctx.lineTo(WIDTH * 0.34, HEIGHT * 0.50); ctx.lineTo(WIDTH * 0.37, HEIGHT * 0.46); ctx.lineTo(endX, HEIGHT); ctx.lineTo(0, HEIGHT); ctx.closePath();
         ctx.clip();
         let grad1 = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT * 0.2);
         grad1.addColorStop(0, config.gradientLeft[0]); 
@@ -9330,8 +10106,16 @@ async function generateBrawlPassTest() {
         ctx.drawImage(star, WIDTH / 2 - sw / 2, starY - starH, sw, starH);
     }
 
-    if (panelL) ctx.drawImage(panelL, 14, 50, WIDTH * 0.28, HEIGHT - 210);
-    if (panelR) ctx.drawImage(panelR, WIDTH - 14 - WIDTH * 0.32, 50, WIDTH * 0.32, HEIGHT - 210);
+    if (panelL) {
+        let ph = HEIGHT - 210;
+        let pw = panelL.width * (ph / panelL.height);
+        ctx.drawImage(panelL, 14, 50, pw, ph);
+    }
+    if (panelR) {
+        let ph = HEIGHT - 210;
+        let pw = panelR.width * (ph / panelR.height);
+        ctx.drawImage(panelR, WIDTH - 14 - pw, 50, pw, ph);
+    }
 
     let cxL = (WIDTH * 0.39) - 16; 
     let cxR = (WIDTH * 0.589) - 16; 
@@ -9384,7 +10168,7 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
     if ('letterSpacing' in mCtx) mCtx.letterSpacing = ls;
     
     let scaleMult = HEIGHT / 675;
-    let maxAllowedFontSize = 145 * scaleMult;
+    let maxAllowedFontSize = 9999 * scaleMult;
     let bpFontSize = 30 * scaleMult; 
     
     const longestLine = line2.length > line1.length ? line2 : line1;
@@ -9407,8 +10191,8 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
 
     const bpTextX = (WIDTH / 2 + (bpFontSize * 0.07 * 0.5)) - 12; 
 
-    const FIXED_BOTTOM_Y = HEIGHT * 0.91; 
-    const BOUND_TOP = HEIGHT * 0.62;
+    const FIXED_BOTTOM_Y = HEIGHT * 0.91;
+    const BOUND_TOP = -HEIGHT;
 
     let metrics1 = mCtx.measureText(line1);
     let maxLineH = Math.max(
@@ -9418,37 +10202,21 @@ function drawBPNickText(ctx, nick, WIDTH, HEIGHT) {
 
     let topEdge = line2 ? (FIXED_BOTTOM_Y - maxLineH * 2 - lineGap) : (FIXED_BOTTOM_Y - maxLineH);
 
-    if (topEdge < BOUND_TOP) {
-        const availableH = FIXED_BOTTOM_Y - BOUND_TOP;
-        const neededLines = line2 ? 2 : 1;
-        const maxFontByHeight = Math.floor((availableH - lineGap * (neededLines - 1)) / neededLines);
-        
-        if (maxFontByHeight < bpFontSize) {
-            bpFontSize = maxFontByHeight;
-            mCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
-            metrics1 = mCtx.measureText(line1);
-            maxLineH = Math.max(
-                metrics1.actualBoundingBoxAscent + metrics1.actualBoundingBoxDescent,
-                line2 ? (() => { const m = mCtx.measureText(line2); return m.actualBoundingBoxAscent + m.actualBoundingBoxDescent; })() : 0
-            );
-        }
-    }
-
     let tScale = window.layerState.mainTextScale !== undefined ? window.layerState.mainTextScale : 1;
     let tOffsetY = window.layerState.mainTextOffsetY !== undefined ? window.layerState.mainTextOffsetY : 0;
     let offsetPx = tOffsetY * scaleMult;
 
 let y1, y2;
-    if (line2) {
-        y2 = FIXED_BOTTOM_Y - (maxLineH / 2);
-        y1 = y2 - maxLineH - lineGap;
-    } else {
-        y1 = FIXED_BOTTOM_Y - (maxLineH / 2);
-    }
+    if (line2) {
+        y2 = FIXED_BOTTOM_Y - (maxLineH / 2);
+        y1 = y2 - maxLineH - lineGap;
+    } else {
+        y1 = FIXED_BOTTOM_Y - (maxLineH / 2);
+    }
 
     let blockCenterY = line2 ? (y1 + y2) / 2 : y1;
 
-    const lines = line2 
+    const lines = line2 
         ? [{ text: line1, yOffset: y1 - blockCenterY }, { text: line2, yOffset: y2 - blockCenterY }] 
         : [{ text: line1, yOffset: 0 }];
 
@@ -9463,17 +10231,17 @@ let y1, y2;
         sCtx.lineWidth = width;
         sCtx.strokeStyle = color;
             for (let i = bpShadowDepth; i >= 0; i--) {
-            lines.forEach(({ text, yOffset }) => {
-                sCtx.save();
-                sCtx.translate(bpTextX, blockCenterY + offsetPx);
-                sCtx.scale(tScale, tScale); 
+            lines.forEach(({ text, yOffset }) => {
+                sCtx.save();
+                sCtx.translate(bpTextX, blockCenterY + offsetPx);
+                sCtx.scale(tScale, tScale); 
                 sCtx.translate(0, yOffset);
-                sCtx.transform(1, 0, skewVal, 1, 0, 0);
-                sCtx.rotate(-0.02);
-                sCtx.strokeText(text, 0, i);
-                sCtx.restore();
-            });
-        }
+                sCtx.transform(1, 0, skewVal, 1, 0, 0);
+                sCtx.rotate(-0.02);
+                sCtx.strokeText(text, 0, i);
+                sCtx.restore();
+            });
+        }
     };
 
     if (bpStyle.isClassic) {
@@ -9486,31 +10254,31 @@ let y1, y2;
             drawStrokeLayer(bpFontSize * 0.12, bpStyle.outer);  
             drawStrokeLayer(bpFontSize * 0.0154, bpStyle.shadow); 
         } else if (bpStyle.outer) {
-            sCtx.lineWidth = bpFontSize * 0.12;
-            sCtx.strokeStyle = bpStyle.shadow;
-            lines.forEach(({ text, yOffset }) => {
-                sCtx.save();
-                sCtx.translate(bpTextX, blockCenterY + offsetPx);
-                sCtx.scale(tScale, tScale);
-                sCtx.translate(0, yOffset);
-                sCtx.transform(1, 0, skewVal, 1, 0, 0);
-                sCtx.rotate(-0.02);
-                sCtx.strokeText(text, 0, bpShadowDepth);
-                sCtx.restore();
-            });
-            
-            sCtx.strokeStyle = bpStyle.outer;
-            lines.forEach(({ text, yOffset }) => {
-                sCtx.save();
-                sCtx.translate(bpTextX, blockCenterY + offsetPx);
-                sCtx.scale(tScale, tScale);
-                sCtx.translate(0, yOffset);
-                sCtx.transform(1, 0, skewVal, 1, 0, 0);
-                sCtx.rotate(-0.02);
-                sCtx.strokeText(text, 0, 0);
-                sCtx.restore();
-            });
-        } else {
+            sCtx.lineWidth = bpFontSize * 0.12;
+            sCtx.strokeStyle = bpStyle.shadow;
+            lines.forEach(({ text, yOffset }) => {
+                sCtx.save();
+                sCtx.translate(bpTextX, blockCenterY + offsetPx);
+                sCtx.scale(tScale, tScale);
+                sCtx.translate(0, yOffset);
+                sCtx.transform(1, 0, skewVal, 1, 0, 0);
+                sCtx.rotate(-0.02);
+                sCtx.strokeText(text, 0, bpShadowDepth);
+                sCtx.restore();
+            });
+            
+            sCtx.strokeStyle = bpStyle.outer;
+            lines.forEach(({ text, yOffset }) => {
+                sCtx.save();
+                sCtx.translate(bpTextX, blockCenterY + offsetPx);
+                sCtx.scale(tScale, tScale);
+                sCtx.translate(0, yOffset);
+                sCtx.transform(1, 0, skewVal, 1, 0, 0);
+                sCtx.rotate(-0.02);
+                sCtx.strokeText(text, 0, 0);
+                sCtx.restore();
+            });
+        } else {
             drawStrokeLayer(bpFontSize * 0.0154, bpStyle.shadow);
         }
     }
@@ -9523,28 +10291,28 @@ let y1, y2;
     fCtx.font = `${bpFontSize}px '${window.layerState.textFont || 'Font16103'}', sans-serif`;
 
     lines.forEach(({ text, yOffset }) => {
-        fCtx.save();
-        fCtx.translate(bpTextX, blockCenterY + offsetPx);
-        fCtx.scale(tScale, tScale);           
-        fCtx.translate(0, yOffset);
-        fCtx.transform(1, 0, skewVal, 1, 0, 0);
-        fCtx.rotate(-0.02);
-        
-        let bpGrad = fCtx.createLinearGradient(0, -bpFontSize * 0.4, 0, bpFontSize * 0.4);
-        bpGrad.addColorStop(0, bpStyle.grad[0]);
-        bpGrad.addColorStop(bpStyle.isClassic ? 0.48 : 0.52, bpStyle.grad[1] || bpStyle.grad[0]);
-        bpGrad.addColorStop(1, bpStyle.grad[2] || bpStyle.grad[0]);
-        fCtx.fillStyle = bpGrad;
-        fCtx.fillText(text, 0, 0);
-        
-        if (bpStyle.inner) {
-            fCtx.globalCompositeOperation = "source-atop";
-            fCtx.lineWidth = bpFontSize * 0.06;
-            fCtx.strokeStyle = bpStyle.isClassic ? "#fcff00" : bpStyle.inner;
-            fCtx.strokeText(text, 0, 0);
-        }
-        fCtx.restore();
-    });
+        fCtx.save();
+        fCtx.translate(bpTextX, blockCenterY + offsetPx);
+        fCtx.scale(tScale, tScale);           
+        fCtx.translate(0, yOffset);
+        fCtx.transform(1, 0, skewVal, 1, 0, 0);
+        fCtx.rotate(-0.02);
+        
+        let bpGrad = fCtx.createLinearGradient(0, -bpFontSize * 0.4, 0, bpFontSize * 0.4);
+        bpGrad.addColorStop(0, bpStyle.grad[0]);
+        bpGrad.addColorStop(bpStyle.isClassic ? 0.48 : 0.52, bpStyle.grad[1] || bpStyle.grad[0]);
+        bpGrad.addColorStop(1, bpStyle.grad[2] || bpStyle.grad[0]);
+        fCtx.fillStyle = bpGrad;
+        fCtx.fillText(text, 0, 0);
+        
+        if (bpStyle.inner) {
+            fCtx.globalCompositeOperation = "source-atop";
+            fCtx.lineWidth = bpFontSize * 0.06;
+            fCtx.strokeStyle = bpStyle.isClassic ? "#fcff00" : bpStyle.inner;
+            fCtx.strokeText(text, 0, 0);
+        }
+        fCtx.restore();
+    });
 
     ctx.save();
     ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
@@ -9578,6 +10346,7 @@ window.openBPTestEditor = function() {
         const load = (src) => new Promise(r => { const i = new Image(); i.crossOrigin="anonymous"; i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; });
         
         if (!globalAssets.style2Gems) globalAssets.style2Gems = await load('BP/bp_gems.png');
+        if (!globalAssets.dopBg4) globalAssets.dopBg4 = await load('BP/bp_dop4style.png');
         if (!globalAssets.style2Points) globalAssets.style2Points = await load('BP/bp_style2_points.png');
         if (!globalAssets.style2Stars) globalAssets.style2Stars = await load('BP/bp_stars_style2.png');
         if (!globalAssets.style2Text) globalAssets.style2Text = await load('BP/bp_text_style2.png');
@@ -9598,22 +10367,22 @@ window.openBPTestEditor = function() {
 };
 
 window.openBPDopEditor = function() {
-    window.triggerHaptic();
-    document.getElementById('ios-dashboard').style.display = 'none';
-    document.getElementById('bp-variant-overlay').style.display = 'none';
-    document.getElementById('result-box').style.display = 'block';
-    window.scrollTo(0,0);
-    if (window.Telegram && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
+    window.triggerHaptic();
+    document.getElementById('ios-dashboard').style.display = 'none';
+    document.getElementById('bp-variant-overlay').style.display = 'none';
+    document.getElementById('result-box').style.display = 'block';
+    window.scrollTo(0,0);
+    if (window.Telegram && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
 
-    const cardsContainer = document.getElementById('cards-container');
-    const layerPanel = document.getElementById('layer-panel');
-    
-    cardsContainer.innerHTML = '<div class="skeleton-box skeleton-canvas fade-in-anim"></div>';
-    layerPanel.style.display = 'flex';
-    layerPanel.innerHTML = '<div class="skeleton-panel-wrapper fade-in-anim"><div class="skeleton-box skeleton-row"></div><div class="skeleton-box skeleton-row"></div></div>';
+    const cardsContainer = document.getElementById('cards-container');
+    const layerPanel = document.getElementById('layer-panel');
+    
+    cardsContainer.innerHTML = '<div class="skeleton-box skeleton-canvas fade-in-anim"></div>';
+    layerPanel.style.display = 'flex';
+    layerPanel.innerHTML = '<div class="skeleton-panel-wrapper fade-in-anim"><div class="skeleton-box skeleton-row"></div><div class="skeleton-box skeleton-row"></div></div>';
 
-    window.layerState.isBrawlPassMode = true;
-    window.layerState.bpStyleIndex = 'dop'; 
+    window.layerState.isBrawlPassMode = true;
+    window.layerState.bpStyleIndex = 'dop'; 
 
     window.layerState.starsVisible = true;
     window.layerState.pointsVisible = true;
@@ -9622,12 +10391,12 @@ window.openBPDopEditor = function() {
     window.layerState.pointsOpacity = 1.0;
     window.layerState.watermarksOpacity = 0.15;
 
-    setTimeout(async () => {
-        const load = (src) => new Promise(r => { const i = new Image(); i.crossOrigin="anonymous"; i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; });
-        
-        let season = window.layerState.bpSeason || 50;
-        
-        if (!rawBgImage) rawBgImage = await load('bg/bg20_BP48.png');
+    setTimeout(async () => {
+        const load = (src) => new Promise(r => { const i = new Image(); i.crossOrigin="anonymous"; i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; });
+        
+        let season = window.layerState.bpSeason || 50;
+        
+        if (!rawBgImage) rawBgImage = await load('bg/bg20_BP48.png');
 
         if (!globalAssets.dopPoints) globalAssets.dopPoints = await load('BP/bp_points_3style.png');
         if (!globalAssets.dopStarsEff) globalAssets.dopStarsEff = await load('BP/bp_dop_starsEFF.png');
@@ -9652,11 +10421,11 @@ window.openBPDopEditor = function() {
 
         if (!globalAssets.style2Text) globalAssets.style2Text = await load('BP/bp_text_style2.png');
 
-        setupPersistentCanvas();
-        renderLayerPanel(true);
-        window.updateCachedTextCanvas();
-        startAnimation();
-    }, 100);
+        setupPersistentCanvas();
+        renderLayerPanel(true);
+        window.updateCachedTextCanvas();
+        startAnimation();
+    }, 100);
 };
 
 window.openBPStyle3Editor = function() {
@@ -9703,12 +10472,177 @@ window.openBPStyle3Editor = function() {
     }, 100);
 };
 
+window.openBPStyle4Editor = function() {
+    window.triggerHaptic();
+    document.getElementById('ios-dashboard').style.display = 'none';
+    document.getElementById('result-box').style.display = 'block';
+    window.scrollTo(0,0);
+    if (window.Telegram && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
+
+    const cardsContainer = document.getElementById('cards-container');
+    const layerPanel = document.getElementById('layer-panel');
+
+    cardsContainer.innerHTML = '<div class="skeleton-box skeleton-canvas fade-in-anim"></div>';
+    layerPanel.style.display = 'flex';
+    layerPanel.innerHTML = '<div class="skeleton-panel-wrapper fade-in-anim"><div class="skeleton-box skeleton-row"></div><div class="skeleton-box skeleton-row"></div><div class="skeleton-box skeleton-row"></div></div>';
+
+    window.layerState.isBrawlPassMode = true;
+    window.layerState.bpStyleIndex = 4;
+
+    setTimeout(async () => {
+        const load = (src) => new Promise(r => { const i = new Image(); i.crossOrigin="anonymous"; i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; });
+
+        let season = window.layerState.bpSeason || 50;
+
+        if (window._uploadMode === 'ready_bg' && window._uploadedReadyBaseImg?.src) {
+            window.layerState.isReadyBg = true;
+            window.layerState.isGeneratedBg = false;
+            rawBgImage = window._uploadedReadyBaseImg;
+        } else if (window._selectedColor) {
+            window.layerState.isReadyBg = false;
+            window.layerState.isGeneratedBg = true;
+            rawBgImage = await createGradientBg(window._selectedColor);
+        } else if (window._uploadedBaseImg?.src) {
+            window.layerState.isReadyBg = false;
+            window.layerState.isGeneratedBg = false;
+            rawBgImage = window._uploadedBaseImg;
+        }
+
+        if (!globalAssets.s4Points)     globalAssets.s4Points     = await load('BP/bp_style2_points.png');
+        if (!globalAssets.s4Gems)       globalAssets.s4Gems       = await load('BP/bp_gems.png');
+        if (!globalAssets.s4PinLeft)    globalAssets.s4PinLeft    = await load('BP/pin_4styleBP_left.png');
+        if (!globalAssets.s4PinRight)   globalAssets.s4PinRight   = await load('BP/pin_4styleBP_right.png');
+        if (!globalAssets.s4PassYellow) globalAssets.s4PassYellow = await load('BP/bp_icon_brawl_pass.png');
+        if (!globalAssets.s4PassBlue)   globalAssets.s4PassBlue   = await load('BP/bp_icon_brawl_pass_plus.png');
+        if (!globalAssets.s4PassPro)    globalAssets.s4PassPro    = await load('BP/bp_icon_pro_pass_icon.png');
+        if (!globalAssets.dopBg4)       globalAssets.dopBg4       = await load('BP/bp_dop4style.png'); 
+
+        const season4 = window.layerState.bpSeason || 50;
+        if (!globalAssets[`brawler_${season4}_1`]) globalAssets[`brawler_${season4}_1`] = await load(`BP/brawler_s${season4}_1.png`);
+        if (!globalAssets[`brawler_${season4}_2`]) globalAssets[`brawler_${season4}_2`] = await load(`BP/brawler_s${season4}_2.png`);
+
+        setupPersistentCanvas();
+
+        window.layerState.customWatermarks = [
+        {
+            "x": 1206,
+            "y": 138,
+            "scale": 0.16,
+            "skewX": -10
+        },
+        {
+            "x": -178,
+            "y": 300,
+            "scale": 0.5,
+            "skewX": -10
+        },
+        {
+            "x": -53,
+            "y": 158,
+            "scale": 0.23,
+            "skewX": -10
+        },
+        {
+            "x": 620,
+            "y": 616,
+            "scale": 0.21,
+            "skewX": -10
+        },
+        {
+            "x": 451,
+            "y": 705,
+            "scale": 0.68,
+            "skewX": -10
+        },
+        {
+            "x": 690,
+            "y": 665,
+            "scale": 0.09,
+            "skewX": -10
+        },
+        {
+            "x": 600,
+            "y": -18,
+            "scale": 0.5,
+            "skewX": -10
+        },
+        {
+            "x": 730,
+            "y": 300,
+            "scale": 0.32,
+            "skewX": -10
+        },
+        {
+            "x": 30,
+            "y": 650,
+            "scale": 0.25,
+            "skewX": -10
+        },
+        {
+            "x": 1172,
+            "y": 291,
+            "scale": 0.38,
+            "skewX": -10
+        },
+        {
+            "x": 1170,
+            "y": 380,
+            "scale": 0.15,
+            "skewX": -10
+        },
+        {
+            "x": 745,
+            "y": 155,
+            "scale": 0.13,
+            "skewX": -10
+        },
+        {
+            "x": 187,
+            "y": -29,
+            "scale": 0.75,
+            "skewX": -10
+        },
+        {
+            "x": -177,
+            "y": 563,
+            "scale": 0.5,
+            "skewX": -10
+        },
+        {
+            "x": 979,
+            "y": 398,
+            "scale": 0.18,
+            "skewX": -10
+        },
+        {
+            "x": 713,
+            "y": 479,
+            "scale": 0.09,
+            "skewX": -10
+        }
+        ];
+
+        renderLayerPanel(true);
+        window.updateCachedTextCanvas();
+        startAnimation();
+    }, 100);
+};
+
 window.updateS3PriceLayer = (idx, inputEl) => {
     let val = inputEl.value.replace(/[^0-9]/g, '');
     if (val && parseInt(val) > 99999) val = "99999";
     inputEl.value = val; 
     if (!window.layerState.style3Prices) window.layerState.style3Prices = ["899", "1249", "2999"];
     window.layerState.style3Prices[idx] = val;
+    window.requestRender();
+};
+
+window.updateS4PriceLayer = (idx, inputEl) => {
+    let val = inputEl.value.replace(/[^0-9]/g, '');
+    if (val && parseInt(val) > 9999) val = "9999";
+    inputEl.value = val;
+    if (!window.layerState.style4Prices) window.layerState.style4Prices = [];
+    window.layerState.style4Prices[idx] = val;
     window.requestRender();
 };
 
@@ -10019,10 +10953,8 @@ window.updateActivePromoStar = function(param, value) {
 setTimeout(() => { window.renderPromoBgStars(); }, 150);
 
 
-const TARGET_DATE_STRING = "2026-05-16T11:00:00+03:00"; 
-
-
 window.initPromoTimer = function() {
+
     if (!SHOW_PROMO_BANNER) {
         let bannerEl = document.getElementById('main-promo');
         if (bannerEl) bannerEl.style.display = 'none';
@@ -10030,179 +10962,61 @@ window.initPromoTimer = function() {
     }
 
     const timerEl = document.getElementById('promo-timer');
-    if (!timerEl) return;
+    const container = document.getElementById('promo-timer-container');
+    if (!timerEl || !container) return;
 
-    timerEl.innerHTML = `<span id="promo-h" style="display:inline-flex;"></span><span class="timer-colon">:</span><span id="promo-m" style="display:inline-flex;"></span><span class="timer-colon">:</span><span id="promo-s" style="display:inline-flex;"></span>`;
+    const targetTime = new Date("2026-06-04T11:00:00+03:00").getTime();
+    let timeOffset = 0; 
+    let timerInterval;
 
-    const elH = document.getElementById('promo-h');
-    const elM = document.getElementById('promo-m');
-    const elS = document.getElementById('promo-s');
 
-    let offset = 0; 
-    let targetTime = new Date(TARGET_DATE_STRING).getTime();
-    let prevH = "", prevM = "", prevS = "";
-    let isFirstRender = true; 
+    if (targetTime - new Date().getTime() <= 0) {
+        container.style.display = 'none';
+        return; 
+    }
 
-    const animateDigit = (elId, oldChar, newChar) => {
-        const el = document.getElementById(elId);
-        if (!el) return;
-        if (isFirstRender) {
-            el.innerHTML = `<span style="display:inline-block; background: #ffef9e; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${newChar}</span>`;
-            return;
-        }
-        if (!oldChar) {
-            el.innerHTML = `<span class="digit-new">${newChar}</span>`;
-        } else {
-            el.innerHTML = `<span class="digit-old">${oldChar}</span><span class="digit-new">${newChar}</span>`;
-        }
-    };
-
-    const updateGroup = (groupEl, oldStr, newStr) => {
-        if (!oldStr || oldStr.length !== newStr.length) {
-            groupEl.innerHTML = '';
-            for (let i = 0; i < newStr.length; i++) {
-                const span = document.createElement('span');
-                span.id = `${groupEl.id}-${i}`;
-                span.className = 'timer-part';
-                groupEl.appendChild(span);
-                animateDigit(span.id, "", newStr[i]);
-            }
-        } else {
-            for (let i = 0; i < newStr.length; i++) {
-                if (oldStr[i] !== newStr[i]) {
-                    animateDigit(`${groupEl.id}-${i}`, oldStr[i], newStr[i]);
-                }
-            }
-        }
-    };
-
-    const swapTextWithFlip = (el, oldText, newText, newClassName) => {
-        const oldWords = oldText.trim().split(/\s+/);
-        const newWords = newText.trim().split(/\s+/);
-        const maxLen = Math.max(oldWords.length, newWords.length);
-        
-        let html = '';
-        for (let i = 0; i < maxLen; i++) {
-            let ow = oldWords[i] || '';
-            let nw = newWords[i] || '';
-            
-            if (ow === nw) {
-                html += `${nw} `;
-            } else {
-                html += `<span class="flip-wrapper">`;
-                if (ow) {
-                    let extraStyle = newClassName ? `font-family: ui-rounded, 'SF Pro Rounded', 'ArialRoundedOld', 'Arial Rounded MT Bold', sans-serif; font-weight: 800; font-size: 28px; background: linear-gradient(180deg, #ffef9e 0%, #ffb82c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap;` : `white-space: nowrap;`;
-                    html += `<span class="flip-old" style="${extraStyle}">${ow}</span>`;
-                }
-                if (nw) {
-                    html += `<span class="flip-new">${nw}</span>`;
-                }
-                html += `</span> `;
-            }
-        }
-        
-        if (newClassName) el.className = newClassName;
-        el.innerHTML = html.trim();
+    const hideSmoothly = () => {
+        container.classList.add('hidden-smooth');
+        setTimeout(() => {
+            container.style.display = 'none';
+        }, 500);
     };
 
     const updateTimer = () => {
-        const currentTime = new Date().getTime() + offset;
+        const currentTime = new Date().getTime() + timeOffset;
         const diff = targetTime - currentTime;
 
         if (diff <= 0) {
-            if (timerEl.dataset.swapped === "true") return;
-            timerEl.dataset.swapped = "true";
-
-            const contentContainer = timerEl.closest('.promo-content');
-            const subtitleEl = contentContainer.querySelector('.promo-subtitle');
-            
-            if (subtitleEl) {
-                swapTextWithFlip(subtitleEl, subtitleEl.innerText, "Новый сезон вышел!");
-            }
-            
-            const oldTimerText = timerEl.innerText;
-            swapTextWithFlip(timerEl, oldTimerText, "На выбор - стили работ, текста и многое другое", "promo-desc");
-
+            clearInterval(timerInterval);
+            hideSmoothly();
             return;
         }
 
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        const h = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+        const m = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+        const s = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
 
-        const h = String(hours).padStart(2, '0'); 
-        const m = String(minutes).padStart(2, '0');
-        const s = String(seconds).padStart(2, '0');
-
-        if (h !== prevH) { updateGroup(elH, prevH, h); prevH = h; }
-        if (m !== prevM) { updateGroup(elM, prevM, m); prevM = m; }
-        if (s !== prevS) { updateGroup(elS, prevS, s); prevS = s; }
-        
-        isFirstRender = false; 
+        timerEl.innerText = `${h}:${m}:${s}`;
     };
 
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
 
-    updateTimer(); 
-    setInterval(updateTimer, 1000);
-
-    fetch('https://worldtimeapi.org/api/timezone/Europe/Moscow')
-        .then(res => {
-            if (!res.ok) throw new Error('worldtimeapi error');
-            return res.json();
-        })
+    fetch('https://timeapi.io/api/Time/current/zone?timeZone=Europe/Moscow')
+        .then(res => res.json())
         .then(data => {
-            const safeDate = data.datetime.replace(/\.\d+/, '');
-            const serverTime = new Date(safeDate).getTime();
-            const localTime = new Date().getTime();
-            
-            if (!isNaN(serverTime)) {
-                offset = serverTime - localTime;
+            if (data && data.dateTime) {
+                const serverTime = new Date(data.dateTime).getTime();
+                timeOffset = serverTime - new Date().getTime();
+                updateTimer(); 
             }
-            updateTimer(); 
         })
-        .catch(() => {
-            fetch('https://timeapi.io/api/Time/current/zone?timeZone=Europe/Moscow')
-                .then(res => res.json())
-                .then(data => {
-
-                    const safeDate = data.dateTime.replace(/\.\d+/, '') + '+03:00';
-                    const serverTime = new Date(safeDate).getTime();
-                    const localTime = new Date().getTime();
-                    
-                    if (!isNaN(serverTime)) {
-                        offset = serverTime - localTime; 
-                    }
-                    updateTimer(); 
-                })
-                .catch(() => console.warn('Оба API времени недоступны. Работаем по системному.'));
+        .catch(e => {
+            console.warn("API времени недоступно, используем локальное", e);
         });
+};
 
-    const banner = document.getElementById('main-promo');
-    if (banner) {
-        const images = Array.from(banner.querySelectorAll('img'));
-        
-        const allLoaded = images.map(img => {
-            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-            return new Promise(resolve => {
-                img.onload  = resolve;
-                img.onerror = resolve;
-            });
-        });
-
-        const timeout = new Promise(resolve => setTimeout(resolve, 1200));
-
-        Promise.all([Promise.all(allLoaded), timeout]).then(() => {
-            banner.classList.remove('is-loading');
-            banner.classList.add('banner-ready');
-        });
-    }
-}; 
-
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    window.initPromoTimer();
-} else {
-    document.addEventListener('DOMContentLoaded', window.initPromoTimer);
-}
+window.initPromoTimer();
 
 window.openBPFromPromo = function() {
     if (window.triggerHaptic) window.triggerHaptic();
@@ -10327,6 +11141,246 @@ document.addEventListener('DOMContentLoaded', () => {
         changeTextWithAnim('Соединение', true);
     }
 });
+
+
+window.selectedSizeW = null;
+window.selectedSizeH = null;
+window._customPresets = JSON.parse(localStorage.getItem('Snapi_custom_presets') || '[]');
+
+window.saveCustomPresets = function() {
+    localStorage.setItem('Snapi_custom_presets', JSON.stringify(window._customPresets));
+};
+
+window.renderCustomPresets = function() {
+    const list = document.getElementById('custom-presets-list');
+    const addBtn = document.getElementById('add-custom-preset-btn');
+    if (!list) return;
+
+    const presets = window._customPresets;
+    const label = document.getElementById('my-sizes-label');
+    if (label) {
+        if (presets.length === 0) {
+            label.style.opacity = '0';
+            label.style.filter = 'blur(6px)';
+            label.style.transform = 'scale(0.97)';
+            setTimeout(() => { label.style.display = 'none'; }, 350);
+        } else {
+            label.style.display = 'block';
+            requestAnimationFrame(() => {
+                label.style.opacity = '1';
+                label.style.filter = 'blur(0px)';
+                label.style.transform = 'scale(1)';
+            });
+        }
+    }
+    list.style.display = presets.length === 0 ? 'none' : 'block';
+    addBtn.style.display = presets.length >= 3 ? 'none' : 'flex';
+
+    list.innerHTML = '';
+    presets.forEach((preset, idx) => {
+        const isLast = idx === presets.length - 1;
+        const row = document.createElement('div');
+        row.className = 'size-preset-row';
+        row.id = `custom-preset-row-${idx}`;
+        row.setAttribute('data-w', preset.w);
+        row.setAttribute('data-h', preset.h);
+        row.style.cssText = `display: flex; align-items: center; gap: 14px; padding: 14px 0; ${!isLast ? 'border-bottom: 0.5px solid color-mix(in srgb, var(--tg-theme-section-separator-color, #E5E5EA) 50%, transparent);' : ''} cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity 0.35s, filter 0.35s, max-height 0.35s ease, padding 0.35s ease; overflow: hidden; max-height: 200px;`;
+        row.onclick = () => window.selectSizeRow(row, preset.w, preset.h);
+
+        const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        const avatarSrc = tgUser?.photo_url || '';
+        const initial = tgUser?.first_name ? tgUser.first_name.charAt(0).toUpperCase() : '?';
+
+        row.innerHTML = `
+            <div class="size-radio" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--tg-theme-section-separator-color, #C7C7CC); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-sizing: border-box;">
+                <svg class="size-radio-dot" viewBox="0 0 24 24" width="14" height="14" style="transform: scale(0); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);"><polyline points="20 6 9 17 4 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div style="width: 48px; height: 48px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: linear-gradient(180deg, #619af7 0%, #467af9 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+                ${avatarSrc
+                    ? `<img src="${avatarSrc}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`
+                    : `<span style="color:#fff;font-size:20px;font-weight:600;font-family:-apple-system,sans-serif;">${initial}</span>`
+                }
+            </div>
+            <div style="flex-grow: 1; min-width: 0;">
+                <div style="font-size: 17px; font-weight: 400; color: var(--tg-theme-text-color, #000); margin-bottom: 3px;">Размер #${idx + 1}</div>
+                <div style="font-size: 13px; font-weight: 600; color: #16a34a; background: #00ff591f; display: inline-block; padding: 2px 10px; border-radius: 8px;">${preset.w} × ${preset.h}</div>
+            </div>
+            <div class="size-del-btn" data-idx="${idx}" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+                    <path d="M6 7V18C6 19.1046 6.89543 20 8 20H16C17.1046 20 18 19.1046 18 18V7M6 7H5M6 7H8M18 7H19M18 7H16M10 11V16M14 11V16M8 7V5C8 3.89543 8.89543 3 10 3H14C15.1046 3 16 3.89543 16 5V7M8 7H16" stroke="var(--tg-theme-destructive-text-color, #ff3b30)" stroke-width="1.752" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        `;
+
+        row.querySelector('.size-del-btn').onclick = (e) => {
+            e.stopPropagation();
+            window.removeCustomPreset(idx, row);
+        };
+
+        list.appendChild(row);
+    });
+};
+
+window.addCustomPreset = function() {
+    if (window._customPresets.length >= 3) return;
+    const w = parseInt(document.getElementById('size-custom-w').value);
+    const h = parseInt(document.getElementById('size-custom-h').value);
+    if (!w || !h || w <= 0 || h <= 0) {
+        const ww = document.getElementById('custom-w-wrap');
+        const hw = document.getElementById('custom-h-wrap');
+        const red = 'var(--tg-theme-destructive-text-color, #ff3b30)';
+        ww.style.borderColor = red;
+        hw.style.borderColor = red;
+        setTimeout(() => { ww.style.borderColor = ''; hw.style.borderColor = ''; }, 1200);
+        return;
+    }
+    window._customPresets.push({ w, h });
+    window.saveCustomPresets();
+    document.getElementById('size-custom-w').value = '';
+    document.getElementById('size-custom-h').value = '';
+    window.selectedSizeW = null;
+    window.selectedSizeH = null;
+    window.updateSizeBtn();
+    window.renderCustomPresets();
+    if (window.triggerHaptic) window.triggerHaptic();
+};
+
+window.removeCustomPreset = function(idx, rowEl) {
+    if (window.triggerHaptic) window.triggerHaptic();
+    rowEl.style.opacity = '0';
+    rowEl.style.filter = 'blur(8px)';
+    rowEl.style.maxHeight = '0';
+    rowEl.style.paddingTop = '0';
+    rowEl.style.paddingBottom = '0';
+    const removedPreset = window._customPresets[idx];
+    if (window.selectedSizeW === removedPreset?.w && window.selectedSizeH === removedPreset?.h) {
+        window.selectedSizeW = null;
+        window.selectedSizeH = null;
+        window.updateSizeBtn();
+    }
+    setTimeout(() => {
+        window._customPresets.splice(idx, 1);
+        window.saveCustomPresets();
+        window.renderCustomPresets();
+    }, 380);
+};
+
+window.selectSizeRow = function(el, w, h) {
+    if (window.triggerHaptic) window.triggerHaptic();
+    document.querySelectorAll('.size-preset-row').forEach(row => {
+        const radio = row.querySelector('.size-radio');
+        const dot = row.querySelector('.size-radio-dot');
+        if (radio) {
+            radio.style.background = '';
+            radio.style.borderColor = 'var(--tg-theme-section-separator-color, #C7C7CC)';
+        }
+        if (dot) dot.style.transform = 'scale(0)';
+        row.classList.remove('selected');
+    });
+    const radio = el.querySelector('.size-radio');
+    const dot = el.querySelector('.size-radio-dot');
+    if (radio) {
+        radio.style.background = 'var(--tg-theme-button-color, #3390ec)';
+        radio.style.borderColor = 'var(--tg-theme-button-color, #3390ec)';
+    }
+    if (dot) dot.style.transform = 'scale(1)';
+    el.classList.add('selected');
+    window.selectedSizeW = w;
+    window.selectedSizeH = h;
+    document.getElementById('size-custom-w').value = '';
+    document.getElementById('size-custom-h').value = '';
+    document.getElementById('custom-w-wrap').style.borderColor = '';
+    document.getElementById('custom-h-wrap').style.borderColor = '';
+    window.updateSizeBtn();
+};
+
+window.onCustomSizeInput = function() {
+    document.querySelectorAll('.size-preset-row').forEach(row => {
+        const radio = row.querySelector('.size-radio');
+        const dot = row.querySelector('.size-radio-dot');
+        if (radio) {
+            radio.style.background = '';
+            radio.style.borderColor = 'var(--tg-theme-section-separator-color, #C7C7CC)';
+        }
+        if (dot) dot.style.transform = 'scale(0)';
+        row.classList.remove('selected');
+    });
+    const w = parseInt(document.getElementById('size-custom-w').value);
+    const h = parseInt(document.getElementById('size-custom-h').value);
+    window.selectedSizeW = (w > 0) ? w : null;
+    window.selectedSizeH = (h > 0) ? h : null;
+    window.updateSizeBtn();
+};
+
+window.updateSizeBtn = function() {
+    const btn = document.getElementById('size-generate-btn');
+    if (!btn) return;
+    if (window.selectedSizeW && window.selectedSizeH) {
+        btn.style.display = 'flex';
+        btn.style.animation = 'slideUpFade 0.3s ease-out forwards';
+    } else {
+        btn.style.display = 'none';
+    }
+};
+
+window.openSizeOverlay = function() {
+    window.selectedSizeW = null;
+    window.selectedSizeH = null;
+    document.getElementById('size-custom-w').value = '';
+    document.getElementById('size-custom-h').value = '';
+    document.querySelectorAll('.size-preset-row').forEach(row => {
+        const radio = row.querySelector('.size-radio');
+        const dot = row.querySelector('.size-radio-dot');
+        if (radio) { radio.style.background = ''; radio.style.borderColor = 'var(--tg-theme-section-separator-color, #C7C7CC)'; }
+        if (dot) dot.style.transform = 'scale(0)';
+        row.classList.remove('selected');
+    });
+    window.updateSizeBtn();
+    window.renderCustomPresets();
+    document.getElementById('size-overlay').style.display = 'flex';
+    window.scrollTo(0, 0);
+    
+    if (window.Telegram && window.Telegram.WebApp.BackButton) {
+        window.Telegram.WebApp.BackButton.show();
+        window.Telegram.WebApp.BackButton.onClick(window.closeSizeOverlay);
+    }
+};
+
+window.closeSizeOverlay = function() {
+    document.getElementById('size-overlay').style.display = 'none';
+    
+    if (window.Telegram && window.Telegram.WebApp.BackButton) {
+        window.Telegram.WebApp.BackButton.offClick(window.closeSizeOverlay);
+        window.Telegram.WebApp.BackButton.hide();
+    }
+};
+
+document.getElementById('size-custom-w').addEventListener('focus', () => {
+    document.getElementById('custom-w-wrap').style.borderColor = 'var(--tg-theme-button-color, #3390ec)';
+});
+document.getElementById('size-custom-w').addEventListener('blur', () => {
+    document.getElementById('custom-w-wrap').style.borderColor = '';
+});
+document.getElementById('size-custom-h').addEventListener('focus', () => {
+    document.getElementById('custom-h-wrap').style.borderColor = 'var(--tg-theme-button-color, #3390ec)';
+});
+document.getElementById('size-custom-h').addEventListener('blur', () => {
+    document.getElementById('custom-h-wrap').style.borderColor = '';
+});
+
+window.onSizeGenerateClick = function() {
+    if (!window.selectedSizeW || !window.selectedSizeH) return;
+    if (window.triggerHaptic) window.triggerHaptic();
+    window.layerState.outputW = window.selectedSizeW;
+    window.layerState.outputH = window.selectedSizeH;
+    window.closeSizeOverlay();
+    const si = window.layerState.bpStyleIndex;
+    if (si === 1) {
+        generateBrawlPassTest();
+    } else {
+        window.openBPDopEditor();
+    }
+};
 
 </script>
 </body>
