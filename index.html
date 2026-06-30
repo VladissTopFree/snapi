@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <link rel="icon" type="image/png" href="favicon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
-<script defer src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.3";
+  const APP_VERSION = "v2.4.4";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
-  const SHOW_PROMO_BANNER = false; 
+  const SHOW_PROMO_BANNER = true; 
   const REQUIRE_TELEGRAM_APP = true; 
 
   window.isNewUser = localStorage.getItem('Snapi_visited') === null;
@@ -34,6 +34,29 @@
 
   const BP_SEASON_CONFIG = {
       50: {
+          lineColor: '#cc7cfa', 
+          gradientLeft: ['#bb4cb2ad', '#bb4cb2ad'], 
+          gradientRight: ['#924affb5', '#924affb5'],
+          style2Brawlers: { // yes
+              brawler2: { x: 1030, y: 3, scale: 0.28, scaleX: 1, scaleY: 1, rot: 0}, // Верхний
+              brawler1: { x: 940, y: 327, scale: 0.35, scaleX: 1, scaleY: 1, rot: 0, flipH: false }// Нижний
+        
+
+          },
+          style1Brawlers: { // yes
+              brawler2: { x: 479, y: 512, scale: 0.53, flipH: false }, // Верхний (x: 1200*0.42-30)
+              brawler1: { x: 688, y: 517, scale: 0.62, flipH: false }  // Нижний (x: 1200*0.58-30)
+          },
+          dopBrawler: { x: 619, y: 83, scale: 0.85, scaleX: 1, scaleY: 1, rot: 0 },
+          dopBrawler1: { x: 441, y: 39, scale: 0.93, scaleX: 1, scaleY: 1, rot: 0, flipH: false },
+          dopText: { x: 237, y: 678, scale: 0.16, rot: 0 },
+
+        style4Brawlers: {
+        brawlerL: { x: 918, y: 589, scale: 365, flipH: false },
+        brawlerR: { x: 1146, y: 580, scale: 415, flipH: false }
+        }
+      },
+      49: {
           lineColor: '#00fff0', 
           gradientLeft: ['#6aff0055', '#6aff0055'], 
           gradientRight: ['#0037ff50', '#0037ff50'],
@@ -56,7 +79,7 @@
         brawlerR: { x: 1133, y: 580, scale: 450, flipH: false }
         }
       },
-      49: {
+      48: {
           lineColor: '#b2beff', 
           gradientLeft: ['#90c4c486', '#90c4c486'], 
           gradientRight: ['#7084f4', '#7084f4'],
@@ -76,34 +99,13 @@
                   style4Brawlers: {
             brawlerL: { x: 855, y: 628, scale: 490, flipH: false },
             brawlerR: { x: 1109, y: 583, scale: 415, flipH: false }
-        }
-      },
-      48: {
-          lineColor: '#ffa800', 
-          gradientLeft: ['#ff5e00', '#ff5e00'], 
-          gradientRight: ['#7b00d9', '#7b00d9'],
-          style2Brawlers: { // yes
-              brawler1: { x: 1017, y: 381, scale: 0.27, scaleX: 1, scaleY: 1, rot: 0, flipH: true }, 
-              brawler2: { x: 950, y: 4, scale: 0.31, scaleX: 1, scaleY: 1, rot: 0 } 
-          },
-          style1Brawlers: { // yes
-              brawler2: { x: 474, y: 511, scale: 0.55, flipH: false }, // Нижний (x: 1200*0.42-30)
-              brawler1: { x: 666, y: 511, scale: 0.48, flipH: false }  // Верхний (x: 1200*0.58-30)
-          },
-          dopBrawler: { x: 492, y: 64, scale: 0.81, scaleX: 1.16, scaleY: 1.07, rot: 0 },
-          dopBrawler1: { x: 618, y: 93, scale: 0.76, scaleX: 1, scaleY: 1.07, rot: 0, flipH: true },
-          dopText: { x: 237, y: 678, scale: 0.16, rot: 0 },
-                  style4Brawlers: {
-            brawlerL: { x: 855, y: 592, scale: 430, flipH: false },
-            brawlerR: { x: 1112, y: 588, scale: 350, flipH: false }
         }    
         },
   };
 
 </script>
 
-<link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="telegram-animoji-ezgif.com-gif-maker.gif">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" media="print" onload="this.media='all'">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   body.os-android,
@@ -829,6 +831,7 @@
   }
 
   .save-btn-wrapper {
+    position: relative;
     width: 100%;
     height: 54px;
     margin-bottom: 16px; 
@@ -836,10 +839,12 @@
     opacity: 1;
     transform: scale(1);
     transform-origin: center;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     justify-content: center;
   }
+
+  
   .save-btn-wrapper.hidden-animated {
     height: 0;
     margin-bottom: 0;
@@ -954,10 +959,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; 
+    justify-content: center; 
     flex-grow: 1;
     width: 100%;
+    height: 100%;
     padding-top: var(--app-top-padding-sm);
+    padding-bottom: 80px;
     padding-left: 20px;
     padding-right: 20px;
     cursor: default; 
@@ -1606,7 +1613,7 @@
     font-size: 8.5px;
     font-weight: 600;
     padding: 3px 5px;
-    border-radius: 8px 0 0 0;
+    border-radius: 6px 0 6px 0;
     font-family: -apple-system, sans-serif;
   }
 
@@ -2224,6 +2231,22 @@
     animation: smoothSliderAnim 0.6s ease-out forwards;
 }
 
+@keyframes sliderCardIn {
+    0%   { transform: scale(0.82) translateY(12%); opacity: 0; filter: blur(4px); }
+    55%  { opacity: 1; filter: blur(0); }
+    100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
+}
+@keyframes sliderCardOut {
+    0%   { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
+    100% { transform: scale(1.14) translateY(-8%); opacity: 0; filter: blur(2px); }
+}
+.slider-anim-in {
+    animation: sliderCardIn 0.7s cubic-bezier(0.22, 0.8, 0.3, 1) forwards;
+}
+.slider-anim-out {
+    animation: sliderCardOut 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
 body:not(.os-non-apple) .saved-works-icon {
     margin-left: 0.5px !important; 
   }
@@ -2383,6 +2406,184 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
     border-radius: 0 !important;
 }
 
+body:not(.os-non-apple) .ios-action-btn:not(#ios-btn-create):not(.ios-btn-next),
+body:not(.os-non-apple) #cat-btn-next,
+body:not(.os-non-apple) #bp-style-btn-next,
+body:not(.os-non-apple) #bp-variant-btn-next,
+body:not(.os-non-apple) #size-generate-btn,
+body:not(.os-non-apple) #ios-btn-download-all {
+    position: relative;
+    box-shadow:
+        inset 0 1px 0.5px rgba(255, 255, 255, 0.40),
+        0px 24px 48px rgba(0, 0, 0, 0.15);
+}
+
+body:not(.os-non-apple) .ios-btn-next {
+    box-shadow:
+        inset 0 1px 0.5px rgba(255, 255, 255, 0.40),
+        0px 24px 48px rgba(0, 0, 0, 0.15);
+}
+
+body:not(.os-non-apple) .ios-action-btn:not(#ios-btn-create)::before,
+body:not(.os-non-apple) .ios-btn-next::before,
+body:not(.os-non-apple) #cat-btn-next::before,
+body:not(.os-non-apple) #bp-style-btn-next::before,
+body:not(.os-non-apple) #bp-variant-btn-next::before,
+body:not(.os-non-apple) #size-generate-btn::before,
+body:not(.os-non-apple) #ios-btn-download-all::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 0.8px;
+    background: linear-gradient(180deg,
+        rgba(214, 240, 255, .95)  0%,
+        rgba(150, 210, 255, .55) 10%,
+        rgba(255, 255, 255, 0)   34%,
+        rgba(255, 255, 255, 0)   62%,
+        rgba(120, 190, 255, .50) 88%,
+        rgba(200, 235, 255, .90) 100%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+}
+
+body:not(.os-non-apple) #ios-btn-create {
+    position: relative; 
+}
+
+body:not(.os-non-apple) #ios-btn-create::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 0.8px;
+    background: linear-gradient(180deg,
+        rgba(255, 224, 246, .95)  0%,
+        rgba(255, 180, 235, .55) 10%,
+        rgba(255, 255, 255, 0)   34%,
+        rgba(255, 255, 255, 0)   62%,
+        rgba(235, 165, 255, .50) 88%,
+        rgba(255, 215, 245, .90) 100%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: 3; 
+}
+
+body:not(.os-non-apple) .ios-action-btn:not(#ios-btn-create) > *,
+body:not(.os-non-apple) #ios-btn-download-all > * {
+    position: relative;
+    z-index: 2;
+}
+body:not(.os-non-apple) #ios-btn-create > * {
+    position: relative;
+    z-index: 4;
+}
+
+.sp-badge {
+    display: inline-flex; align-items: center;
+    background: #00ff591f; color: #16a34a;
+    font-size: 13px; font-weight: 600;
+    padding: 2px 9px; border-radius: 8px;
+    white-space: nowrap; flex-shrink: 0;
+}
+.sp-row.sp-removing {
+    pointer-events: none;
+    animation: spRowBlurRemove 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes spRowBlurRemove {
+    0%   { opacity: 1; filter: blur(0px); transform: scale(1);   max-height: 130px; }
+    55%  { opacity: 0; filter: blur(9px); transform: scale(0.9); max-height: 130px; }
+    100% { opacity: 0; filter: blur(9px); transform: scale(0.9); max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; }
+}
+.sp-row.sp-removing::after { background-color: transparent !important; }
+
+body:not(.os-non-apple) .ios-icon-box {
+    position: relative;
+    box-shadow: inset 0 0.5px 0.5px rgba(255, 255, 255, 0.35);
+}
+
+body:not(.os-non-apple) .ios-icon-box::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 0.8px;                 
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, .95)  0%,
+        rgba(238, 247, 255, .55) 12%,
+        rgba(255, 255, 255, 0)   38%,
+        rgba(255, 255, 255, 0)   60%,
+        rgba(200, 226, 255, .45) 86%,
+        rgba(255, 255, 255, .85) 100%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.64;
+}
+
+body:not(.os-non-apple) .ios-icon-box > * {
+    position: relative;
+    z-index: 2;
+}
+
+.save-hint-bubble {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 14px);
+  transform: translateX(-50%) translateY(6px) scale(0.95);
+  background: color-mix(in srgb, var(--tg-theme-bg-color, #ffffff) 80%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: var(--tg-theme-text-color, #000000);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.35;
+  padding: 12px 16px;
+  border-radius: 16px;
+  max-width: 260px;
+  width: max-content;
+  text-align: center;
+  opacity: 0;
+  filter: blur(8px);
+  pointer-events: none;
+  z-index: 30;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  transition: opacity 0.35s cubic-bezier(0.4,0,0.2,1), filter 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.save-hint-bubble.show {
+  opacity: 1;
+  filter: blur(0px);
+  transform: translateX(-50%) translateY(0) scale(1);
+  pointer-events: auto;
+}
+.save-hint-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background: color-mix(in srgb, var(--tg-theme-bg-color, #ffffff) 80%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-radius: 0 0 5px 0;
+  transform: translateX(-50%) translateY(-65%) rotate(45deg);
+  z-index: -1;
+}
+
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -2424,7 +2625,7 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
 <script>
   (function(){
     var START = Date.now();
-    var MIN_SHOW = 1000;   
+    var MIN_SHOW = 400;   
     var hidden = false;
 
     function hideNow(){
@@ -2442,16 +2643,22 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
     }
 
     function whenReady(){
-      var fonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-      fonts.then(function(){
-        requestAnimationFrame(function(){ requestAnimationFrame(hideWithMinTime); });
+
+      requestAnimationFrame(function(){ requestAnimationFrame(hideWithMinTime); });
+    }
+
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      whenReady();
+    } else {
+      document.addEventListener('readystatechange', function onState(){
+        if (document.readyState === 'interactive' || document.readyState === 'complete') {
+          document.removeEventListener('readystatechange', onState);
+          whenReady();
+        }
       });
     }
 
-    if (document.readyState === 'complete') whenReady();
-    else window.addEventListener('load', whenReady);
-
-    setTimeout(hideNow, 26000); 
+    setTimeout(hideNow, 8000);
   })();
 </script>
 
@@ -2521,7 +2728,7 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
         
         <div id="avatar-sparks-container" style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; z-index: 0; pointer-events: none;"></div>
         
-        <video src="ava_Snapi.mp4" autoplay loop muted playsinline style="position: relative; z-index: 1; width: 74px; height: 74px; border-radius: 50%; object-fit: cover; background: var(--tg-theme-secondary-bg-color, #F2F2F7);"></video>
+        <video id="snapi-ava-video" data-src="ava_Snapi.mp4" loop muted playsinline preload="none" style="position: relative; z-index: 1; width: 74px; height: 74px; border-radius: 50%; object-fit: cover; background: var(--tg-theme-secondary-bg-color, #F2F2F7);"></video>
         
         <div class="ios-avatar loading" id="user-tg-avatar" style="position: absolute; bottom: -2px; right: -6px; z-index: 2; width: 32px; height: 32px; margin: 0; border: 2.5px solid var(--tg-theme-section-bg-color, #ffffff); box-sizing: content-box;"></div>
       </div>
@@ -2552,7 +2759,7 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
   </div>
 
 <div class="promo-content">
-    <div class="promo-subtitle">Новый 51 сезон</div>
+    <div class="promo-subtitle">Новый 52 сезон</div>
     <div class="promo-timer-box" id="promo-timer-container">
       через <span id="promo-timer">00:00:00</span>
     </div>
@@ -2639,8 +2846,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
     <div style="padding: 0 0 180px 0; flex-grow: 1; overflow-y: auto;">
         
         <div class="cat-card" onclick="selectCategory('action')">
-            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_akc1_1.png", "demo_png/demo_png_akc1_2.png", "demo_png/demo_png_akc1_3.png"]' style="width: 140px; height: 78px; border-radius: 6px; margin-right: 14px; position: relative;">
-                <img src="demo_png/demo_png_akc1_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_akc1_1.jpg", "demo_png/demo_png_akc1_2.jpg", "demo_png/demo_png_akc1_3.jpg"]' style="width: 140px; height: 78px; border-radius: 6px; margin-right: 14px; position: relative;">
+                <img src="demo_png/demo_png_akc1_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                 <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
             </div>
             <div class="cat-info">
@@ -2655,8 +2862,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
         </div>
         
         <div class="cat-card" id="bp-main-card" onclick="selectCategory('bp')" style="border-bottom-color: transparent; transition: border-bottom-color 0.3s ease;">            
-            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_bp2_1.png", "demo_png/demo_png_dop_bp4_3.png", "demo_png/demo_png_osnBP4_2.png"]' style="width: 140px; height: 78px; border-radius: 6px; margin-right: 14px; position: relative;">
-                <img src="demo_png/demo_png_bp2_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_bp2_1.jpg", "demo_png/demo_png_dop_bp4_3.jpg", "demo_png/demo_png_osnBP4_2.jpg"]' style="width: 140px; height: 78px; border-radius: 6px; margin-right: 14px; position: relative;">
+                <img src="demo_png/demo_png_bp2_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                 <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
             </div>
             <div class="cat-info">
@@ -2671,8 +2878,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
                     <div class="cat-radio" id="bp-sub-radio-normal" style="margin-top: 10px;">
                         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
-                    <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP1_1.png", "demo_png/demo_png_bp2_2.png", "demo_png/demo_png_osnBP4_1.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                        <img src="demo_png/demo_png_osnBP1_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+                    <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP1_1.jpg", "demo_png/demo_png_bp2_2.jpg", "demo_png/demo_png_osnBP4_1.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                        <img src="demo_png/demo_png_osnBP1_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                         <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
                     </div>
                     <div class="cat-info" style="justify-content: center; min-height: 48px;">
@@ -2685,8 +2892,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
                     <div class="cat-radio" id="bp-sub-radio-additional" style="margin-top: 10px;">
                         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     </div>
-                    <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dop_bp4_1.png", "demo_png/demo_png_dopBP_bp2_2.png", "demo_png/demo_png_dopBP_bp3_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                        <img src="demo_png/demo_png_dop_bp4_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+                    <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dop_bp4_1.jpg", "demo_png/demo_png_dopBP_bp2_2.jpg", "demo_png/demo_png_dopBP_bp3_3.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                        <img src="demo_png/demo_png_dop_bp4_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                         <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
                     </div>
                     <div class="cat-info" style="justify-content: center; min-height: 48px;">
@@ -2715,8 +2922,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
             <div class="cat-radio" id="bp-radio-1">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
-                <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP1_1.png", "demo_png/demo_png_osnBP1_2.png", "demo_png/demo_png_osnBP1_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                    <img src="demo_png/demo_png_osnBP1_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+                <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP1_1.jpg", "demo_png/demo_png_osnBP1_2.jpg", "demo_png/demo_png_osnBP1_3.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                    <img src="demo_png/demo_png_osnBP1_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                     <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
                 </div>
                 <div class="cat-info" style="justify-content: center; min-height: 78px;">
@@ -2729,8 +2936,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
             <div class="cat-radio" id="bp-radio-2">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
-                <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP2_1.png", "demo_png/demo_png_osnBP2_2.png", "demo_png/demo_png_osnBP2_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                    <img src="demo_png/demo_png_osnBP2_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+                <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP2_1.jpg", "demo_png/demo_png_osnBP2_2.jpg", "demo_png/demo_png_osnBP2_3.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                    <img src="demo_png/demo_png_osnBP2_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                     <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
                 </div>
                 <div class="cat-info" style="justify-content: center; min-height: 78px;">
@@ -2743,8 +2950,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
             <div class="cat-radio" id="bp-radio-3">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
-                <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP3_1.png", "demo_png/demo_png_osnBP3_2.png", "demo_png/demo_png_osnBP3_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                    <img src="demo_png/demo_png_osnBP3_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+                <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP3_1.jpg", "demo_png/demo_png_osnBP3_2.jpg", "demo_png/demo_png_osnBP3_3.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                    <img src="demo_png/demo_png_osnBP3_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                     <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
                 </div>
                 <div class="cat-info" style="justify-content: center; min-height: 78px;">
@@ -2757,8 +2964,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
             <div class="cat-radio" id="bp-radio-4">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
-                <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP4_1.png", "demo_png/demo_png_osnBP4_2.png", "demo_png/demo_png_osnBP4_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                    <img src="demo_png/demo_png_osnBP4_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+                <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_osnBP4_1.jpg", "demo_png/demo_png_osnBP4_2.jpg", "demo_png/demo_png_osnBP4_3.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                    <img src="demo_png/demo_png_osnBP4_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                     <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
                 </div>
                 <div class="cat-info" style="justify-content: center; min-height: 78px;">
@@ -2785,8 +2992,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
             <div class="cat-radio" id="bp-variant-radio-1" style="margin-top: 13px;">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
-            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dopBP_bp1_1.png", "demo_png/demo_png_dopBP_bp1_2.png", "demo_png/demo_png_dopBP_bp1_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                <img src="demo_png/demo_png_dopBP_bp1_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dopBP_bp1_1.jpg", "demo_png/demo_png_dopBP_bp1_2.jpg", "demo_png/demo_png_dopBP_bp1_3.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                <img src="demo_png/demo_png_dopBP_bp1_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                 <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
             </div>
             <div class="cat-info" style="justify-content: center; min-height: 56px;">
@@ -2799,8 +3006,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
             <div class="cat-radio" id="bp-variant-radio-2" style="margin-top: 13px;">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
-            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dopBP_bp2_1.png", "demo_png/demo_png_dopBP_bp2_2.png", "demo_png/demo_png_dopBP_bp2_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                <img src="demo_png/demo_png_dopBP_bp2_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dopBP_bp2_1.jpg", "demo_png/demo_png_dopBP_bp2_2.jpg", "demo_png/demo_png_dopBP_bp2_3.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                <img src="demo_png/demo_png_dopBP_bp2_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                 <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
             </div>
             <div class="cat-info" style="justify-content: center; min-height: 56px;">
@@ -2813,8 +3020,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
             <div class="cat-radio" id="bp-variant-radio-3" style="margin-top: 13px;">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
-            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dopBP_bp3_1.png", "demo_png/demo_png_dopBP_bp3_2.png", "demo_png/demo_png_dopBP_bp3_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                <img src="demo_png/demo_png_dopBP_bp3_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dopBP_bp3_1.jpg", "demo_png/demo_png_dopBP_bp3_2.jpg", "demo_png/demo_png_dopBP_bp3_3.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                <img src="demo_png/demo_png_dopBP_bp3_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                 <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
             </div>
             <div class="cat-info" style="justify-content: center; min-height: 56px;">
@@ -2827,8 +3034,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
             <div class="cat-radio" id="bp-variant-radio-4" style="margin-top: 13px;">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
-            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dopBP_bp4_1.png", "demo_png/demo_png_dopBP_bp4_2.png", "demo_png/demo_png_dopBP_bp4_3.png"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
-                <img src="demo_png/demo_png_dopBP_bp4_1.png" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
+            <div class="cat-img-wrapper slider-wrapper" data-images='["demo_png/demo_png_dopBP_bp4_1.jpg", "demo_png/demo_png_dopBP_bp4_2.jpg", "demo_png/demo_png_dopBP_bp4_3.jpg"]' style="width: 100px; height: 56px; border-radius: 6px; margin-right: 14px; position: relative;">
+                <img src="demo_png/demo_png_dopBP_bp4_1.jpg" class="cat-img loaded slider-img" style="object-fit: cover; width: 100%; height: 100%;">
                 <canvas class="slider-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"></canvas>
             </div>
             <div class="cat-info" style="justify-content: center; min-height: 56px;">
@@ -2966,8 +3173,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
                 <img src="demo_png50s.png" class="cat-img loaded" style="object-fit: cover;">
             </div>
             <div class="cat-info" style="justify-content: flex-start; align-items: flex-start; text-align: left;">
-                <div class="cat-name" style="width: 100%;">51 сезон</div>
-                <div class="cat-desc">Текущий сезон Brawl Pass.<br>Вышел 4 июня.</div>
+                <div class="cat-name" style="width: 100%;">52 сезон</div>
+                <div class="cat-desc">Новый сезон Brawl Pass.<br>Выйдет 2 июля.</div> <!--Текущий-->
             </div>
          </div>
          
@@ -2979,8 +3186,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
                 <img src="demo_png49s.png" class="cat-img loaded" style="object-fit: cover;">
             </div>
             <div class="cat-info" style="justify-content: flex-start; align-items: flex-start; text-align: left;">
-                <div class="cat-name" style="width: 100%;">50 сезон</div>
-                <div class="cat-desc">Прошлый сезон Brawl Pass.<br>Вышел 7 мая.</div>
+                <div class="cat-name" style="width: 100%;">51 сезон</div>
+                <div class="cat-desc">Текущий сезон Brawl Pass.<br>Вышел 4 июня.</div> <!--Прошлый-->
             </div>
          </div>
 
@@ -2992,8 +3199,8 @@ body:not(.os-android) .cat-name span[style*="НОВОЕ"] {
                 <img src="demo_png48s.png" class="cat-img loaded" style="object-fit: cover;">
             </div>
             <div class="cat-info" style="justify-content: flex-start; align-items: flex-start; text-align: left;">
-                <div class="cat-name" style="width: 100%;">49 сезон</div>
-                <div class="cat-desc">Старый сезон Brawl Pass.<br>Вышел 2 апреля.</div>
+                <div class="cat-name" style="width: 100%;">50 сезон</div>
+                <div class="cat-desc">Прошлый сезон Brawl Pass.<br>Вышел 7 мая.</div> <!--Старый-->
             </div>
          </div>
 
@@ -3267,8 +3474,9 @@ window.checkBPStyle4Ready = function() {
   <img id="dl-preview-img" class="dl-preview" src="">
   
   <div class="dl-buttons-container">
-     <div class="save-btn-wrapper" id="save-btn-wrapper">
-       <button class="ios-btn-secondary" id="dl-btn-save-project" onclick="alert('Данная функция пока недоступна!');">
+    <div class="save-btn-wrapper" id="save-btn-wrapper">
+       <div class="save-hint-bubble" id="save-hint-bubble">Чтобы вносить изменения в эту работу, сохраните её проект</div>
+       <button class="ios-btn-secondary" id="dl-btn-save-project">
           <div class="btn-crossfade-wrap">
             <span class="btn-text-layer btn-text-default">
               Сохранить проект 
@@ -3306,6 +3514,7 @@ window.checkBPStyle4Ready = function() {
 <div id="saved-projects-overlay">
   
   <div id="sp-empty-state" class="sp-empty-wrap" style="display: none;">
+     <img src="saved_works.gif" alt="" draggable="false" style="width: 180px; height: 180px; object-fit: contain; margin-bottom: 10px; user-select: none; -webkit-user-drag: none;">
      <div class="sp-empty-title">Сохранённые работы</div>
      <div class="sp-empty-subtitle">У Вас ещё нет сохранённых работ<br>для изменений.</div>
   </div>
@@ -3741,13 +3950,273 @@ document.addEventListener('pointerdown', (e) => {
     }
 });
 
+const SP_MAX_PROJECTS = 12;
+const SP_DB_NAME = 'snapi_projects';
+const SP_STORE = 'projects';
+
+window.currentProjectId = null;
+window._spCreatedAt = null;
+window._spDB = null;
+
+function spOpenDB() {
+    return new Promise((resolve, reject) => {
+        if (window._spDB) return resolve(window._spDB);
+        if (!('indexedDB' in window)) return reject(new Error('IndexedDB недоступен'));
+        let req = indexedDB.open(SP_DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+            let db = e.target.result;
+            if (!db.objectStoreNames.contains(SP_STORE)) db.createObjectStore(SP_STORE, { keyPath: 'id' });
+        };
+        req.onsuccess = (e) => { window._spDB = e.target.result; resolve(window._spDB); };
+        req.onerror = (e) => reject(e.target.error);
+    });
+}
+function spStore(mode) {
+    return spOpenDB().then(db => db.transaction(SP_STORE, mode).objectStore(SP_STORE));
+}
+window.spGetAll = () => spStore('readonly').then(s => new Promise((res, rej) => { let r = s.getAll(); r.onsuccess = () => res(r.result || []); r.onerror = () => rej(r.error); }));
+window.spGet    = (id) => spStore('readonly').then(s => new Promise((res, rej) => { let r = s.get(id); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+window.spPut    = (rec) => spStore('readwrite').then(s => new Promise((res, rej) => { let r = s.put(rec); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }));
+window.spDelete = (id) => spStore('readwrite').then(s => new Promise((res, rej) => { let r = s.delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }));
+window.spCount  = () => spStore('readonly').then(s => new Promise((res, rej) => { let r = s.count(); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+
+window._spImgToData = function(img, mime, q) {
+    if (!img || !img.width || !img.height) return null;
+    try {
+        let c = document.createElement('canvas');
+        c.width = img.width; c.height = img.height;
+        c.getContext('2d').drawImage(img, 0, 0);
+        return (q !== undefined) ? c.toDataURL(mime, q) : c.toDataURL(mime);
+    } catch (e) { return null; }
+};
+
+window._spSerializeOffers = function() {
+    return (window.layerState.offers || []).map(o => {
+        let item = o.ref;
+        let cw = item.canvas.width, ch = item.canvas.height;
+        let bc = document.createElement('canvas'); bc.width = cw; bc.height = ch;
+        let bcx = bc.getContext('2d');
+        if (item.info && item.info.blankedImgData) bcx.putImageData(item.info.blankedImgData, 0, 0);
+        else bcx.drawImage(item.canvas, 0, 0);
+        return {
+            price: o.price, visible: o.visible !== false, hasStroke: o.hasStroke !== false,
+            x: item.x, y: item.y, cw, ch,
+            textX: item.info ? item.info.textX : cw / 2,
+            textY: item.info ? item.info.textY : ch * 0.9,
+            boxHeight: item.info ? item.info.boxHeight : Math.max(20, ch * 0.15),
+            blanked: bc.toDataURL('image/png')
+        };
+    });
+};
+
+window._spRestoreOffers = async function(saved) {
+    window.layerState.offers = [];
+    allGeneratedCards = [];
+    for (let so of (saved || [])) {
+        let img = await loadImage(so.blanked);
+        let c = document.createElement('canvas'); c.width = so.cw; c.height = so.ch;
+        let cx = c.getContext('2d', { willReadFrequently: true });
+        if (img) cx.drawImage(img, 0, 0);
+        let blankedImgData = cx.getImageData(0, 0, so.cw, so.ch);
+        let info = { blankedImgData, textX: so.textX, textY: so.textY, boxHeight: so.boxHeight };
+        cx.putImageData(blankedImgData, 0, 0);
+        drawPriceText(cx, so.cw, so.ch, so.price, info);
+        let offerObj = { canvas: c, x: so.x, y: so.y, info };
+        allGeneratedCards.push(offerObj);
+        window.layerState.offers.push({
+            id: allGeneratedCards.length - 1, visible: so.visible !== false, hasStroke: so.hasStroke !== false,
+            price: so.price, ref: offerObj,
+            anim: { x: null, y: null, w: null, h: null, scale: 0, alpha: 0 },
+            target: { x: null, y: null, w: null, h: null, scale: 1, alpha: 1 },
+            cache: null
+        });
+    }
+};
+
+window.saveCurrentProject = async function() {
+    let isUpdate = !!window.currentProjectId;
+
+    if (!isUpdate) {
+        let cnt = 0;
+        try { cnt = await window.spCount(); } catch (e) {}
+        if (cnt >= SP_MAX_PROJECTS) {
+            alert('Вы достигли максимального количества сохранения проектов работ. Удалите, что бы добавлять новые.');
+            return false;
+        }
+    }
+
+    let id = window.currentProjectId || ('p_' + Date.now() + '_' + Math.floor(Math.random() * 1e6));
+    let now = Date.now();
+    let createdAt = now;
+    if (isUpdate) {
+        try { let old = await window.spGet(id); if (old && old.createdAt) createdAt = old.createdAt; } catch (e) {}
+    }
+
+    let thumb = '';
+    try {
+        let tw = 240, th = 135;
+        if (persistentCanvas && persistentCanvas.width > 0) th = Math.round(persistentCanvas.height / persistentCanvas.width * tw);
+        let tc = document.createElement('canvas'); tc.width = tw; tc.height = th;
+        let tcx = tc.getContext('2d'); tcx.imageSmoothingQuality = 'high';
+        if (persistentCanvas && persistentCanvas.width > 0) tcx.drawImage(persistentCanvas, 0, 0, tw, th);
+        thumb = tc.toDataURL('image/jpeg', 0.7);
+    } catch (e) {}
+
+    let state = {};
+    try {
+        let raw = {};
+        for (let k in window.layerState) {
+            if (k === 'offers') continue;
+            if (typeof window.layerState[k] === 'function') continue;
+            raw[k] = window.layerState[k];
+        }
+        state = JSON.parse(JSON.stringify(raw));
+    } catch (e) { state = {}; }
+
+    let rawBg = window._spImgToData(rawBgImage, 'image/jpeg', 0.85);
+    let fgImage = null, offers = null;
+    if (state.isBrawlPassMode && (state.bpStyleIndex === 1 || state.bpStyleIndex === undefined) && window.bpForegroundImage) {
+        fgImage = window._spImgToData(window.bpForegroundImage, 'image/png');
+    }
+    if (!state.isBrawlPassMode) offers = window._spSerializeOffers();
+
+    let rec = { id, createdAt, updatedAt: now, thumb, state, rawBg, fgImage, offers };
+
+    try { await window.spPut(rec); }
+    catch (e) { alert('Не удалось сохранить проект: ' + (e && e.message ? e.message : e)); return false; }
+
+    window.currentProjectId = id;
+    window._spCreatedAt = createdAt;
+    return true;
+};
+
+window.SAVE_HINT_THRESHOLD = 3; 
+
+window.getSaveClickCount = function() {
+    return parseInt(localStorage.getItem('Snapi_save_click_count') || '0', 10);
+};
+
+window.shouldShowSaveHint = function() {
+    if (localStorage.getItem('Snapi_save_hint_disabled') === 'true') return false;
+    return window.getSaveClickCount() < window.SAVE_HINT_THRESHOLD;
+};
+
+window.showSaveHint = function() {
+    let bubble = document.getElementById('save-hint-bubble');
+    if (bubble) bubble.classList.add('show');
+};
+
+window.hideSaveHint = function() {
+    let bubble = document.getElementById('save-hint-bubble');
+    if (bubble) bubble.classList.remove('show');
+};
+
+window.registerSaveClick = function() {
+    let count = window.getSaveClickCount() + 1;
+    localStorage.setItem('Snapi_save_click_count', String(count));
+    if (count >= window.SAVE_HINT_THRESHOLD) {
+        localStorage.setItem('Snapi_save_hint_disabled', 'true');
+    }
+};
+
+window.restoreProject = async function(rec) {
+    if (animReq) { cancelAnimationFrame(animReq); animReq = null; }
+    window.renderThrottle = false;
+    window.pendingRenderCache = false;
+
+    let st;
+    try { st = JSON.parse(JSON.stringify(rec.state || {})); } catch (e) { st = {}; }
+    window.layerState = st;
+    window.layerState.offers = [];
+
+    if (window.layerState.textFont === undefined) window.layerState.textFont = 'Font16103';
+    if (window.layerState.textStyleIndex === undefined) window.layerState.textStyleIndex = 0;
+    if (window.layerState.watermarksFont === undefined) window.layerState.watermarksFont = 'Font16103';
+    if (!window.layerState.isBrawlPassMode && window.layerState.offerPriceFont === undefined) {
+        window.layerState.offerPriceFont = 'LilitaOneRus';
+    }
+
+    window.currentProjectId = rec.id;
+    window._spCreatedAt = rec.createdAt || Date.now();
+    isCurrentProjectSaved = true; 
+
+    rawBgImage = rec.rawBg ? await loadImage(rec.rawBg) : null;
+    if (rec.fgImage) window.bpForegroundImage = await loadImage(rec.fgImage);
+
+    window._uploadMode = null; window._uploadedBaseImg = null;
+    window._uploadedReadyBaseImg = null; window._selectedColor = null;
+
+    document.getElementById('saved-projects-overlay').style.display = 'none';
+
+    let si = st.bpStyleIndex;
+
+    if (st.isBrawlPassMode && (si === 2 || si === 3 || si === 4 || si === 'dop')) {
+        window._spRestoring = true;
+        if (si === 2) window.openBPTestEditor();
+        else if (si === 3) window.openBPStyle3Editor();
+        else if (si === 4) window.openBPStyle4Editor();
+        else window.openBPDopEditor();
+        setTimeout(() => { window._spRestoring = false; }, 600);
+        return;
+    }
+
+    document.getElementById('ios-dashboard').style.display = 'none';
+    document.getElementById('result-box').style.display = 'block';
+    window.scrollTo(0, 0);
+    if (window.Telegram && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
+
+    cardsContainer.innerHTML = '<div class="skeleton-box skeleton-canvas fade-in-anim"></div>';
+    layerPanel.style.display = 'flex';
+    layerPanel.innerHTML = '<div class="skeleton-panel-wrapper fade-in-anim"><div class="skeleton-box skeleton-row"></div><div class="skeleton-box skeleton-row"></div></div>';
+
+    setTimeout(async () => {
+        if (st.isBrawlPassMode) {
+            let season = st.bpSeason || 50;
+            globalAssets.luchImg     = globalAssets.luchImg     || await loadImage('BP/Luch.png');
+            globalAssets.starsEff    = globalAssets.starsEff    || await loadImage('BP/bp_starsEff.png');
+            globalAssets.bpPointsImg = globalAssets.bpPointsImg || await loadImage('BP/bp_pointEff.png');
+            globalAssets.bpPriceL    = globalAssets.bpPriceL    || await loadImage('BP/bp_price_bg_left.png');
+            globalAssets.bpPriceR    = globalAssets.bpPriceR    || await loadImage('BP/bp_price_bg_right.png');
+            globalAssets[`brawler_${season}_1`] = globalAssets[`brawler_${season}_1`] || await loadImage(`BP/brawler_s${season}_1.png`);
+            globalAssets[`brawler_${season}_2`] = globalAssets[`brawler_${season}_2`] || await loadImage(`BP/brawler_s${season}_2.png`);
+            window.layerState.isBrawlPassMode = true;
+            setupPersistentCanvas();
+            renderLayerPanel(true);
+            window.updateCachedTextCanvas();
+            startAnimation();
+            if (window.preloadBrawlerVariants) window.preloadBrawlerVariants(season);
+        } else {
+            globalAssets.luchImg   = globalAssets.luchImg   || await loadImage('Luch.png');
+            globalAssets.starImg   = globalAssets.starImg   || await loadImage('Star.png');
+            globalAssets.pointsImg = globalAssets.pointsImg || await loadImage('points.png');
+
+            try {
+                await document.fonts.load(`16px '${window.layerState.textFont || 'Font16103'}'`);
+                await document.fonts.load(`16px '${window.layerState.offerPriceFont || 'LilitaOneRus'}'`);
+                await document.fonts.ready;
+            } catch (e) {}
+
+            await window._spRestoreOffers(rec.offers || []);
+            setupPersistentCanvas();
+            renderLayerPanel(true);
+            calculateLayoutTarget();
+        }
+    }, 50);
+};
+
 window.updateSavedCount = async () => {
     let countEl = document.getElementById('saved-count-val');
-    if (countEl) countEl.innerText = '0';
+    try { let c = await window.spCount(); if (countEl) countEl.innerText = String(c); }
+    catch (e) { if (countEl) countEl.innerText = '0'; }
 };
 
 window.openSavedProjects = () => {
-    alert("Данная функция пока недоступна!");
+    window.triggerHaptic();
+    document.getElementById('ios-dashboard').style.display = 'none';
+    document.getElementById('saved-projects-overlay').style.display = 'flex';
+    window.scrollTo(0, 0);
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) window.Telegram.WebApp.BackButton.show();
+    window.renderSavedProjects();
 };
 
 window.openSettings = () => {
@@ -3874,6 +4343,14 @@ window.openDownloadOverlay = () => {
     
     saveWrapper.classList.remove('hidden-animated');
     saveWrapper.style.display = isCurrentProjectSaved ? 'none' : 'flex'; 
+
+    let hintBubble = document.getElementById('save-hint-bubble');
+    if (hintBubble) {
+        hintBubble.classList.remove('show');
+        if (!isCurrentProjectSaved && window.shouldShowSaveHint()) {
+            setTimeout(() => { window.showSaveHint(); }, 500);
+        }
+    }
     
     let saveBtn = document.getElementById('dl-btn-save-project');
     saveBtn.classList.remove('is-loading');
@@ -3926,19 +4403,94 @@ window.closeDownloadOverlay = () => {
     window.scrollTo(0,0);
 };
 
+function spProjectMeta(st, seq) {
+    if (!st || !st.isBrawlPassMode) {
+        seq.akcia = (seq.akcia || 0) + 1;
+        return { title: 'Акция', badge: '#' + seq.akcia };
+    }
+    if (st.bpStyleIndex === 'dop') return { title: 'Brawl Pass', badge: 'dop #' + (st.bpVariantIndex || 1) };
+    return { title: 'Brawl Pass', badge: '#' + (st.bpStyleIndex || 1) };
+}
+
+function spFmtDate(ts) {
+    if (!ts) return '';
+    let d = new Date(ts), p = n => String(n).padStart(2, '0');
+    return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+window.onSavedRowClick = async (id) => {
+    window.triggerHaptic();
+    let rec = null;
+    try { rec = await window.spGet(id); } catch (e) {}
+    if (!rec) { alert('Проект не найден.'); return; }
+    window.restoreProject(rec);
+};
+
 window.deleteProject = async (id, btnEl) => {
-    console.log("Функция удаления отключена");
+    window.triggerHaptic();
+    let row = btnEl ? btnEl.closest('.sp-row') : null;
+    const finalize = async () => {
+        try { await window.spDelete(id); } catch (e) {}
+        if (window.currentProjectId === id) window.currentProjectId = null;
+        await window.updateSavedCount();
+        if (row && row.parentNode) row.remove();
+        if (document.querySelectorAll('#sp-list .sp-row').length === 0) window.renderSavedProjects();
+    };
+    if (row) {
+        row.classList.add('sp-removing');
+        setTimeout(finalize, 460);
+    } else {
+        await finalize();
+        window.renderSavedProjects();
+    }
 };
 
 window.renderSavedProjects = async () => {
     let emptyState = document.getElementById('sp-empty-state');
     let contentState = document.getElementById('sp-content-state');
     let container = document.getElementById('sp-list');
-    
-    emptyState.style.display = 'flex';
-    emptyState.classList.add('show');
-    contentState.style.display = 'none';
-    if (container) container.innerHTML = '';
+
+    let projects = [];
+    try { projects = await window.spGetAll(); } catch (e) {}
+    projects.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+    if (!projects.length) {
+        emptyState.style.display = 'flex';
+        emptyState.classList.add('show');
+        contentState.style.display = 'none';
+        if (container) container.innerHTML = '';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    contentState.style.display = 'block';
+
+    let seq = {};
+    let html = '';
+    projects.forEach(p => {
+        let meta = spProjectMeta(p.state, seq);
+        html += `
+        <div class="sp-row" data-id="${p.id}">
+            <img class="sp-img" src="${p.thumb || ''}" alt="">
+            <div style="flex-grow:1; min-width:0; display:flex; flex-direction:column; gap:5px;">
+                <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+                    <span class="sp-title" style="flex-grow:0;">${meta.title}</span>
+                    <span class="sp-badge">${meta.badge}</span>
+                </div>
+                <span style="font-size:13px; color: var(--tg-theme-subtitle-text-color, #8E8E93);">${spFmtDate(p.updatedAt)}</span>
+            </div>
+            <button class="sp-del-btn" data-del="${p.id}">удалить</button>
+            <div class="ios-chevron"><svg viewBox="0 0 8 14" width="8" height="14"><path d="M1 1l6 6-6 6" fill="none" stroke="#C7C7CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        </div>`;
+    });
+    container.innerHTML = html;
+
+    container.onclick = (e) => {
+        let del = e.target.closest('.sp-del-btn');
+        if (del) { e.stopPropagation(); window.deleteProject(del.getAttribute('data-del'), del); return; }
+        let row = e.target.closest('.sp-row');
+        if (row) window.onSavedRowClick(row.getAttribute('data-id'));
+    };
 };
 
 const loadImage = (src) => new Promise((resolve) => {
@@ -3951,9 +4503,7 @@ const loadImage = (src) => new Promise((resolve) => {
   img.src = src;
 });
 
-window.loadProject = async (id) => {
-    console.log("Функция загрузки проектов отключена");
-};
+window.loadProject = (id) => window.onSavedRowClick(id);
 
 let selectedCategory = null; 
 let selectedBPStyle = null;
@@ -4357,7 +4907,11 @@ window.layerState = {
     watermarksFont: 'Font16103',
     pointsVisible: true,
     isGeneratedBg: false,
-    isReadyBg: false
+    isReadyBg: false,
+    brawler1Variant: 1,
+    brawler2Variant: 1,
+    style4StarsVisible: true,
+    style4StarsOpacity: 1.0
 };
 
 const FONT_OPTIONS = [
@@ -4882,7 +5436,100 @@ window.clearBrawlerCache = function() {
     delete window.layerState.dopTextRot;
     delete window.layerState.s3TextX;
     delete window.layerState.s3TextY;
+delete window.layerState.s3TextX;
+    delete window.layerState.s3TextY;
     delete window.layerState.s3TextScale;
+
+    window.layerState.brawler1Variant = 1;
+    window.layerState.brawler2Variant = 1;
+};
+
+window._brawlerVarLoading = window._brawlerVarLoading || {};
+
+window.loadBrawlerVariant = function(charNum, variant, season) {
+    season = season || window.layerState.bpSeason || 50;
+    let key = `brawler_${season}_${charNum}_v${variant}`;
+    if (globalAssets[key]) return Promise.resolve(globalAssets[key]);
+    if (window._brawlerVarLoading[key]) return window._brawlerVarLoading[key];
+
+    const SUFFIX = { 1: '_1var', 2: '_2var', 3: '_3var' };
+    let src = `BP/brawler_s${season}_${charNum}${SUFFIX[variant]}.png`;
+
+    let p = loadImage(src).then(img => {
+        globalAssets[key] = img || globalAssets[`brawler_${season}_${charNum}`] || null;
+        delete window._brawlerVarLoading[key];
+        return globalAssets[key];
+    });
+    window._brawlerVarLoading[key] = p;
+    return p;
+};
+
+window.getBrawlerImg = function(charNum, season) {
+    season = season || window.layerState.bpSeason || 50;
+    let variant = (charNum === 1)
+        ? (window.layerState.brawler1Variant || 1)
+        : (window.layerState.brawler2Variant || 1);
+    let key = `brawler_${season}_${charNum}_v${variant}`;
+
+    if (globalAssets[key]) return globalAssets[key];
+
+    if (!window._brawlerVarLoading[key]) {
+        window.loadBrawlerVariant(charNum, variant, season).then(() => {
+            if (typeof startAnimation === 'function') startAnimation();
+        });
+    }
+    return globalAssets[`brawler_${season}_${charNum}`] || null;
+};
+
+window.preloadBrawlerVariants = function(season) {
+    season = season || window.layerState.bpSeason || 50;
+    if (window.layerState.bpStyleIndex === 3) return Promise.resolve(); 
+
+    let charNums;
+    if (window.layerState.bpStyleIndex === 'dop') {
+        let dopCharNum = (window.layerState.bpVariantIndex === 1 || window.layerState.bpVariantIndex === 2) ? 1 : 2;
+        charNums = [dopCharNum];
+    } else {
+        charNums = [1, 2];
+    }
+
+    let tasks = [];
+    charNums.forEach(charNum => {
+        for (let v = 1; v <= 3; v++) {
+            tasks.push(window.loadBrawlerVariant(charNum, v, season));
+        }
+    });
+    return Promise.all(tasks);
+};
+
+window.selectBrawlerVariant = async function(charNum, variant) {
+    if (window.triggerHaptic) window.triggerHaptic();
+    let stateKey = (charNum === 1) ? 'brawler1Variant' : 'brawler2Variant';
+    if (window.layerState[stateKey] === variant) return; 
+
+    window.layerState[stateKey] = variant;
+    renderLayerPanel();
+    await window.loadBrawlerVariant(charNum, variant);
+    if (typeof startAnimation === 'function') startAnimation();
+};
+
+window.copyWatermarksCode = function() {
+    let arr = window.layerState.customWatermarks || [];
+    let code = 'window.layerState.customWatermarks = ' + JSON.stringify(arr, null, 4) + ';';
+    let done = () => {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.showAlert) {
+            window.Telegram.WebApp.showAlert('✅ Код ников скопирован! Вставь его в нужный редактор после setupPersistentCanvas().');
+        } else {
+            alert('✅ Код ников скопирован!');
+        }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(done).catch(() => {
+            prompt('Скопируй код вручную:', code);
+        });
+    } else {
+        prompt('Скопируй код вручную:', code);
+    }
 };
 
 window.toggleBrawlerFlip = (brawlerKey) => {
@@ -5061,6 +5708,53 @@ window.updateS2PriceLayer = (idx, inputEl) => {
     window.requestRender();
 };
 
+function buildBrawlerColorSection(animCls) {
+    if (!window.layerState.isBrawlPassMode) return '';
+    if (window.layerState.bpStyleIndex === 3) return ''; 
+
+    let isDop = window.layerState.bpStyleIndex === 'dop';
+    let chars;
+
+    if (isDop) {
+        let dopCharNum = (window.layerState.bpVariantIndex === 1 || window.layerState.bpVariantIndex === 2) ? 1 : 2;
+        chars = [{ num: dopCharNum, label: null }];
+    } else {
+        chars = [
+            { num: 1, label: 'первый персонаж' },
+            { num: 2, label: 'второй персонаж' }
+        ];
+    }
+
+    let html = `<div class="ios-section-title ${animCls}">ЦВЕТ ПЕРСОНАЖА</div>`;
+    html += `<div class="ios-layer-group ${animCls}">`;
+
+    chars.forEach((ch, ci) => {
+        let stateKey = (ch.num === 1) ? 'brawler1Variant' : 'brawler2Variant';
+        let curVariant = window.layerState[stateKey] || 1;
+
+        if (ch.label) {
+            html += `<div style="font-size: 13px; color: var(--tg-theme-subtitle-text-color, #8E8E93); margin-top: ${ci === 0 ? '14' : '20'}px; margin-bottom: 4px; padding: 0;">${ch.label}</div>`;
+        }
+
+        for (let v = 1; v <= 3; v++) {
+            let isVisible = curVariant === v;
+            let isLastRow = (ci === chars.length - 1) && (v === 3);
+            html += `
+                <div class="ios-layer-row" ${isLastRow ? 'style="border-bottom:none;"' : ''}>
+                    <div class="ios-icon-btn ios-eye-icon ${isVisible ? '' : 'hidden'}" onclick="selectBrawlerVariant(${ch.num}, ${v})">
+                        ${getEyeSVG(isVisible)}
+                    </div>
+                    <div class="ios-layer-name">${v} вариант скина</div>
+                    <div style="flex-grow:1;"></div>
+                </div>
+            `;
+        }
+    });
+
+    html += `</div>`;
+    return html;
+}
+
 function renderLayerPanel(isInitialLoad = false) {
     if (window._genLoading) {
         window._genLoading = false;
@@ -5166,13 +5860,15 @@ if (window.layerState.isBrawlPassMode) {
         
         if (window.layerState.bpStyleIndex === 2) {
             let detS2EyeClass = window.layerState.detailsS2Visible !== false ? '' : 'hidden';
+            let detS2Opacity = window.layerState.detailsS2Opacity !== undefined ? window.layerState.detailsS2Opacity : 1;
             html += `
                 <div class="ios-layer-row">
                     <div class="ios-icon-btn ios-eye-icon ${detS2EyeClass}" onclick="toggleCosmeticLayer('detailsS2')">
                         ${getEyeSVG(window.layerState.detailsS2Visible !== false)}
                     </div>
                     <div class="ios-layer-name">Детали взади</div>
-                    <div style="flex-grow:1;"></div>
+                    <div class="ios-layer-action-text">прозрачность</div>
+                    <input type="range" class="ios-slider" min="0" max="1" step="0.05" value="${detS2Opacity}" oninput="changeOpacity('detailsS2', this.value)">
                 </div>
             `;
 
@@ -5825,9 +6521,11 @@ if (window.layerState.isBrawlPassMode) {
         html += `</div>`;
     }
 
+    html += buildBrawlerColorSection(animCls);
+
     html += `<div class="ios-layer-group ${animCls}">`;
 
-        if (window.layerState.bpStyleIndex !== 2 && window.layerState.bpStyleIndex !== 'dop') {
+        if (window.layerState.bpStyleIndex !== 2 && window.layerState.bpStyleIndex !== 'dop' && window.layerState.bpStyleIndex !== 4) {
             let luchEyeClass = window.layerState.luchVisible ? '' : 'hidden';
             html += `
                 <div class="ios-layer-row">
@@ -5880,20 +6578,35 @@ if (window.layerState.isBrawlPassMode) {
         });
         html += `</div>`;
 
-        let starsEyeClass = window.layerState.starsVisible ? '' : 'hidden';
-        html += `
-            <div class="ios-layer-row">
-                <div class="ios-icon-btn ios-eye-icon ${starsEyeClass}" onclick="toggleCosmeticLayer('stars')">
-                    ${getEyeSVG(window.layerState.starsVisible)}
+        if (window.layerState.bpStyleIndex !== 4) {
+            let starsEyeClass = window.layerState.starsVisible ? '' : 'hidden';
+            html += `
+                <div class="ios-layer-row">
+                    <div class="ios-icon-btn ios-eye-icon ${starsEyeClass}" onclick="toggleCosmeticLayer('stars')">
+                        ${getEyeSVG(window.layerState.starsVisible)}
+                    </div>
+                    <div class="ios-layer-name">Звёзды</div>
+                    <div class="ios-layer-action-text">прозрачность</div>
+                    <input type="range" class="ios-slider" min="0" max="1" step="0.05" value="${window.layerState.starsOpacity}" oninput="changeOpacity('stars', this.value)">
+                    <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadCosmeticLayer('stars')">
+                        ${downloadIconSVG}
+                    </div>
                 </div>
-                <div class="ios-layer-name">Звёзды</div>
-                <div class="ios-layer-action-text">прозрачность</div>
-                <input type="range" class="ios-slider" min="0" max="1" step="0.05" value="${window.layerState.starsOpacity}" oninput="changeOpacity('stars', this.value)">
-                <div class="ios-icon-btn" style="margin-left: 10px; color: var(--tg-theme-section-header-text-color);" onclick="downloadCosmeticLayer('stars')">
-                    ${downloadIconSVG}
+            `;
+        } else {
+            let style4StarsEyeClass = window.layerState.style4StarsVisible !== false ? '' : 'hidden';
+            let style4StarsOpacity = window.layerState.style4StarsOpacity !== undefined ? window.layerState.style4StarsOpacity : 1;
+            html += `
+                <div class="ios-layer-row">
+                    <div class="ios-icon-btn ios-eye-icon ${style4StarsEyeClass}" onclick="toggleCosmeticLayer('style4Stars')">
+                        ${getEyeSVG(window.layerState.style4StarsVisible !== false)}
+                    </div>
+                    <div class="ios-layer-name">Звёзды</div>
+                    <div class="ios-layer-action-text">прозрачность</div>
+                    <input type="range" class="ios-slider" min="0" max="1" step="0.05" value="${style4StarsOpacity}" oninput="changeOpacity('style4Stars', this.value)">
                 </div>
-            </div>
-        `;
+            `;
+        }
 
         if (window.layerState.isGeneratedBg || window.layerState.isReadyBg || window.layerState.bpStyleIndex === 'dop' || window.layerState.bpStyleIndex === 4) {
 
@@ -5976,6 +6689,10 @@ if (window.layerState.isBrawlPassMode) {
                     {x: 887,  y: 7,   scale: 0.39, skewX: -12},
                     {x: 1242, y: 476, scale: 0.21, skewX: -12}
                 ];
+            } else if (window.layerState.bpStyleIndex === 'dop') {
+                if (!window.layerState.customWatermarks) {
+                    window.layerState.customWatermarks = [];
+                }
             } else {
                 window.layerState.customWatermarks = [
                     { x: 514, y: -31, scale: 0.74, skewX: -12 },
@@ -6056,7 +6773,7 @@ if (window.layerState.isBrawlPassMode) {
                             window.layerState.customWatermarks[window.layerState.activeWmIndex].x = parseFloat(this.value); 
                             startAnimation();">
             </div>
-            <div class="ios-layer-row" style="border-bottom:none;">
+                <div class="ios-layer-row">
                 <div class="ios-layer-name" style="font-size:14px;">Позиция Y</div>
                 <div id="v-wm-y" style="margin-right:10px; color:#8E8E93; font-size:14px; width:35px; text-align:right;">${activeWm.y}</div>
                 <input type="range" class="ios-slider" min="-200" max="1500" step="1" value="${activeWm.y}" 
@@ -6066,6 +6783,15 @@ if (window.layerState.isBrawlPassMode) {
             </div>
             `;
         }
+
+        html += `
+            <div class="ios-layer-row" style="border-bottom:none; padding-top:8px;">
+                <button class="ios-pill-btn" style="background:#00ff591f; color:#16a34a; flex-grow:1;"
+                    onclick="window.copyWatermarksCode()">
+                    📋 Скопировать код ников
+                </button>
+            </div>
+        `;
 
         html += `</div>`;
     }
@@ -7254,6 +7980,10 @@ function checkBatchCompletion() {
 function setupPersistentCanvas() {
     cardsContainer.innerHTML = ''; 
 
+    if (!window._spRestoring) {
+        isCurrentProjectSaved = false;
+    }
+
     if (!persistentCanvas) {
         persistentCanvas = document.createElement('canvas');
         persistentCtx = persistentCanvas.getContext('2d');
@@ -7861,12 +8591,6 @@ function drawScene() {
                 ctx.restore();
             }
 
-            if (window.layerState.detailsS2Visible !== false && globalAssets.style2Details) {
-                ctx.save();
-                ctx.drawImage(globalAssets.style2Details, 0, 0, W, H);
-                ctx.restore();
-            }
-
             ctx.save();
             const colorsMap = {
                 'green': {r: 94, g: 229, b: 104}, 
@@ -7893,7 +8617,7 @@ function drawScene() {
                 let cy = light.y * s;
                 let radius = (light.size + light.blur) * s; 
                 
-                ctx.globalCompositeOperation = 'screen';
+                ctx.globalCompositeOperation = 'overlay';
                 
                 let op = isCustomBg ? Math.min(1, light.opacity * 1.5) : light.opacity;
                 let midPoint = isCustomBg ? 0.5 : 0.3; 
@@ -7942,6 +8666,25 @@ function drawScene() {
                     ctx.fillText(wmText, 0, 0);
                     ctx.restore();
                 });
+                ctx.restore();
+            }
+
+            if (window.layerState.detailsS2Visible !== false && globalAssets.style2Details) {
+                let detA2 = window.layerState.detailsS2Opacity !== undefined ? window.layerState.detailsS2Opacity : 1;
+                ctx.save();
+
+                ctx.globalCompositeOperation = 'soft-light';
+                ctx.globalAlpha = detA2;
+                ctx.drawImage(globalAssets.style2Details, 0, 0, W, H);
+
+                ctx.globalCompositeOperation = 'overlay';
+                ctx.globalAlpha = detA2 * 0.55;
+                ctx.drawImage(globalAssets.style2Details, 0, 0, W, H);
+
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = detA2 * 0.35;
+                ctx.drawImage(globalAssets.style2Details, 0, 0, W, H);
+
                 ctx.restore();
             }
 
@@ -8074,7 +8817,7 @@ function drawScene() {
             ctx.beginPath();
             ctx.rect(0, 0, W, H/2 - 8*s); 
             ctx.clip();
-            drawBrawler(globalAssets[`brawler_${season}_2`], C.brawler2); 
+            drawBrawler(window.getBrawlerImg(2, season), C.brawler2); 
             ctx.restore();
             
             drawItem(globalAssets.style2BPP, C.bppIcon, 15);
@@ -8086,7 +8829,7 @@ function drawScene() {
             ctx.beginPath();
             ctx.rect(0, H/2 + 8*s, W, H/2); 
             ctx.clip();
-            drawBrawler(globalAssets[`brawler_${season}_1`], C.brawler1);
+            drawBrawler(window.getBrawlerImg(1, season), C.brawler1);
             ctx.restore();
             
             drawItem(globalAssets.style2BP, C.bpIcon, 15);
@@ -8324,7 +9067,7 @@ function drawScene() {
             return; 
         }
 
-else if (window.layerState.bpStyleIndex === 4) {
+        else if (window.layerState.bpStyleIndex === 4) {
             const ctx = persistentCtx;
             const W = persistentCanvas.width;
             const H = persistentCanvas.height;
@@ -8336,6 +9079,7 @@ else if (window.layerState.bpStyleIndex === 4) {
 
             if (window.layerState.dopBg4Visible !== false && globalAssets.dopBg4) {
                 ctx.save();
+                ctx.globalCompositeOperation = 'screen';
                 ctx.globalAlpha = window.layerState.dopBg4Opacity !== undefined ? window.layerState.dopBg4Opacity : 1;
                 ctx.drawImage(globalAssets.dopBg4, 0, 0, W, H);
                 ctx.restore();
@@ -8417,10 +9161,10 @@ else if (window.layerState.bpStyleIndex === 4) {
                 ctx.restore();
             }
 
-            if (window.layerState.starsVisible !== false && globalAssets.s4Stars) {
+            if (window.layerState.style4StarsVisible !== false && globalAssets.s4Stars) {
                 ctx.save();
                 ctx.globalCompositeOperation = 'overlay';
-                ctx.globalAlpha = window.layerState.starsOpacity !== undefined ? window.layerState.starsOpacity : 1;
+                ctx.globalAlpha = window.layerState.style4StarsOpacity !== undefined ? window.layerState.style4StarsOpacity : 1;
                 ctx.drawImage(globalAssets.s4Stars, 0, 0, W, H);
                 ctx.restore();
             }
@@ -8490,8 +9234,8 @@ else if (window.layerState.bpStyleIndex === 4) {
                 const s4BL_scale = window.layerState.s4BrawlerL_scale !== undefined ? window.layerState.s4BrawlerL_scale : s4Conf.brawlerL.scale;
                 const s4BL_flip  = window.layerState.s4BrawlerL_flip  !== undefined ? window.layerState.s4BrawlerL_flip  : s4Conf.brawlerL.flipH;
 
-                if (globalAssets[`brawler_${season4}_1`] || globalAssets.s4BrawlerR) {
-                    const brawlerR = globalAssets[`brawler_${season4}_1`] || globalAssets.s4BrawlerR;
+                if (window.getBrawlerImg(1, season4) || globalAssets.s4BrawlerR) {
+                    const brawlerR = window.getBrawlerImg(1, season4) || globalAssets.s4BrawlerR;
                     ctx.save();
                     ctx.shadowColor = 'rgba(255,255,255,1)';
                     ctx.shadowOffsetX = 0; ctx.shadowOffsetY = -6*s; ctx.shadowBlur = 0;
@@ -8507,8 +9251,8 @@ else if (window.layerState.bpStyleIndex === 4) {
                     ctx.restore();
                 }
 
-                if (globalAssets[`brawler_${season4}_2`] || globalAssets.s4BrawlerL) {
-                    const brawlerL = globalAssets[`brawler_${season4}_2`] || globalAssets.s4BrawlerL;
+                if (window.getBrawlerImg(2, season4) || globalAssets.s4BrawlerL) {
+                    const brawlerL = window.getBrawlerImg(2, season4) || globalAssets.s4BrawlerL;
                     ctx.save();
                     ctx.shadowColor = 'rgba(255,255,255,1)';
                     ctx.shadowOffsetX = 0; ctx.shadowOffsetY = -6*s; ctx.shadowBlur = 0;
@@ -8749,6 +9493,25 @@ else if (window.layerState.bpStyleIndex === 4) {
                 ctx.restore();
             }
 
+            if (window.layerState.dopBg4Visible !== false && globalAssets.dopDetailing) {
+                let detA = window.layerState.dopBg4Opacity !== undefined ? window.layerState.dopBg4Opacity : 1;
+                ctx.save();
+
+                ctx.globalCompositeOperation = 'soft-light';
+                ctx.globalAlpha = detA;
+                drawImageCover(ctx, globalAssets.dopDetailing, 0, 0, W, H);
+
+                ctx.globalCompositeOperation = 'overlay';
+                ctx.globalAlpha = detA * 0.55;
+                drawImageCover(ctx, globalAssets.dopDetailing, 0, 0, W, H);
+
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = detA * 0.35;
+                drawImageCover(ctx, globalAssets.dopDetailing, 0, 0, W, H);
+
+                ctx.restore();
+            }
+
             ctx.save();
             ctx.globalCompositeOperation = 'overlay';
             if (window.layerState.pointsVisible !== false && globalAssets.dopPoints) {
@@ -8757,7 +9520,7 @@ else if (window.layerState.bpStyleIndex === 4) {
             }
             if (window.layerState.starsVisible !== false && globalAssets.dopStarsEff) {
                 ctx.globalAlpha = window.layerState.starsOpacity !== undefined ? window.layerState.starsOpacity : 1;
-                ctx.drawImage(globalAssets.dopStarsEff, 0, 0, W, H);
+                ctx.drawImage(globalAssets.dopStarsEff, 0, 0, W, W * (960 / 1280));
             }
             ctx.restore();
 
@@ -8795,14 +9558,6 @@ else if (window.layerState.bpStyleIndex === 4) {
             ctx.restore();
         }
 
-            if (window.layerState.dopBg4Visible !== false && globalAssets.dopDetailing) {
-                ctx.save();
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.globalAlpha = window.layerState.dopBg4Opacity !== undefined ? window.layerState.dopBg4Opacity : 1;
-                drawImageCover(ctx, globalAssets.dopDetailing, 0, 0, W, H);
-                ctx.restore();
-            }
-
             if (window.layerState.watermarksVisible !== false) {
                 ctx.save();
                 
@@ -8814,19 +9569,25 @@ else if (window.layerState.bpStyleIndex === 4) {
                 ctx.globalAlpha = wmAlpha; 
                 ctx.fillStyle = '#ffffff'; 
                 ctx.textBaseline = 'top';
-                
-                const wms = [
+
+                const DOP_BASE_FONT = 56;
+                let wmArray = window.layerState.customWatermarks || [
                     {x: 637, y: 40, h: 8}, {x: 1035, y: 13, h: 21}, {x: 889, y: 517, h: 21},
                     {x: 1114, y: 128, h: 15}, {x: 659, y: 274, h: 20}, {x: 665, y: 61, h: 18},
                     {x: 1049, y: 80, h: 9}, {x: 1115, y: 623, h: 19}, {x: 1031, y: 696, h: 32},
                     {x: 1167, y: 668, h: 8}, {x: 606, y: 627, h: 12}, {x: 638, y: 660, h: 19},
                     {x: 455, y: 699, h: 28}, {x: -155, y: 69, h: 29}, {x: 30, y: 204, h: 10},
                     {x: 5, y: 343, h: 7}, {x: 23, y: 420, h: 15}, 
-                ];
-                
-                wms.forEach(wm => {
-                    ctx.font = `italic 900 ${wm.h * s}px "${wmFont}", Impact, sans-serif`;
-                    ctx.fillText(wmText, offsetX + wm.x * s, offsetY + wm.y * s);
+                ].map(wm => ({ x: wm.x, y: wm.y, scale: wm.h / DOP_BASE_FONT, skewX: 0 }));
+
+                window.layerState.customWatermarks = wmArray;
+
+                wmArray.forEach(wm => {
+                    ctx.save();
+                    ctx.translate(offsetX + wm.x * s, offsetY + wm.y * s);
+                    ctx.font = `italic 900 ${DOP_BASE_FONT * wm.scale * s}px "${wmFont}", Impact, sans-serif`;
+                    ctx.fillText(wmText, 0, 0);
+                    ctx.restore();
                 });
                 ctx.restore();
             }
@@ -8834,6 +9595,7 @@ else if (window.layerState.bpStyleIndex === 4) {
             drawLayerImg(globalAssets.dopStar, 561, 61, 771, 675);
 
             ctx.save();
+            ctx.globalCompositeOperation = 'overlay';
             const cx = offsetX + (599 + 609 / 2) * s;
             const cy = offsetY + (150 + 576 / 2) * s;
             const r = Math.min(609, 576) / 2 * s;
@@ -8852,10 +9614,10 @@ else if (window.layerState.bpStyleIndex === 4) {
             let dopConf;
 
             if (window.layerState.bpVariantIndex === 1 || window.layerState.bpVariantIndex === 2) {
-                brawler = globalAssets[`brawler_${season}_1`];
+                brawler = window.getBrawlerImg(1, season);
                 dopConf = (BP_SEASON_CONFIG[season] || BP_SEASON_CONFIG[50]).dopBrawler1 || { x: 476, y: 16, scale: 1, scaleX: 1, scaleY: 1, rot: 0 };
             } else {
-                brawler = globalAssets[`brawler_${season}_2`];
+                brawler = window.getBrawlerImg(2, season);
                 dopConf = (BP_SEASON_CONFIG[season] || BP_SEASON_CONFIG[50]).dopBrawler || { x: 476, y: 16, scale: 1, scaleX: 1, scaleY: 1, rot: 0 };
             }
 
@@ -8890,7 +9652,13 @@ else if (window.layerState.bpStyleIndex === 4) {
                 ctx.restore();
             }
 
-            drawLayerImg(globalAssets.dopPanelL, 82, 21, 546, 649);
+            let dopPanelImg = globalAssets.dopPanelL;
+            if (window.layerState.bpVariantIndex === 2 &&
+                window.layerState.priceVis_bp === false &&
+                globalAssets.dopPanelLOffer) {
+                dopPanelImg = globalAssets.dopPanelLOffer;
+            }
+            drawLayerImg(dopPanelImg, 82, 21, 546, 649);
             
             let pricePlateX = 158;
             let pricePlateY = 589;
@@ -8982,7 +9750,7 @@ else if (window.layerState.bpStyleIndex === 4) {
                 persistentCtx.shadowColor = '#000';
                 persistentCtx.shadowBlur = 0;
                 
-                let strokeSize = 6 * (w / 3840);
+                let strokeSize = 12 * (w / 3840);
                 let diag = strokeSize * 0.375;
                 
                 const offsets = [
@@ -9001,8 +9769,8 @@ else if (window.layerState.bpStyleIndex === 4) {
                 persistentCtx.restore();
             };
 
-            drawBrawlerS1(globalAssets[`brawler_${currentSeason}_1`], b1x, b1y, b1s, b1f);
-            drawBrawlerS1(globalAssets[`brawler_${currentSeason}_2`], b2x, b2y, b2s, b2f);
+            drawBrawlerS1(window.getBrawlerImg(1, currentSeason), b1x, b1y, b1s, b1f);
+            drawBrawlerS1(window.getBrawlerImg(2, currentSeason), b2x, b2y, b2s, b2f);
 
             let priceW = w * 0.24;
             let marginX = w * 0.02;
@@ -9447,7 +10215,11 @@ function drawBeautifulNick(ctx, text, w, h) {
       wizardInsertBtn.style.display = 'flex';
   }
 
-  window.resetWizardState = () => {
+window.resetWizardState = () => {
+
+      window.currentProjectId = null;
+      window._spCreatedAt = null;
+      isCurrentProjectSaved = false;
 
       selectedCategory = null;
       selectedBPSub = null;
@@ -9607,9 +10379,9 @@ if (fankitGrid && fankitGrid.children.length === 0) {
     const recGrid = document.getElementById('fankit-rec-grid');
     
     const recBackgrounds = [
-        { src: 'bg/bg18_BP50.png', text: '51 сезон' },
-        { src: 'bg/bg19_BP49.png', text: '50 сезон' },
-        { src: 'bg/bg20_BP48.png', text: '49 сезон' }
+        { src: 'bg/bg20_BP50.jpg', text: '52 сезон' },
+        { src: 'bg/bg18_BP49.jpg', text: '51 сезон' },
+        { src: 'bg/bg19_BP48.jpg', text: '50 сезон' }
     ];
 
     const handleFankitSelection = (itemElement, imgSrc) => {
@@ -9622,11 +10394,16 @@ if (fankitGrid && fankitGrid.children.length === 0) {
         if (window.fankitContext === 'editor') {
             let img = new Image();
             img.crossOrigin = "anonymous";
+            img.onerror = () => {
+                let pngSrc = imgSrc.replace(/\.jpg$/i, '.png');
+                if (pngSrc !== imgSrc) { img.onerror = null; img.src = pngSrc; }
+            };
             img.onload = () => {
-                rawBgImage = img; 
+                rawBgImage = img;
                 window.layerState.isGeneratedBg = false;
                 window.layerState.bgColorType = null;
                 window.layerState.isReadyBg = false;
+                isCurrentProjectSaved = false; 
                 
                 if (window.layerState.isBrawlPassMode) {
                 if (window.layerState.isBrawlPassMode) {
@@ -9660,6 +10437,10 @@ if (fankitGrid && fankitGrid.children.length === 0) {
         
         document.getElementById('wizard-upload-ready-text').innerText = "Загрузить готовый фон";
 
+        uploadedBaseImg.onerror = () => {
+            let pngSrc = imgSrc.replace(/\.jpg$/i, '.png');
+            if (pngSrc !== imgSrc) { uploadedBaseImg.onerror = null; uploadedBaseImg.src = pngSrc; }
+        };
         uploadedBaseImg.onload = () => {
             document.getElementById('wizard-upload-text').innerText = "Фон с Fankit выбран";
             checkStep1Ready();
@@ -9677,22 +10458,31 @@ if (fankitGrid && fankitGrid.children.length === 0) {
 
                 let img = new Image();
                 img.crossOrigin = "anonymous";
+
+                const applyBg = (finalSrc) => {
+                    item.classList.remove('loading');
+                    item.style.backgroundImage = `url('${finalSrc}')`;
+                    item.setAttribute('data-src', finalSrc);
+                };
+
+                img.onload = () => applyBg(imgSrc);
+                img.onerror = () => {
+                    let pngSrc = imgSrc.replace(/\.jpg$/i, '.png');
+                    if (pngSrc !== imgSrc) {
+                        let img2 = new Image();
+                        img2.crossOrigin = "anonymous";
+                        img2.onload = () => applyBg(pngSrc);
+                        img2.src = pngSrc;
+                    }
+                };
                 img.src = imgSrc;
 
-                img.decode().then(() => {
-                    item.classList.remove('loading');
-                    item.style.backgroundImage = `url('${imgSrc}')`;
-                }).catch(() => {
-                    img.onload = () => {
-                        item.classList.remove('loading');
-                        item.style.backgroundImage = `url('${imgSrc}')`;
-                    };
-                });
-
-                observer.unobserve(item); 
+                observer.unobserve(item);
             }
         });
     }, { rootMargin: '250px' }); 
+
+    window._fankitImageObserver = imageObserver; 
 
     recBackgrounds.forEach((bg) => {
         let item = document.createElement('div');
@@ -9706,27 +10496,58 @@ if (fankitGrid && fankitGrid.children.length === 0) {
         imageObserver.observe(item); 
     });
 
-    const standardBackgrounds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 21];
-    
-    standardBackgrounds.forEach((num) => {
-        let item = document.createElement('div');
-        item.className = 'fankit-item loading';
-        fankitGrid.appendChild(item);
+        const standardBackgrounds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23];
 
-        let originalSrc = `bg/bg${num}.png`;
-        
-        item.setAttribute('data-src', originalSrc); 
-        item.onclick = () => handleFankitSelection(item, originalSrc);
+        standardBackgrounds.forEach((num) => {
+            let item = document.createElement('div');
+            item.className = 'fankit-item loading';
 
-        imageObserver.observe(item); 
-    });
+            if (num === 1 || num === 2) {
+                item.style.position = 'relative';
+                item.innerHTML = '<div class="fankit-rec-badge" style="z-index: 6;">НОВОЕ</div>';
+            }
+
+            fankitGrid.appendChild(item);
+
+            let originalSrc = `bg/bg${num}.jpg`; 
+                       
+            item.setAttribute('data-src', originalSrc); 
+            item.onclick = () => handleFankitSelection(item, originalSrc);
+
+            imageObserver.observe(item); 
+        });
 }
 
-  window.fankitContext = 'wizard'; 
-  
+    window.fankitContext = 'wizard'; 
+
+  window.preloadFankitImages = function() {
+      let items = document.querySelectorAll('#fankit-overlay .fankit-item[data-src], #fankit-overlay .fankit-rec-item[data-src]');
+      items.forEach(item => {
+          if (!item.classList.contains('loading')) return; 
+          let src = item.getAttribute('data-src');
+          if (!src) return;
+
+          if (window._fankitImageObserver) window._fankitImageObserver.unobserve(item);
+
+          let img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = src;
+          const apply = () => {
+              item.classList.remove('loading');
+              item.style.backgroundImage = `url('${src}')`;
+          };
+          if (img.decode) {
+              img.decode().then(apply).catch(() => { img.onload = apply; });
+          } else {
+              img.onload = apply;
+          }
+      });
+  };
+
   window.openFankitGlobal = function() {
       window.triggerHaptic();
       fankitOverlay.style.display = 'flex';
+      window.preloadFankitImages();
       setTimeout(() => fankitOverlay.classList.add('show'), 10);
   };
 
@@ -10262,25 +11083,38 @@ document.getElementById('wizard-next-btn4-bp').onclick = async () => {
     }, 50);
 };
 
-document.getElementById('dl-btn-save-project').onclick = (e) => {
+document.getElementById('dl-btn-save-project').onclick = async (e) => {
     e.preventDefault();
     window.triggerHaptic();
     let btn = e.currentTarget;
-    if (btn.classList.contains('is-loading')) return; 
-    
+    if (btn.classList.contains('is-loading')) return;
+
+    window.hideSaveHint();
+    window.registerSaveClick();
+
     btn.classList.add('is-loading');
     btn.style.pointerEvents = 'none';
+
+    let ok = await window.saveCurrentProject();
+
+    if (!ok) {
+        btn.classList.remove('is-loading');
+        btn.style.pointerEvents = 'auto';
+        return;
+    }
+
+    isCurrentProjectSaved = true;
+    await window.updateSavedCount();
 
     setTimeout(() => {
         let wrapper = document.getElementById('save-btn-wrapper');
         wrapper.classList.add('hidden-animated');
-
         setTimeout(() => {
             wrapper.style.display = 'none';
             btn.classList.remove('is-loading');
             btn.style.pointerEvents = 'auto';
-        }, 500); 
-    }, 800);
+        }, 500);
+    }, 600);
 };
 
 document.getElementById('dl-btn-actual-download').onclick = (e) => {
@@ -10569,6 +11403,9 @@ async function generateBrawlPassTest() {
         setupPersistentCanvas();
         renderLayerPanel();
         calculateLayoutTarget();
+        window.preloadBrawlerVariants(season).then(() => {
+            if (typeof startAnimation === 'function') startAnimation();
+        });
     };
     window.bpForegroundImage.src = c.toDataURL('image/png');
 }
@@ -10801,6 +11638,9 @@ window.openBPTestEditor = function() {
         renderLayerPanel(true);
         window.updateCachedTextCanvas();
         startAnimation();
+        window.preloadBrawlerVariants(season).then(() => {
+            if (typeof startAnimation === 'function') startAnimation();
+        });
     }, 100);
 };
 
@@ -10823,12 +11663,14 @@ window.openBPDopEditor = function() {
     window.layerState.isBrawlPassMode = true;
     window.layerState.bpStyleIndex = 'dop'; 
 
-    window.layerState.starsVisible = true;
-    window.layerState.pointsVisible = true;
-    window.layerState.watermarksVisible = true;
-    window.layerState.starsOpacity = 1.0;
-    window.layerState.pointsOpacity = 1.0;
-    window.layerState.watermarksOpacity = 0.15;
+    if (!window._spRestoring) {
+        window.layerState.starsVisible = true;
+        window.layerState.pointsVisible = true;
+        window.layerState.watermarksVisible = true;
+        window.layerState.starsOpacity = 1.0;
+        window.layerState.pointsOpacity = 1.0;
+        window.layerState.watermarksOpacity = 0.15;
+    }
 
     setTimeout(async () => {
         const load = (src) => new Promise(r => { const i = new Image(); i.crossOrigin="anonymous"; i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; });
@@ -10838,7 +11680,7 @@ window.openBPDopEditor = function() {
         if (!rawBgImage) rawBgImage = await load('bg/bg20_BP48.png');
 
         if (!globalAssets.dopPoints) globalAssets.dopPoints = await load('BP/bp_points_3style.png');
-        if (!globalAssets.dopStarsEff) globalAssets.dopStarsEff = await load('BP/bp_dop_starsEFF.png');
+        if (!globalAssets.dopStarsEff) globalAssets.dopStarsEff = await load('BP/dop_BP_EFF_stars.png');
         if (!globalAssets.dopStar) globalAssets.dopStar = await load('BP/bp_star.png');
         if (!globalAssets.dopDetailing) globalAssets.dopDetailing = await load('BP/dop_styleBPdop.png'); 
 
@@ -10861,12 +11703,39 @@ window.openBPDopEditor = function() {
         globalAssets.dopPanelL = await load(panelSrc); 
         globalAssets.dopPrice = await load(priceSrc);
 
+        if (window.layerState.bpVariantIndex === 2) {
+            globalAssets.dopPanelLOffer = await load(`BP/bp_panel_left${season}_offer.png`);
+        }
+
         if (!globalAssets.style2Text) globalAssets.style2Text = await load('BP/bp_text_style2.png');
 
         setupPersistentCanvas();
+
+        if (!window._spRestoring) window.layerState.customWatermarks = [
+            { "x": 1093, "y": 647,  "scale": 0.37, "skewX": -10 },
+            { "x": 515,  "y": 704,  "scale": 0.29, "skewX": -10 },
+            { "x": 689,  "y": 61,   "scale": 0.5,  "skewX": -10 },
+            { "x": 1080, "y": 129,  "scale": 0.28, "skewX": -10 },
+            { "x": 515,  "y": -94,  "scale": 0.66, "skewX": -10 },
+            { "x": 868,  "y": -74,  "scale": 0.24, "skewX": -10 },
+            { "x": 600,  "y": 776,  "scale": 0.5,  "skewX": -10 },
+            { "x": 160,  "y": -46,  "scale": 0.28, "skewX": -10 },
+            { "x": 1016, "y": 30,   "scale": 0.16, "skewX": -10 },
+            { "x": 892,  "y": 801,  "scale": 1.09, "skewX": -10 },
+            { "x": 51,   "y": 162,  "scale": 0.29, "skewX": -10 },
+            { "x": 1192, "y": -140, "scale": 1.17, "skewX": -10 },
+            { "x": 36,   "y": 421,  "scale": 0.19, "skewX": -10 },
+            { "x": 189,  "y": 727,  "scale": 0.49, "skewX": -10 },
+            { "x": 127,  "y": 812,  "scale": 0.83, "skewX": -10 },
+            { "x": 461,  "y": -3,   "scale": 0.15, "skewX": -10 }
+        ];
+
         renderLayerPanel(true);
         window.updateCachedTextCanvas();
         startAnimation();
+        window.preloadBrawlerVariants(season).then(() => {
+            if (typeof startAnimation === 'function') startAnimation();
+        });
     }, 100);
 };
 
@@ -10951,21 +11820,24 @@ window.openBPStyle4Editor = function() {
         }
 
         if (!globalAssets.s4Points)     globalAssets.s4Points     = await load('BP/bp_style2_points.png');
+        if (!globalAssets.s4Stars)      globalAssets.s4Stars      = await load('BP/stars_bp_style4.png');
         if (!globalAssets.s4Gems)       globalAssets.s4Gems       = await load('BP/bp_gems.png');
         if (!globalAssets.s4PinLeft)    globalAssets.s4PinLeft    = await load('BP/pin_4styleBP_left.png');
         if (!globalAssets.s4PinRight)   globalAssets.s4PinRight   = await load('BP/pin_4styleBP_right.png');
         if (!globalAssets.s4PassYellow) globalAssets.s4PassYellow = await load('BP/bp_icon_brawl_pass.png');
         if (!globalAssets.s4PassBlue)   globalAssets.s4PassBlue   = await load('BP/bp_icon_brawl_pass_plus.png');
         if (!globalAssets.s4PassPro)    globalAssets.s4PassPro    = await load('BP/bp_icon_pro_pass_icon.png');
-        if (!globalAssets.dopBg4)       globalAssets.dopBg4       = await load('BP/bp_dop4style.png'); 
+        globalAssets.dopBg4 = await load('BP/bp_style4_det.png');
 
         const season4 = window.layerState.bpSeason || 50;
         if (!globalAssets[`brawler_${season4}_1`]) globalAssets[`brawler_${season4}_1`] = await load(`BP/brawler_s${season4}_1.png`);
         if (!globalAssets[`brawler_${season4}_2`]) globalAssets[`brawler_${season4}_2`] = await load(`BP/brawler_s${season4}_2.png`);
 
+        await window.preloadBrawlerVariants(season4);
+
         setupPersistentCanvas();
 
-        window.layerState.customWatermarks = [
+        if (!window._spRestoring) window.layerState.customWatermarks = [
         {
             "x": 1206,
             "y": 138,
@@ -11407,7 +12279,7 @@ window.initPromoTimer = function() {
     const container = document.getElementById('promo-timer-container');
     if (!timerEl || !container) return;
 
-    const targetTime = new Date("2026-06-04T11:00:00+03:00").getTime();
+    const targetTime = new Date("2026-07-02T11:00:00+03:00").getTime();
     let timeOffset = 0; 
     let timerInterval;
 
@@ -11494,18 +12366,9 @@ window.openBPFromPromo = function() {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-    function drawCover(ctx, img, w, h) {
-        if (!img.naturalWidth || !img.naturalHeight) return;
-        const r = Math.max(w / img.naturalWidth, h / img.naturalHeight);
-        const nw = img.naturalWidth * r, nh = img.naturalHeight * r;
-        const nx = (w - nw) / 2, ny = (h - nh) / 2;
-        ctx.drawImage(img, nx, ny, nw, nh);
-    }
-
     document.querySelectorAll('.slider-wrapper').forEach(wrapper => {
         const imgEl = wrapper.querySelector('.slider-img');
-        const canvas = wrapper.querySelector('.slider-canvas');
-        if (!imgEl || !canvas) return;
+        if (!imgEl) return;
 
         let images = [];
         try {
@@ -11514,23 +12377,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (images.length < 2) return;
 
-        images.forEach(src => {
-            const img = new Image();
-            img.src = src;
-        });
+        images.forEach(src => { const i = new Image(); i.src = src; });
+
+        wrapper.style.overflow = 'hidden'; 
 
         let currentIndex = 0;
+        let currentImg = imgEl;
+        currentImg.style.zIndex = '2';
+
+        const makeLayer = (src) => {
+            const layer = document.createElement('img');
+            layer.className = 'slider-img';
+            layer.src = src;
+            layer.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; will-change:transform,opacity,filter;';
+            return layer;
+        };
+
+        const SWAP_MS = 760; 
 
         setInterval(() => {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             currentIndex = (currentIndex + 1) % images.length;
-            imgEl.src = images[currentIndex];
-            imgEl.classList.remove('smooth-anim');
-            void imgEl.offsetWidth; 
-            imgEl.classList.add('smooth-anim');
-        }, 1500);
+
+            const incoming = makeLayer(images[currentIndex]);
+            incoming.style.zIndex = '1';
+            incoming.classList.add('slider-anim-in');
+            wrapper.insertBefore(incoming, wrapper.firstChild);
+
+            const outgoing = currentImg;
+            outgoing.style.zIndex = '2';
+            outgoing.classList.remove('slider-anim-in');
+            void outgoing.offsetWidth;
+            outgoing.classList.add('slider-anim-out');
+
+            setTimeout(() => {
+                if (outgoing && outgoing.parentNode) outgoing.remove();
+                incoming.classList.remove('slider-anim-in');
+                incoming.style.zIndex = '2';
+                currentImg = incoming;
+            }, SWAP_MS);
+        }, 2000);
     });
 });
 
@@ -11837,8 +12722,8 @@ window.preloadAllImages = function() {
         window._preloadCache.push(img); 
     };
 
-    ['bg/bg18_BP50.png','bg/bg19_BP49.png','bg/bg20_BP48.png'].forEach(s => add(s, true));
-    ['demo_png50s.png','demo_png49s.png','demo_png48s.png'].forEach(s => add(s, false));
+    ['bg/bg18_BP50.jpg','bg/bg19_BP49.jpg','bg/bg20_BP48.jpg'].forEach(s => add(s, true));
+    ['demo_png50s.jpg','demo_png49s.jpg','demo_png48s.jpg'].forEach(s => add(s, false));
 
     document.querySelectorAll('[data-src]').forEach(el => add(el.getAttribute('data-src'), true));
 
@@ -11867,6 +12752,21 @@ window.addEventListener('load', () => {
     if ('requestIdleCallback' in window) requestIdleCallback(window.warmUpFonts, { timeout: 3000 });
     else setTimeout(window.warmUpFonts, 1500);
 });
+
+
+(function loadAvaVideo(){
+  function go(){
+    var v = document.getElementById('snapi-ava-video');
+    if (!v || v.src) return;
+    v.src = v.dataset.src;
+    v.load();
+    var p = v.play();
+    if (p && p.catch) p.catch(function(){});
+  }
+  if ('requestIdleCallback' in window) requestIdleCallback(go, { timeout: 1500 });
+  else setTimeout(go, 800);
+})();
+
 </script>
 </body>
 </html>
