@@ -9077,6 +9077,28 @@ function drawScene() {
                 ctx.drawImage(rawBgImage, 0, 0, W, H);
             }
 
+            if (window.layerState.watermarksVisible !== false) {
+                let wmText = window.layerState.textValue || "SNAPI";
+                let wmFont = window.layerState.watermarksFont || 'Font16103';
+                let wmAlpha = window.layerState.watermarksOpacity !== undefined ? window.layerState.watermarksOpacity : 0.8;
+                ctx.save();
+                ctx.globalCompositeOperation = 'overlay';
+                ctx.globalAlpha = wmAlpha;
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                let wmArray = window.layerState.customWatermarks || [];
+                wmArray.forEach(wm => {
+                    ctx.save();
+                    ctx.translate(wm.x * s, wm.y * s);
+                    if (wm.skewX) ctx.transform(1, 0, Math.tan(wm.skewX * Math.PI / 180), 1, 0, 0);
+                    ctx.font = `${56 * wm.scale * s}px '${wmFont}', sans-serif`;
+                    ctx.fillText(wmText, 0, 0);
+                    ctx.restore();
+                });
+                ctx.restore();
+            }
+
             if (window.layerState.dopBg4Visible !== false && globalAssets.dopBg4) {
                 ctx.save();
                 ctx.globalCompositeOperation = 'screen';
@@ -9276,28 +9298,6 @@ function drawScene() {
                 const scGems = Math.min(500*1.4/globalAssets.s4Gems.width, 550*1.4/globalAssets.s4Gems.height);
                 ctx.drawImage(globalAssets.s4Gems, (380 - globalAssets.s4Gems.width*scGems/2)*s, (277 - globalAssets.s4Gems.height*scGems/2)*s, globalAssets.s4Gems.width*scGems*s, globalAssets.s4Gems.height*scGems*s);
                 ctx.restore();
-                ctx.restore();
-            }
-
-            if (window.layerState.watermarksVisible !== false) {
-                let wmText = window.layerState.textValue || "SNAPI";
-                let wmFont = window.layerState.watermarksFont || 'Font16103';
-                let wmAlpha = window.layerState.watermarksOpacity !== undefined ? window.layerState.watermarksOpacity : 0.8;
-                ctx.save();
-                ctx.globalCompositeOperation = 'overlay';
-                ctx.globalAlpha = wmAlpha;
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'top';
-                let wmArray = window.layerState.customWatermarks || [];
-                wmArray.forEach(wm => {
-                    ctx.save();
-                    ctx.translate(wm.x * s, wm.y * s);
-                    if (wm.skewX) ctx.transform(1, 0, Math.tan(wm.skewX * Math.PI / 180), 1, 0, 0);
-                    ctx.font = `${56 * wm.scale * s}px '${wmFont}', sans-serif`;
-                    ctx.fillText(wmText, 0, 0);
-                    ctx.restore();
-                });
                 ctx.restore();
             }
 
