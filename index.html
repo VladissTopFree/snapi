@@ -8,11 +8,11 @@
 <title>Snapi</title>
 
 <script>
-  const APP_VERSION = "v2.4.4";
+  const APP_VERSION = "v2.4.4(1)";
   const APP_BUILD = "BETA"; 
   document.title = "Snapi " + APP_VERSION + " BETA";
 
-  const SHOW_PROMO_BANNER = true; 
+  const SHOW_PROMO_BANNER = false; 
   const REQUIRE_TELEGRAM_APP = true; 
 
   window.isNewUser = localStorage.getItem('Snapi_visited') === null;
@@ -7264,25 +7264,33 @@ function autoReplacePrice(ctx, w, h) {
   const d = imgData.data;
 
 let seedCandidates = [];
-let scanCols = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70];
+let scanCols = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85];
 for (let frac of scanCols) {
   let sx = Math.floor(w * frac);
   let sy = h - Math.max(3, Math.floor(h * 0.02));
   while (sy > h * 0.55) {
     let i = (sy * w + sx) * 4;
-    if (d[i+3] > 200 && (d[i] > 60 || d[i+1] > 60 || d[i+2] > 60)) {
+    let sr = d[i], sg = d[i+1], sb = d[i+2];
+    let sMax = Math.max(sr, sg, sb);
+    let sMin = Math.min(sr, sg, sb);
+    if (d[i+3] > 200 && sMax > 160 && (sMax - sMin) > 60) {
       seedCandidates.push({ x: sx, y: Math.max(0, sy - 15) });
       break;
     }
     sy--;
   }
 }
-if (seedCandidates.length === 0) return; 
-seedCandidates.sort((a, b) => a.y - b.y);
-let seed = seedCandidates[Math.floor(seedCandidates.length / 2)]; 
-let seedX = seed.x;
-let seedY = seed.y;
+if (seedCandidates.length === 0) return;
 
+seedCandidates.sort((a, b) => a.x - b.x);
+let seedGroups = [];
+seedCandidates.forEach(sc => {
+    let g = seedGroups[seedGroups.length - 1];
+    if (g && (sc.x - g[g.length - 1].x) < w * 0.12) g.push(sc);
+    else seedGroups.push([sc]);
+});
+
+  const processPlate = (seedX, seedY) => {
   let colors = {};
   for(let y = seedY - 20; y <= seedY + 20; y++) {
     for(let x = seedX - 20; x <= seedX + 20; x++) {
@@ -7301,7 +7309,7 @@ let seedY = seed.y;
   
   let maxCount = 0; let bgKey = "";
   for (let k in colors) { if (colors[k] > maxCount) { maxCount = colors[k]; bgKey = k; } }
-  if (!bgKey) return; 
+  if (!bgKey) return null; 
 
   let [qR, qG, qB] = bgKey.split(',').map(Number);
   let sumR=0, sumG=0, sumB=0, sumC=0;
@@ -7365,11 +7373,11 @@ function isBg(x, y) {
       }
     }
   }
-  if (minBoxX === w) return; 
+  if (minBoxX === w) return null; 
 
   let _detW = maxBoxX - minBoxX;
   let _detH = maxBoxY - minBoxY;
-  if (_detW < w * 0.25 || _detH < h * 0.04) return; 
+  if (_detW < w * 0.25 || _detH < h * 0.04) return null 
 
   let outsideMask = new Uint8Array(w * h);
   let outStackX = []; let outStackY = [];
@@ -7438,10 +7446,7 @@ for (let y=0;y<boxH;y++) for (let x=0;x<boxW;x++)
     d[i]=bgR; d[i+1]=bgG; d[i+2]=bgB; d[i+3]=255;
   }
 
-  ctx.putImageData(imgData, 0, 0);
-  let blankedImgData = ctx.getImageData(0, 0, w, h);
-
-  let boxHeight = maxBoxY - minBoxY;
+let boxHeight = maxBoxY - minBoxY;
   let textY = minBoxY + boxHeight * 0.45; 
   let sumX = 0; let validRows = 0; let scanRange = Math.floor(boxHeight * 0.2);
   
@@ -7456,7 +7461,25 @@ for (let y=0;y<boxH;y++) for (let x=0;x<boxW;x++)
   }
 
   let textX = validRows > 0 ? (sumX / validRows) : ((minBoxX + maxBoxX) / 2);
-  return { blankedImgData, textX, textY, boxHeight };
+  return { textX, textY, boxHeight, plateWidth: maxBoxX - minBoxX };
+  }; 
+
+  let plates = [];
+  seedGroups.forEach(g => {
+      let sc = g[Math.floor(g.length / 2)];
+      let res = processPlate(sc.x, sc.y);
+      if (res) plates.push(res);
+  });
+
+  if (plates.length === 0) return;
+
+  plates.sort((a, b) => b.plateWidth - a.plateWidth);
+  let main = plates[0];
+
+  ctx.putImageData(imgData, 0, 0);
+  let blankedImgData = ctx.getImageData(0, 0, w, h);
+
+  return { blankedImgData, textX: main.textX, textY: main.textY, boxHeight: main.boxHeight };
 }
 
 function drawPriceText(ctx, w, h, textStr, info) {
@@ -7632,13 +7655,18 @@ function runMagicLogic(img) {
         const tooWide = compW > w * 0.72;
         const tooBig  = comp.area > totalPixels * 0.45;
 
+        const touchesRightEdge = comp.maxX >= w - 3; 
+        const touchesLeftEdge  = comp.minX <= 2;
+
         if (comp.area > totalPixels * 0.015 && 
             compH > h * 0.25 &&          
             fillRatio > 0.40 &&
             !isLeftUI && 
             !isTopUI &&
             !tooWide &&
-            !tooBig)    
+            !tooBig &&
+            !touchesRightEdge &&
+            !touchesLeftEdge)    
         {
             validLabels[comp.label] = 1;
         }
